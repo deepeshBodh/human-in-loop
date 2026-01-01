@@ -1,6 +1,6 @@
 # Phase 2: Contracts Procedures
 
-Detailed procedures for the Contracts phase (plan-contract agent).
+Detailed procedures for the Contracts phase (plan-builder, phase 2).
 
 ---
 

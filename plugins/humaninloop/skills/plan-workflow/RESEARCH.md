@@ -1,6 +1,6 @@
 # Phase 0: Research Procedures
 
-Detailed procedures for the Research phase (plan-research agent).
+Detailed procedures for the Research phase (plan-builder, phase 0).
 
 ---
 

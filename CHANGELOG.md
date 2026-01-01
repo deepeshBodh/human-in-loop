@@ -139,9 +139,7 @@ Initial marketplace release with core specification-driven workflow.
 #### New Agents
 - `spec-writer` - Writes structured specifications
 - `spec-clarify` - Clarifies ambiguous requirements
-- `plan-research` - Researches codebase for planning context
-- `plan-contract` - Defines contracts between components
-- `plan-domain-model` - Creates domain models
+- `plan-builder` - Builds plan artifacts (research, domain model, contracts) for any phase
 - `plan-validator` - Validates plan completeness
 - `codebase-discovery` - Discovers existing codebase patterns
 - `gap-classifier` - Classifies implementation gaps

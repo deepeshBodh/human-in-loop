@@ -549,9 +549,9 @@ If unable to identify framework:
 **Upstream**: Supervisor (/humaninloop:plan) spawns this agent at Phase A0
 
 **Downstream**: Inventory is used by:
-- `plan-research`: Tech stack and dependencies context
-- `plan-domain-model`: Existing entities and vocabulary
-- `plan-contract`: Existing endpoints and API patterns
+- `plan-builder` (phase 0): Tech stack and dependencies context
+- `plan-builder` (phase 1): Existing entities and vocabulary
+- `plan-builder` (phase 2): Existing endpoints and API patterns
 
 **State Updates**:
 - Write: `specs/{feature_id}/.workflow/codebase-inventory.json`

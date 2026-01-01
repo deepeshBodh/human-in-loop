@@ -65,17 +65,17 @@ AskUserQuestion(
 │                                                                      │
 │  PHASE B: Agent Loop (C-lite)                                        │
 │  ├── B0: Research Phase (max 3 iterations)                          │
-│  │   ├── Spawn plan-research agent                                  │
+│  │   ├── Spawn plan-builder (phase=0)                               │
 │  │   ├── Spawn plan-validator (research-checks)                     │
 │  │   └── Loop if gaps, escalate if stale                            │
 │  │                                                                   │
 │  ├── B1: Domain Model Phase (max 3 iterations)                      │
-│  │   ├── Spawn plan-domain-model agent                              │
+│  │   ├── Spawn plan-builder (phase=1)                               │
 │  │   ├── Spawn plan-validator (model-checks)                        │
 │  │   └── Loop if gaps, escalate if stale                            │
 │  │                                                                   │
 │  ├── B2: Contract Phase (max 3 iterations)                          │
-│  │   ├── Spawn plan-contract agent                                  │
+│  │   ├── Spawn plan-builder (phase=2)                               │
 │  │   ├── Spawn plan-validator (contract-checks)                     │
 │  │   └── Loop if gaps, escalate if stale                            │
 │  │                                                                   │
@@ -98,9 +98,7 @@ AskUserQuestion(
 | Agent | Type | Purpose | Model |
 |-------|------|---------|-------|
 | codebase-discovery | Specialized | Analyze existing codebase, detect collisions (Phase A0) | Sonnet |
-| plan-research | Specialized | Resolve unknowns, document decisions | Sonnet |
-| plan-domain-model | Specialized | Extract entities, relationships, validation | Opus |
-| plan-contract | Specialized | Map endpoints, schemas, quickstart | Opus |
+| plan-builder | Phase-aware | Build artifacts for phase 0/1/2 (research, domain, contracts) | Opus |
 | plan-validator | Modular | Validate artifacts against check modules | Sonnet |
 
 ---
@@ -495,10 +493,10 @@ FUNCTION check_termination():
 
 **LOOP** (max 3 iterations):
 
-1. **Spawn Research Agent**:
+1. **Spawn Plan Builder (Phase 0)**:
    ```
    Task(
-     subagent_type: "plan-research",
+     subagent_type: "plan-builder",
      description: "Research unknowns",
      prompt: JSON.stringify({
        feature_id: "{feature_id}",
@@ -562,10 +560,10 @@ FUNCTION check_termination():
 
 **LOOP** (max 3 iterations):
 
-1. **Spawn Domain Model Agent**:
+1. **Spawn Plan Builder (Phase 1)**:
    ```
    Task(
-     subagent_type: "plan-domain-model",
+     subagent_type: "plan-builder",
      description: "Create data model",
      prompt: JSON.stringify({
        feature_id: "{feature_id}",
@@ -626,10 +624,10 @@ FUNCTION check_termination():
 
 **LOOP** (max 3 iterations):
 
-1. **Spawn Contract Agent**:
+1. **Spawn Plan Builder (Phase 2)**:
    ```
    Task(
-     subagent_type: "plan-contract",
+     subagent_type: "plan-builder",
      description: "Create API contracts",
      prompt: JSON.stringify({
        feature_id: "{feature_id}",

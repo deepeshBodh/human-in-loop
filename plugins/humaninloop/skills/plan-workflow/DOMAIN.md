@@ -1,6 +1,6 @@
 # Phase 1: Domain Model Procedures
 
-Detailed procedures for the Domain Model phase (plan-domain-model agent).
+Detailed procedures for the Domain Model phase (plan-builder, phase 1).
 
 ---
 
