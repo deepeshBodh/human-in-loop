@@ -1,0 +1,12 @@
+{
+  "name": "humaninloop-constitution",
+  "version": "0.1.0",
+  "description": "Project constitution setup for HumanInLoop workflows",
+  "author": {
+    "name": "HumanInLoop",
+    "url": "https://humaninloop.dev"
+  },
+  "license": "MIT",
+  "keywords": ["constitution", "principles", "governance", "workflow", "configuration"],
+  "commands": "./commands/"
+}

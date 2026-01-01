@@ -1,0 +1,23 @@
+{
+  "name": "humaninloop",
+  "version": "0.1.0",
+  "description": "Specification-driven development workflow: specify → plan → tasks → implement",
+  "author": {
+    "name": "HumanInLoop",
+    "url": "https://humaninloop.dev"
+  },
+  "license": "MIT",
+  "keywords": [
+    "specification",
+    "requirements",
+    "planning",
+    "implementation",
+    "multi-agent",
+    "workflow",
+    "quality",
+    "sdlc"
+  ],
+  "commands": "./commands/",
+  "agents": "./agents/",
+  "checkModules": "./check-modules/"
+}
