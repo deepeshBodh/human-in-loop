@@ -55,6 +55,7 @@ Want to add your plugin to the marketplace? See [CONTRIBUTING.md](./CONTRIBUTING
 ## Documentation
 
 - [Claude Code Plugin Documentation](./docs/claude-plugin-documentation.md) - Complete technical reference for building plugins
+- [Release Philosophy](./RELEASES.md) - Versioning strategy and release guidelines
 
 ## Repository Structure
 
@@ -74,6 +75,7 @@ human-in-loop-marketplace/
 │       └── templates/             # Constitution template
 ├── docs/                          # Documentation
 ├── README.md
+├── RELEASES.md                    # Release philosophy
 ├── CONTRIBUTING.md
 └── LICENSE
 ```

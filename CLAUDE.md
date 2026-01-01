@@ -50,6 +50,7 @@ docs/speckit-artefacts/
 ## Documentation
 
 - **[docs/claude-plugin-documentation.md](docs/claude-plugin-documentation.md)**: Primary reference for Claude Code plugin development. Contains comprehensive technical details on plugin architecture, commands, skills, hooks, MCP integrations, and more.
+- **[RELEASES.md](RELEASES.md)**: Release philosophy and versioning strategy for the marketplace.
 
 ## Marketplace Structure
 
@@ -75,6 +76,7 @@ human-in-loop-marketplace/
 │   ├── claude-plugin-documentation.md
 │   └── speckit-artefacts/         # READ-ONLY reference (original speckit)
 ├── README.md
+├── RELEASES.md                    # Release philosophy and versioning
 ├── CONTRIBUTING.md
 └── LICENSE
 ```
@@ -83,7 +85,7 @@ human-in-loop-marketplace/
 
 | Plugin | Description | Commands |
 |--------|-------------|----------|
-| `humaninloop` | Specification-driven development workflow | `/humaninloop:specify`, `/humaninloop:plan` |
+| `humaninloop` | Specification-driven development workflow | `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:analyze`, `/humaninloop:checklist`, `/humaninloop:implement` |
 | `humaninloop-constitution` | Project constitution setup | `/humaninloop-constitution:setup` |
 
 ## Common Commands
