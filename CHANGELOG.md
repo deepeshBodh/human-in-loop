@@ -6,6 +6,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.2.6] - 2026-01-01
+
+Fix skill description parsing for proper model-invoked triggering.
+
+### humaninloop 0.2.6
+
+#### Fixes
+- **iterative-analysis skill** - Fixed YAML multi-line description format that prevented skill from triggering
+  - Changed from multi-line YAML (`description: |`) to single-line format
+  - Claude Code's YAML parser doesn't correctly handle multi-line descriptions
+  - Skill now properly triggers on "brainstorm", "deep analysis", "let's think through", etc.
+
+---
+
 ## [0.2.5] - 2026-01-01
 
 New iterative-analysis skill for progressive brainstorming.
@@ -156,6 +170,7 @@ Initial marketplace scaffold.
 
 ---
 
+[0.2.6]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.6
 [0.2.5]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.5
 [0.2.4]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.4
 [0.2.3]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.3

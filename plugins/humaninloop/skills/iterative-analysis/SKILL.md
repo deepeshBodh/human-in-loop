@@ -1,11 +1,6 @@
 ---
 name: iterative-analysis
-description: |
-  Progressive deep analysis through one-by-one questioning with recommendations.
-  Presents 2-3 options per question with a clear recommendation and reasoning.
-  Challenges disagreement to strengthen thinking. Concludes with a synthesis document.
-  Use when user explicitly says "brainstorm", "deep analysis", "let's think through",
-  "analyze this with me", or "help me think through".
+description: This skill should be used when the user says "brainstorm", "deep analysis", "let's think through", "analyze this with me", or "help me think through". Provides progressive deep analysis through one-by-one questioning with 2-3 options per question and clear recommendations. Challenges disagreement to strengthen thinking and concludes with a synthesis document.
 ---
 
 # Iterative Analysis

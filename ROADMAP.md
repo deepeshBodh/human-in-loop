@@ -8,7 +8,7 @@ This document outlines the vision and planned evolution of the HumanInLoop Marke
 
 The HumanInLoop Marketplace provides Claude Code plugins that enforce specification-driven development—ensuring architectural decisions are made by humans before AI writes code.
 
-## Current State (v0.2.5)
+## Current State (v0.2.6)
 
 The marketplace is in active development. The core specify → plan → tasks workflow is functional.
 
