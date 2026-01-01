@@ -6,6 +6,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.2.1] - 2026-01-01
+
+Plugin manifest fix for Claude Code compatibility.
+
+### humaninloop 0.2.1
+
+#### Fixes
+- Fixed plugin.json to use explicit agent file paths instead of directory reference
+- Removed unsupported `checkModules` field from plugin manifest
+
+---
+
 ## [0.2.0] - 2026-01-01
 
 Tasks workflow release: Generate implementation tasks from plans with brownfield support.
@@ -86,6 +98,7 @@ Initial marketplace scaffold.
 
 ---
 
+[0.2.1]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.1
 [0.2.0]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.0
 [0.1.0]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.1.0
 [0.0.1]: https://github.com/deepeshBodh/human-in-loop-marketplace/commits/main

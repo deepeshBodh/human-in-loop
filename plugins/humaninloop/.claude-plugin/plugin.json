@@ -1,6 +1,6 @@
 {
   "name": "humaninloop",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Specification-driven development workflow: specify → plan → tasks → implement",
   "author": {
     "name": "HumanInLoop",
@@ -18,6 +18,20 @@
     "sdlc"
   ],
   "commands": "./commands/",
-  "agents": "./agents/",
-  "checkModules": "./check-modules/"
+  "agents": [
+    "./agents/checklist-context-analyzer.md",
+    "./agents/checklist-writer.md",
+    "./agents/codebase-discovery.md",
+    "./agents/gap-classifier.md",
+    "./agents/plan-contract.md",
+    "./agents/plan-domain-model.md",
+    "./agents/plan-research.md",
+    "./agents/plan-validator.md",
+    "./agents/scaffold-agent.md",
+    "./agents/spec-clarify.md",
+    "./agents/spec-writer.md",
+    "./agents/task-generator.md",
+    "./agents/task-planner.md",
+    "./agents/task-validator.md"
+  ]
 }
