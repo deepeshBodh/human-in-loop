@@ -98,12 +98,12 @@ mkdir -p specs/{{BRANCH_NAME}}/.workflow
 mkdir -p specs/{{BRANCH_NAME}}/checklists
 ```
 
-### Step 4: Initialize Hybrid Workflow Context
+### Step 4: Initialize Unified Workflow Context
 
-The hybrid context architecture uses multiple context files for cross-workflow visibility.
+The unified index architecture uses a single comprehensive state file for all workflows.
 
-**4.1 Create index.md** (shared cross-workflow state):
-- Copy from `${CLAUDE_PLUGIN_ROOT}/templates/workflow-index-template.md`
+**Create index.md** (unified cross-workflow state):
+- Copy from `${CLAUDE_PLUGIN_ROOT}/templates/index-template.md`
 - Destination: `specs/{{BRANCH_NAME}}/.workflow/index.md`
 - Fill placeholders:
   - `{{feature_id}}` -> BRANCH_NAME
@@ -113,27 +113,12 @@ The hybrid context architecture uses multiple context files for cross-workflow v
   - `{{original_description}}` -> Original feature description verbatim
   - Set all document statuses to `absent` initially
   - Set `specify_status` to `in_progress`, all others to `not_started`
-
-**4.2 Create specify-context.md** (specify workflow state):
-- Copy from `${CLAUDE_PLUGIN_ROOT}/templates/specify-context-template.md`
-- Destination: `specs/{{BRANCH_NAME}}/.workflow/specify-context.md`
-- Fill placeholders:
-  - `{{feature_id}}` -> BRANCH_NAME
-  - `{{original_description}}` -> Original feature description
-  - `{{branch_name}}` -> BRANCH_NAME
-  - `{{timestamp}}` -> Current ISO 8601 timestamp
-  - `{{status}}` -> `scaffolding`
-  - `{{current_agent}}` -> `scaffold`
-
-**4.3 Create placeholder context files** for other workflows:
-- Copy `checklist-context-template.md` -> `checklist-context.md`
-- Copy `plan-context-template.md` -> `plan-context.md`
-- Copy `tasks-context-template.md` -> `tasks-context.md`
-- Set their status to `not_started`
+  - Set `loop_status` to `not_started`
+  - Set `current_agent` to `scaffold`
 
 ### Step 5: Add Decision Log Entry
 
-Add initial entry to **both** index.md and specify-context.md:
+Add initial entry to index.md Unified Decisions Log:
 
 ```markdown
 | {{timestamp}} | specify | scaffold | Created feature branch and directory | Auto-generated from description |
@@ -141,7 +126,7 @@ Add initial entry to **both** index.md and specify-context.md:
 
 ### Step 6: Update Handoff Notes
 
-In specify-context.md, update the handoff notes section:
+In index.md Agent Handoff Notes section:
 
 ```markdown
 ### From Scaffold Agent
@@ -160,8 +145,6 @@ Before returning success, verify all of the following:
 - [ ] Spec template file exists at `specs/{{BRANCH_NAME}}/spec.md`
 - [ ] Checklists directory exists at `specs/{{BRANCH_NAME}}/checklists/`
 - [ ] index.md created and populated at `specs/{{BRANCH_NAME}}/.workflow/index.md`
-- [ ] specify-context.md created at `specs/{{BRANCH_NAME}}/.workflow/specify-context.md`
-- [ ] Placeholder context files created for checklist, plan, tasks workflows
 - [ ] All template placeholders have been replaced
 - [ ] All paths in output JSON are valid and accessible
 
@@ -202,12 +185,9 @@ If scaffolding partially completes:
 ### Template Paths
 
 Templates are located in the shared templates directory:
-- `${CLAUDE_PLUGIN_ROOT}/templates/workflow-index-template.md`
-- `${CLAUDE_PLUGIN_ROOT}/templates/specify-context-template.md`
-- `${CLAUDE_PLUGIN_ROOT}/templates/checklist-context-template.md`
-- `${CLAUDE_PLUGIN_ROOT}/templates/plan-context-template.md`
-- `${CLAUDE_PLUGIN_ROOT}/templates/tasks-context-template.md`
+- `${CLAUDE_PLUGIN_ROOT}/templates/index-template.md` (unified workflow state)
 - `${CLAUDE_PLUGIN_ROOT}/templates/spec-template.md`
+- `${CLAUDE_PLUGIN_ROOT}/templates/checklist-template.md`
 
 ### Environment Variables
 

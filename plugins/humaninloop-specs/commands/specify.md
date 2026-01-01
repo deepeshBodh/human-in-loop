@@ -51,9 +51,8 @@ AskUserQuestion(
 │  PHASE A: Initial Specification                                      │
 │  ├── Scaffold Agent                                                  │
 │  ├── Spec Writer Agent                                               │
-│  ├── Checklist Context Analyzer                                      │
-│  ├── Checklist Writer Agent                                          │
-│  └── Gap Classifier Agent                                            │
+│  ├── Checklist Agent (analyze + generate)                           │
+│  └── Spec Clarify Agent (classify gaps)                             │
 │                                                                      │
 │  PHASE B: Priority Loop                                              │
 │  WHILE (critical + important > 0) AND (iteration < 10):             │
@@ -61,8 +60,8 @@ AskUserQuestion(
 │  ├── Check termination conditions                                    │
 │  ├── Present gaps via AskUserQuestion                               │
 │  ├── Spec Clarify Agent (apply answers)                             │
-│  ├── Re-run Checklist Writer                                        │
-│  ├── Re-run Gap Classifier                                           │
+│  ├── Re-run Checklist Agent                                         │
+│  ├── Re-run Spec Clarify (classify gaps)                            │
 │  └── Update index.md state                                           │
 │                                                                      │
 │  PHASE C: Completion                                                 │
@@ -79,12 +78,10 @@ AskUserQuestion(
 
 | Agent | File | Purpose |
 |-------|------|---------|
-| Scaffold | `${CLAUDE_PLUGIN_ROOT}/agents/scaffold-agent.md` | Create branch, directories, initialize context |
+| Scaffold | `${CLAUDE_PLUGIN_ROOT}/agents/scaffold-agent.md` | Create branch, directories, initialize unified index |
 | Spec Writer | `${CLAUDE_PLUGIN_ROOT}/agents/spec-writer.md` | Write user stories, requirements, criteria |
-| Checklist Context Analyzer | `${CLAUDE_PLUGIN_ROOT}/agents/checklist-context-analyzer.md` | Extract signals, identify focus areas |
-| Checklist Writer | `${CLAUDE_PLUGIN_ROOT}/agents/checklist-writer.md` | Generate quality checklist, classify gaps |
-| Gap Classifier | `${CLAUDE_PLUGIN_ROOT}/agents/gap-classifier.md` | Group gaps, generate clarifications |
-| Spec Clarify | `${CLAUDE_PLUGIN_ROOT}/agents/spec-clarify.md` | Apply user answers, update spec |
+| Checklist | `${CLAUDE_PLUGIN_ROOT}/agents/checklist-agent.md` | Analyze context, generate quality checklist, classify gaps |
+| Spec Clarify | `${CLAUDE_PLUGIN_ROOT}/agents/spec-clarify.md` | Dual-mode: classify gaps OR apply user answers |
 
 ---
 
@@ -185,23 +182,13 @@ Task(
 
 ### A3: Initial Validation (Checklist)
 
-**Spawn Checklist Context Analyzer**:
+**Spawn Checklist Agent** (combines context analysis and checklist generation):
 
 ```
 Task(
-  subagent_type: "humaninloop-specs:checklist-context-analyzer",
-  description: "Analyze spec for checklist",
-  prompt: [Include feature_id, specify_context_path]
-)
-```
-
-**Then spawn Checklist Writer**:
-
-```
-Task(
-  subagent_type: "humaninloop-specs:checklist-writer",
-  description: "Generate checklist with gaps",
-  prompt: [Include feature_id, specify_context_path, focus_areas]
+  subagent_type: "humaninloop-specs:checklist-agent",
+  description: "Analyze and generate checklist",
+  prompt: [Include feature_id, index_path]
 )
 ```
 
@@ -209,6 +196,7 @@ Task(
 - `gaps`: Object with critical, important, minor arrays
 - `gap_summary`: Counts of each priority
 - `checklist_file`: Path to generated checklist
+- `signals`: Extracted domain keywords and focus areas
 
 ---
 
@@ -216,13 +204,13 @@ Task(
 
 **If gaps.critical.length + gaps.important.length > 0**:
 
-**Spawn Gap Classifier Agent**:
+**Spawn Spec Clarify Agent** in `classify_gaps` mode:
 
 ```
 Task(
-  subagent_type: "humaninloop-specs:gap-classifier",
+  subagent_type: "humaninloop-specs:spec-clarify",
   description: "Classify and group gaps",
-  prompt: [Execute gap classification with gaps output]
+  prompt: [Execute with mode="classify_gaps", gaps from checklist-agent output]
 )
 ```
 
@@ -275,42 +263,43 @@ AskUserQuestion(
 
 ### B2: Process User Answers
 
-**Spawn Spec Clarify Agent** with answers:
+**Spawn Spec Clarify Agent** in `apply_answers` mode:
 
 ```
 Task(
   subagent_type: "humaninloop-specs:spec-clarify",
   description: "Apply clarifications",
-  prompt: [Include feature_id, paths, iteration, user_answers JSON]
+  prompt: [Execute with mode="apply_answers", feature_id, paths, iteration, user_answers JSON]
 )
 ```
 
 **Extract from result**:
 - `answers_applied`: Count of answers applied to spec
+- `gaps_resolved`: Count of gaps resolved
 - `spec_updated`: Boolean
-- `remaining_markers`: Any remaining [NEEDS CLARIFICATION] markers
+- `remaining_gaps`: Count of remaining unresolved gaps
 
 ---
 
 ### B3: Re-Validate Spec
 
-**Re-run Checklist Writer** to check if gaps are resolved:
+**Re-run Checklist Agent** to check if gaps are resolved:
 
 ```
 Task(
-  subagent_type: "humaninloop-specs:checklist-writer",
+  subagent_type: "humaninloop-specs:checklist-agent",
   description: "Re-validate spec",
-  prompt: [Include feature_id, specify_context_path, iteration]
+  prompt: [Include feature_id, index_path, iteration]
 )
 ```
 
-**If new gaps found**, re-run Gap Classifier:
+**If new gaps found**, run Spec Clarify in classify_gaps mode:
 
 ```
 Task(
-  subagent_type: "humaninloop-specs:gap-classifier",
+  subagent_type: "humaninloop-specs:spec-clarify",
   description: "Classify new gaps",
-  prompt: [Execute gap classification with new gaps]
+  prompt: [Execute with mode="classify_gaps", new gaps]
 )
 ```
 
@@ -533,25 +522,26 @@ The workflow supports resume from any point:
 
 ## Knowledge Sharing Protocol
 
-All agents share state via the **Hybrid Context Architecture**:
+All agents share state via the **Unified Index Architecture**:
 
-1. **Index File** (`index.md`):
-   - Priority Loop State (NEW)
-   - Gap Priority Queue (NEW)
-   - Traceability Matrix (NEW)
-   - Gap Resolution History (NEW)
-   - Unified Pending Questions
-   - Unified Decisions Log
-
-2. **Specify Context** (`specify-context.md`):
+1. **Unified Index File** (`index.md`):
+   - Feature Metadata & Document Availability
+   - Workflow Status Table
+   - Priority Loop State
    - Specification Progress
-   - Extracted Signals (from checklist context)
+   - Extracted Signals & Focus Areas
    - Checklist Configuration
+   - Gap Priority Queue
+   - Traceability Matrix
+   - Unified Pending Questions
+   - Gap Resolution History
+   - Unified Decisions Log
    - Agent Handoff Notes
+   - Feature Readiness
 
-3. **Prompt Injection**: Pass extracted data between agents
+2. **Prompt Injection**: Pass extracted data between agents
 
-4. **Filesystem**: Agents read/write spec.md, checklists, context files
+3. **Filesystem**: Agents read/write spec.md, checklists, index.md
 
 ---
 

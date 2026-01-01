@@ -53,3 +53,4 @@ Phase 7: Checklist Updates
 ## Related Skills
 
 - **spec-writing**: Reference for quality validation criteria and requirement formats
+- **clarification-patterns**: Gap classification, grouping, and answer application patterns

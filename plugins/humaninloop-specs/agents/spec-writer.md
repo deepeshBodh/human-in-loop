@@ -24,11 +24,15 @@ Generate feature specification content from natural language descriptions. You r
 ### Phase 1: Context Gathering
 
 Read and analyze these sources before writing:
-1. **index.md** - Cross-workflow state, document availability, pending questions
-2. **specify-context.md** - Workflow state, previous decisions, handoff notes
-3. **Spec template** - At the provided spec path
-4. **Constitution** - At `.humaninloop/memory/constitution.md` if it exists
-5. **Original description** - Analyze thoroughly for user intent
+1. **index.md** - Unified workflow state including:
+   - Document availability matrix
+   - Workflow status and progress
+   - Specification progress section
+   - Previous decisions and handoff notes
+   - Extracted signals and focus areas
+2. **Spec template** - At the provided spec path
+3. **Constitution** - At `.humaninloop/memory/constitution.md` if it exists
+4. **Original description** - Analyze thoroughly for user intent
 
 ### Phase 2: Specification Writing
 
@@ -53,10 +57,13 @@ When encountering ambiguity, apply the clarification threshold framework:
 
 ### Phase 4: Artifact Updates
 
-Update workflow context files after writing the spec:
-1. **specify-context.md** - Status, progress, decisions, handoff notes
-2. **index.md** - Document matrix, workflow status, traceability, decisions log
-3. **Validation checklist** - Create at `{{feature_dir}}/checklists/requirements.md`
+Update the unified index.md after writing the spec:
+1. **Specification Progress** - Status, user stories count, requirements count
+2. **Document Availability Matrix** - Mark spec.md as present
+3. **Workflow Status Table** - Update specify status
+4. **Unified Decisions Log** - Log specification decisions
+5. **Agent Handoff Notes** - Add notes for next agent
+6. **Validation checklist** - Create at `{{feature_dir}}/checklists/requirements.md`
 
 *See spec-writing skill for detailed update procedures.*
 
@@ -106,8 +113,7 @@ After completing all phases, return a JSON result object:
     "Email notifications are opt-in"
   ],
   "checklist_created": true,
-  "specify_context_updated": true,
-  "index_synced": true,
+  "index_updated": true,
   "priority_loop_initialized": true,
   "traceability_initialized": true,
   "decisions_logged": 2,

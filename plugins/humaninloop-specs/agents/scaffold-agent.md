@@ -50,15 +50,11 @@ Return a JSON object with all paths and status indicators:
     "feature_dir": "specs/005-user-auth/",
     "spec_file": "specs/005-user-auth/spec.md",
     "index_file": "specs/005-user-auth/.workflow/index.md",
-    "specify_context_file": "specs/005-user-auth/.workflow/specify-context.md",
-    "checklist_context_file": "specs/005-user-auth/.workflow/checklist-context.md",
-    "plan_context_file": "specs/005-user-auth/.workflow/plan-context.md",
-    "tasks_context_file": "specs/005-user-auth/.workflow/tasks-context.md",
     "checklist_dir": "specs/005-user-auth/checklists/"
   },
   "git_branch_created": true,
   "template_copied": true,
-  "hybrid_context_initialized": true
+  "index_initialized": true
 }
 ```
 
