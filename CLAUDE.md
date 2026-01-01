@@ -89,6 +89,7 @@ See [RELEASES.md](RELEASES.md) for release process. Update [CHANGELOG.md](CHANGE
 ## Documentation
 
 - **[docs/claude-plugin-documentation.md](docs/claude-plugin-documentation.md)**: Primary reference for Claude Code plugin development. Contains comprehensive technical details on plugin architecture, commands, skills, hooks, MCP integrations, and more.
+- **[docs/agent-skills-documentation.md](docs/agent-skills-documentation.md)**: Complete technical reference for Agent Skills. Covers SKILL.md schema, progressive disclosure, triggering mechanism, description optimization, bundled resources, and the agentskills.io ecosystem.
 - **[RELEASES.md](RELEASES.md)**: Release philosophy and versioning strategy for the marketplace.
 - **[CHANGELOG.md](CHANGELOG.md)**: Curated history of all releases.
 - **[ROADMAP.md](ROADMAP.md)**: Vision and planned features.
@@ -121,6 +122,7 @@ human-in-loop-marketplace/
 │   └── planned/                   # Future features (living roadmap)
 ├── docs/
 │   ├── decisions/                 # Architecture Decision Records
+│   ├── agent-skills-documentation.md
 │   ├── claude-plugin-documentation.md
 │   └── speckit-artefacts/         # READ-ONLY reference (original speckit)
 ├── README.md
