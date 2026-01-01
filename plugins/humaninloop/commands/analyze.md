@@ -17,9 +17,10 @@ If `$ARGUMENTS` is empty (blank string with no content), use AskUserQuestion to 
 ```
 AskUserQuestion(
   questions: [{
-    question: "⚠️ Known Issue: Input may have been lost\n\nClaude Code has a bug where inputs containing @ file references don't reach plugin commands.\n\nIf you intended to provide input, please enter it below. You can try using @ references again - they may work now. If not, describe the file path without @ (e.g., \"the file src/foo.ts\" instead of \"@src/foo.ts\").",
+    question: "⚠️ Known Issue: Input may have been lost\n\nClaude Code has a bug where inputs containing @ file references don't reach plugin commands.\n\nWould you like to re-enter your input?",
     header: "Input",
     options: [
+      {label: "Re-enter input", description: "I'll type my input in the terminal"},
       {label: "Continue without input", description: "Proceed with no input provided"}
     ],
     multiSelect: false
@@ -27,7 +28,7 @@ AskUserQuestion(
 )
 ```
 
-- If user provides input via the "Other" option → use that as the effective `$ARGUMENTS`
+- If user selects "Re-enter input" → wait for user to type their input in the terminal, then use that as the effective `$ARGUMENTS`
 - If user selects "Continue without input" → proceed with empty input (existing behavior)
 
 ## Goal

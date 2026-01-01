@@ -6,6 +6,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.2.3] - 2026-01-01
+
+Improved UX for empty input workaround - users can now re-enter input in the terminal.
+
+### humaninloop 0.2.3
+
+#### Fixes
+- Improved empty-input detection UX: added explicit "Re-enter input" option
+- When selected, command waits for user to type input in the terminal (better @ file reference support)
+- "Continue without input" option remains for proceeding without input
+
+### humaninloop-constitution 0.1.3
+
+#### Fixes
+- Same UX improvement for `setup` command
+
+---
+
 ## [0.2.2] - 2026-01-01
 
 Workaround for Claude Code `@` file reference parsing bug affecting plugin command inputs.
@@ -116,6 +134,7 @@ Initial marketplace scaffold.
 
 ---
 
+[0.2.3]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.3
 [0.2.2]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.2
 [0.2.1]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.1
 [0.2.0]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.0
