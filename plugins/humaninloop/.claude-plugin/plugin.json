@@ -1,36 +1,28 @@
 {
   "name": "humaninloop",
-  "version": "0.2.6",
-  "description": "Specification-driven development workflow: specify → plan → tasks → implement",
+  "version": "0.3.0",
+  "description": "Implementation workflow: plan → tasks → implement",
   "author": {
     "name": "HumanInLoop",
     "url": "https://humaninloop.dev"
   },
   "license": "MIT",
   "keywords": [
-    "specification",
-    "requirements",
     "planning",
     "implementation",
     "multi-agent",
     "workflow",
-    "quality",
+    "tasks",
     "sdlc"
   ],
   "commands": "./commands/",
   "skills": "./skills/",
   "agents": [
-    "./agents/checklist-context-analyzer.md",
-    "./agents/checklist-writer.md",
     "./agents/codebase-discovery.md",
-    "./agents/gap-classifier.md",
     "./agents/plan-contract.md",
     "./agents/plan-domain-model.md",
     "./agents/plan-research.md",
     "./agents/plan-validator.md",
-    "./agents/scaffold-agent.md",
-    "./agents/spec-clarify.md",
-    "./agents/spec-writer.md",
     "./agents/task-generator.md",
     "./agents/task-planner.md",
     "./agents/task-validator.md"

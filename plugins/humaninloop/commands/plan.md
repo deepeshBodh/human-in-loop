@@ -372,7 +372,7 @@ if (specify.loop_status != "completed"):
         header: "Entry Gate",
         options: [
           {label: "Proceed anyway (Recommended)", description: "Plan with current spec, may have gaps"},
-          {label: "Complete specification first", description: "Return to /humaninloop:specify"},
+          {label: "Complete specification first", description: "Return to /humaninloop-specs:specify"},
           {label: "Abort", description: "Cancel planning workflow"}
         ],
         multiSelect: false
@@ -893,7 +893,7 @@ Compile the full chain in index.md:
 The specification workflow is not complete.
 
 Options:
-1. Run `/humaninloop:specify` to complete the spec
+1. Run `/humaninloop-specs:specify` to complete the spec
 2. Use `/humaninloop:plan --force` to proceed anyway
 ```
 

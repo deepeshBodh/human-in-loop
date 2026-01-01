@@ -71,7 +71,7 @@ docs: add ADR for multi-agent architecture
 New features follow spec-driven development (dogfooding our own tools):
 
 1. **Create GitHub issue** describing the feature
-2. **Run `/humaninloop:specify`** → commit spec to `specs/in-progress/`
+2. **Run `/humaninloop-specs:specify`** → commit spec to `specs/in-progress/`
 3. **Run `/humaninloop:plan`** → commit plan
 4. **Implement** → PR references issue and spec
 5. **On merge** → move spec to `specs/completed/`
@@ -103,11 +103,18 @@ human-in-loop-marketplace/
 ├── .claude-plugin/
 │   └── marketplace.json           # Marketplace manifest
 ├── plugins/
-│   ├── humaninloop/               # Main workflow plugin (specify → plan)
+│   ├── humaninloop-specs/         # Specification workflow plugin
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
-│   │   ├── agents/                # Multi-agent workflow agents
-│   │   ├── commands/              # /humaninloop:specify, /humaninloop:plan
+│   │   ├── agents/                # Specification workflow agents
+│   │   ├── commands/              # /humaninloop-specs:specify, /humaninloop-specs:checklist
+│   │   ├── skills/                # Specification skills
+│   │   └── templates/             # Specification templates
+│   ├── humaninloop/               # Implementation workflow plugin (plan → tasks)
+│   │   ├── .claude-plugin/
+│   │   │   └── plugin.json
+│   │   ├── agents/                # Plan and tasks workflow agents
+│   │   ├── commands/              # /humaninloop:plan, /humaninloop:tasks
 │   │   ├── check-modules/         # Validation check modules
 │   │   ├── scripts/               # Shell utilities
 │   │   └── templates/             # Workflow templates
@@ -137,7 +144,8 @@ human-in-loop-marketplace/
 
 | Plugin | Description | Commands |
 |--------|-------------|----------|
-| `humaninloop` | Specification-driven development workflow | `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:analyze`, `/humaninloop:checklist`, `/humaninloop:implement` |
+| `humaninloop-specs` | Specification and requirements workflow | `/humaninloop-specs:specify`, `/humaninloop-specs:checklist` |
+| `humaninloop` | Implementation workflow | `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:analyze`, `/humaninloop:implement` |
 | `humaninloop-constitution` | Project constitution setup | `/humaninloop-constitution:setup` |
 
 ## Common Commands
@@ -146,11 +154,14 @@ human-in-loop-marketplace/
 # Add this marketplace to Claude Code
 /plugin marketplace add deepeshBodh/human-in-loop-marketplace
 
-# Install constitution plugin first (required by humaninloop)
+# Install constitution plugin first (required by humaninloop plugins)
 /plugin install humaninloop-constitution
 /humaninloop-constitution:setup
 
-# Install main workflow plugin
+# Install specification workflow plugin
+/plugin install humaninloop-specs
+
+# Install implementation workflow plugin
 /plugin install humaninloop
 
 # View installed plugins

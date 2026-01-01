@@ -177,7 +177,7 @@ At end of report, output a concise Next Actions block:
 
 - If CRITICAL issues exist: Recommend resolving before `/humaninloop:implement`
 - If only LOW/MEDIUM: User may proceed, but provide improvement suggestions
-- Provide explicit command suggestions: e.g., "Run /humaninloop:specify with refinement", "Run /humaninloop:plan to adjust architecture", "Manually edit tasks.md to add coverage for 'performance-metrics'"
+- Provide explicit command suggestions: e.g., "Run /humaninloop-specs:specify with refinement", "Run /humaninloop:plan to adjust architecture", "Manually edit tasks.md to add coverage for 'performance-metrics'"
 
 ### 8. Offer Remediation
 

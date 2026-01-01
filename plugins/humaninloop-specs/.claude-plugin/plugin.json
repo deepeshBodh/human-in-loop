@@ -1,0 +1,30 @@
+{
+  "name": "humaninloop-specs",
+  "version": "0.1.0",
+  "description": "Specification and requirements workflow: specify → checklist validation",
+  "author": {
+    "name": "HumanInLoop",
+    "url": "https://humaninloop.dev"
+  },
+  "license": "MIT",
+  "keywords": [
+    "specification",
+    "requirements",
+    "checklist",
+    "validation",
+    "multi-agent",
+    "workflow",
+    "quality",
+    "sdlc"
+  ],
+  "commands": "./commands/",
+  "skills": "./skills/",
+  "agents": [
+    "./agents/scaffold-agent.md",
+    "./agents/spec-writer.md",
+    "./agents/spec-clarify.md",
+    "./agents/checklist-context-analyzer.md",
+    "./agents/checklist-writer.md",
+    "./agents/gap-classifier.md"
+  ]
+}

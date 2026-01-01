@@ -1,6 +1,6 @@
 {
   "name": "humaninloop-marketplace",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "Multi-agent workflow plugins for specification-driven development",
   "owner": {
     "name": "HumanInLoop",
@@ -9,9 +9,14 @@
   },
   "plugins": [
     {
+      "name": "humaninloop-specs",
+      "source": "./plugins/humaninloop-specs",
+      "description": "Specification and requirements workflow: specify → checklist validation"
+    },
+    {
       "name": "humaninloop",
       "source": "./plugins/humaninloop",
-      "description": "Specification-driven development workflow: specify → plan → tasks → implement"
+      "description": "Implementation workflow: plan → tasks → implement"
     },
     {
       "name": "humaninloop-constitution",
