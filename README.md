@@ -55,6 +55,9 @@ Want to add your plugin to the marketplace? See [CONTRIBUTING.md](./CONTRIBUTING
 ## Documentation
 
 - [Claude Code Plugin Documentation](./docs/claude-plugin-documentation.md) - Complete technical reference for building plugins
+- [Changelog](./CHANGELOG.md) - Release history
+- [Roadmap](./ROADMAP.md) - Vision and planned features
+- [Architecture Decisions](./docs/decisions/) - ADRs explaining key technical choices
 - [Release Philosophy](./RELEASES.md) - Versioning strategy and release guidelines
 
 ## Repository Structure
@@ -66,15 +69,22 @@ human-in-loop-marketplace/
 ├── plugins/
 │   ├── humaninloop/               # Main workflow plugin
 │   │   ├── agents/                # 14 multi-agent workflow agents
-│   │   ├── commands/              # specify, plan, tasks, analyze, checklist, implement commands
+│   │   ├── commands/              # specify, plan, tasks, analyze, checklist, implement
 │   │   ├── check-modules/         # Validation check modules
 │   │   ├── scripts/               # Shell utilities
 │   │   └── templates/             # Workflow templates
 │   └── humaninloop-constitution/  # Constitution setup plugin
 │       ├── commands/              # setup command
 │       └── templates/             # Constitution template
-├── docs/                          # Documentation
-├── README.md
+├── specs/                         # Feature specifications
+│   ├── completed/                 # Shipped features
+│   ├── in-progress/               # Currently implementing
+│   └── planned/                   # Future features
+├── docs/
+│   ├── decisions/                 # Architecture Decision Records
+│   └── claude-plugin-documentation.md
+├── CHANGELOG.md                   # Release history
+├── ROADMAP.md                     # Vision and planned features
 ├── RELEASES.md                    # Release philosophy
 ├── CONTRIBUTING.md
 └── LICENSE

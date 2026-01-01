@@ -1,0 +1,91 @@
+# Changelog
+
+All notable changes to the HumanInLoop Marketplace are documented in this file.
+
+The format follows [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
+
+---
+
+## [0.2.0] - 2026-01-01
+
+Tasks workflow release: Generate implementation tasks from plans with brownfield support.
+
+### humaninloop 0.2.0
+
+#### New Commands
+- `/humaninloop:tasks` - Generate implementation tasks from spec and plan artifacts
+- `/humaninloop:analyze` - Analyze codebase for implementation context
+- `/humaninloop:checklist` - Generate implementation checklists
+- `/humaninloop:implement` - Execute implementation with task tracking
+
+#### New Agents
+- `task-planner` - Plans task breakdown from spec/plan artifacts
+- `task-generator` - Generates tasks.md with brownfield markers
+- `task-validator` - Validates task artifacts for completeness
+
+#### New Check Modules
+- `mapping-checks` - Validates story coverage and entity mapping
+- `task-checks` - Validates task format, coverage, and dependencies
+
+#### New Templates
+- `plan-template.md` - Structured plan output format
+- `tasks-template.md` - Task list format with brownfield markers
+- `codebase-inventory-schema.json` - Schema for codebase analysis
+
+#### New Scripts
+- `setup-plan.sh` - Plan stage initialization
+
+### humaninloop-constitution 0.1.1
+
+#### Fixes
+- Fixed outdated plugin references in documentation
+
+---
+
+## [0.1.0] - 2026-01-01
+
+Initial marketplace release with core specification-driven workflow.
+
+### humaninloop 0.1.0
+
+#### New Commands
+- `/humaninloop:specify` - Create feature specifications through guided workflow
+- `/humaninloop:plan` - Generate implementation plans from specifications
+
+#### New Agents
+- `spec-writer` - Writes structured specifications
+- `spec-clarify` - Clarifies ambiguous requirements
+- `plan-research` - Researches codebase for planning context
+- `plan-contract` - Defines contracts between components
+- `plan-domain-model` - Creates domain models
+- `plan-validator` - Validates plan completeness
+- `codebase-discovery` - Discovers existing codebase patterns
+- `gap-classifier` - Classifies implementation gaps
+- `scaffold-agent` - Scaffolds new components
+- `checklist-writer` - Writes implementation checklists
+- `checklist-context-analyzer` - Analyzes context for checklists
+
+### humaninloop-constitution 0.1.0
+
+#### New Commands
+- `/humaninloop-constitution:setup` - Initialize project constitution
+
+#### New Templates
+- `constitution-template.md` - Project constitution structure
+
+---
+
+## [0.0.1] - 2026-01-01
+
+Initial marketplace scaffold.
+
+### Added
+- Marketplace manifest structure
+- Plugin installation framework
+- Documentation scaffolding
+
+---
+
+[0.2.0]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.0
+[0.1.0]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.1.0
+[0.0.1]: https://github.com/deepeshBodh/human-in-loop-marketplace/commits/main

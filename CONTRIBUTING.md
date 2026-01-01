@@ -116,9 +116,54 @@ Use one of these categories:
 - [ ] Scripts are executable (`chmod +x`)
 - [ ] License file included
 
+## Commit Conventions
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+type(scope): description
+```
+
+### Types
+
+| Type | Description |
+|------|-------------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `docs` | Documentation only |
+| `refactor` | Code change that neither fixes a bug nor adds a feature |
+| `chore` | Maintenance tasks |
+
+### Scope
+
+Use the plugin name as scope when applicable:
+- `feat(humaninloop): add /tasks command`
+- `fix(constitution): correct agent reference`
+- `docs: update README`
+
+## Contributing to Core Plugins
+
+For contributions to the `humaninloop` or `humaninloop-constitution` plugins:
+
+### Feature Contributions
+
+1. **Open an issue** describing the proposed feature
+2. **Discuss** the approach before implementing
+3. **Create a spec** using `/humaninloop:specify` if the feature is significant
+4. **Submit PR** referencing the issue and spec
+
+### Bug Fixes
+
+1. **Open an issue** describing the bug (unless trivial)
+2. **Submit PR** with fix, referencing the issue
+3. **Include test case** if applicable
+
 ## Documentation
 
-See [docs/claude-plugin-documentation.md](./docs/claude-plugin-documentation.md) for the complete Claude Code plugin technical reference.
+- [docs/claude-plugin-documentation.md](./docs/claude-plugin-documentation.md) - Claude Code plugin technical reference
+- [docs/decisions/](./docs/decisions/) - Architecture Decision Records
+- [CHANGELOG.md](./CHANGELOG.md) - Release history
+- [ROADMAP.md](./ROADMAP.md) - Planned features
 
 ## Questions?
 

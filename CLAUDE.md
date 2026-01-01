@@ -47,10 +47,53 @@ docs/speckit-artefacts/
 
 - Use `gh` CLI for all GitHub-related tasks (viewing repos, issues, PRs, etc.)
 
+## Development Workflow
+
+### Commit Conventions
+
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat(plugin): description` - New features
+- `fix(plugin): description` - Bug fixes
+- `docs: description` - Documentation changes
+- `refactor(plugin): description` - Code restructuring
+- `chore: description` - Maintenance tasks
+
+Examples:
+```
+feat(humaninloop): add /tasks command
+fix(constitution): correct handoff agent reference
+docs: add ADR for multi-agent architecture
+```
+
+### Feature Development
+
+New features follow spec-driven development (dogfooding our own tools):
+
+1. **Create GitHub issue** describing the feature
+2. **Run `/humaninloop:specify`** → commit spec to `specs/in-progress/`
+3. **Run `/humaninloop:plan`** → commit plan
+4. **Implement** → PR references issue and spec
+5. **On merge** → move spec to `specs/completed/`
+
+### Bug Fixes
+
+1. **Create GitHub issue** describing the bug
+2. **Fix** → PR references issue
+3. **Trivial fixes** → clear commit message, no issue required
+
+### Releases
+
+See [RELEASES.md](RELEASES.md) for release process. Update [CHANGELOG.md](CHANGELOG.md) with each release.
+
 ## Documentation
 
 - **[docs/claude-plugin-documentation.md](docs/claude-plugin-documentation.md)**: Primary reference for Claude Code plugin development. Contains comprehensive technical details on plugin architecture, commands, skills, hooks, MCP integrations, and more.
 - **[RELEASES.md](RELEASES.md)**: Release philosophy and versioning strategy for the marketplace.
+- **[CHANGELOG.md](CHANGELOG.md)**: Curated history of all releases.
+- **[ROADMAP.md](ROADMAP.md)**: Vision and planned features.
+- **[docs/decisions/](docs/decisions/)**: Architecture Decision Records (ADRs) explaining key technical choices.
+- **[specs/](specs/)**: Feature specifications (completed, in-progress, planned).
 
 ## Marketplace Structure
 
@@ -72,10 +115,17 @@ human-in-loop-marketplace/
 │       │   └── plugin.json
 │       ├── commands/              # /humaninloop-constitution:setup
 │       └── templates/
+├── specs/
+│   ├── completed/                 # Shipped feature specs
+│   ├── in-progress/               # Currently implementing
+│   └── planned/                   # Future features (living roadmap)
 ├── docs/
+│   ├── decisions/                 # Architecture Decision Records
 │   ├── claude-plugin-documentation.md
 │   └── speckit-artefacts/         # READ-ONLY reference (original speckit)
 ├── README.md
+├── CHANGELOG.md                   # Release history
+├── ROADMAP.md                     # Vision and planned features
 ├── RELEASES.md                    # Release philosophy and versioning
 ├── CONTRIBUTING.md
 └── LICENSE
