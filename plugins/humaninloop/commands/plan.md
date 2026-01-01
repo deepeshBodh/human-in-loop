@@ -90,7 +90,7 @@ Before starting, check if a planning workflow is already in progress:
 
 1. **Identify the feature directory**:
    - If `$ARGUMENTS` specifies a feature ID: use that
-   - Otherwise: Detect from current git branch or scan `specs/` for active features
+   - Otherwise: Run `${CLAUDE_PLUGIN_ROOT}/scripts/setup-plan.sh --json` to detect current branch and feature paths
 
 2. **Check for existing plan state** in `specs/{feature_id}/.workflow/index.md`:
    - Look for `Plan Phase State` section

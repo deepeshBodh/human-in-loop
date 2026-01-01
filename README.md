@@ -31,15 +31,15 @@ Official Claude Code plugin marketplace for [HumanInLoop](https://humaninloop.de
 
 | Plugin | Description | Commands |
 |--------|-------------|----------|
-| [humaninloop](./plugins/humaninloop) | Specification-driven development workflow: specify → plan → tasks → implement | `/humaninloop:specify`, `/humaninloop:plan` |
+| [humaninloop](./plugins/humaninloop) | Specification-driven development workflow: specify → plan → tasks → implement | `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:analyze`, `/humaninloop:checklist`, `/humaninloop:implement` |
 | [humaninloop-constitution](./plugins/humaninloop-constitution) | Project constitution setup for HumanInLoop workflows | `/humaninloop-constitution:setup` |
 
 ### humaninloop
 
 Multi-agent specification-driven development workflow with integrated quality validation.
 
-**Agents:** 11 specialized agents for spec writing, validation, planning, and research
-**Commands:** `/humaninloop:specify`, `/humaninloop:plan`
+**Agents:** 14 specialized agents for spec writing, validation, planning, task generation, and research
+**Commands:** `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:analyze`, `/humaninloop:checklist`, `/humaninloop:implement`
 **Requires:** `humaninloop-constitution` plugin
 
 ### humaninloop-constitution
@@ -64,8 +64,8 @@ human-in-loop-marketplace/
 │   └── marketplace.json           # Marketplace manifest
 ├── plugins/
 │   ├── humaninloop/               # Main workflow plugin
-│   │   ├── agents/                # 11 multi-agent workflow agents
-│   │   ├── commands/              # specify, plan commands
+│   │   ├── agents/                # 14 multi-agent workflow agents
+│   │   ├── commands/              # specify, plan, tasks, analyze, checklist, implement commands
 │   │   ├── check-modules/         # Validation check modules
 │   │   ├── scripts/               # Shell utilities
 │   │   └── templates/             # Workflow templates

@@ -81,9 +81,7 @@ The constitution is used by:
 
 | Plugin | How It Uses Constitution |
 |--------|-------------------------|
-| **humaninloop** (specify) | Validates specifications against principles |
-| **humaninloop-plan** | Checks technical decisions for compliance |
-| **humaninloop-implement** | Ensures implementation follows governance |
+| **humaninloop** | Validates specifications, plans, and tasks against principles |
 
 ## Example Constitution
 
