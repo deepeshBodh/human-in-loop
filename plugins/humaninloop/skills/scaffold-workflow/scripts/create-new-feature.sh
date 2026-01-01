@@ -4,9 +4,9 @@
 #
 # Usage: create-new-feature.sh [--json] [--short-name <name>] [--number N] <feature_description>
 #
-# This script orchestrates the scaffolding process:
-#   1. Determines the next feature number (via next-feature-number.sh)
-#   2. Generates a branch slug (via generate-branch-name.sh)
+# This script orchestrates the complete scaffolding process:
+#   1. Generates a branch slug from the feature description
+#   2. Determines the next sequential feature number
 #   3. Creates the git branch (if in git repo)
 #   4. Creates the feature directory and copies the spec template
 #
@@ -26,7 +26,165 @@ set -e
 
 SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Parse arguments
+# =============================================================================
+# Shared Utility Functions
+# =============================================================================
+
+# Find the repository root by searching for project markers
+find_repo_root() {
+    local dir="$1"
+    while [ "$dir" != "/" ]; do
+        if [ -d "$dir/.git" ] || [ -d "$dir/.humaninloop" ]; then
+            echo "$dir"
+            return 0
+        fi
+        dir="$(dirname "$dir")"
+    done
+    return 1
+}
+
+# Clean and format a string for use in branch names
+clean_branch_name() {
+    local name="$1"
+    echo "$name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | sed 's/^-//' | sed 's/-$//'
+}
+
+# =============================================================================
+# Branch Name Generation (from generate-branch-name.sh)
+# =============================================================================
+
+# Generate a clean branch slug from a feature description
+# Filters stop words, preserves technical terms, limits to 3-4 words
+generate_branch_name() {
+    local description="$1"
+
+    # Common stop words to filter out
+    local stop_words="^(i|a|an|the|to|for|of|in|on|at|by|with|from|is|are|was|were|be|been|being|have|has|had|do|does|did|will|would|should|could|can|may|might|must|shall|this|that|these|those|my|your|our|their|want|need|add|get|set|create|build|make|implement|please)$"
+
+    # Convert to lowercase and split into words
+    local clean_name=$(echo "$description" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/ /g')
+
+    # Filter words: remove stop words and words shorter than 3 chars (unless uppercase acronyms in original)
+    local meaningful_words=()
+    for word in $clean_name; do
+        # Skip empty words
+        [ -z "$word" ] && continue
+
+        # Keep words that are NOT stop words AND (length >= 3 OR are potential acronyms)
+        if ! echo "$word" | grep -qiE "$stop_words"; then
+            if [ ${#word} -ge 3 ]; then
+                meaningful_words+=("$word")
+            elif echo "$description" | grep -q "\b${word^^}\b"; then
+                # Keep short words if they appear as uppercase in original (likely acronyms)
+                meaningful_words+=("$word")
+            fi
+        fi
+    done
+
+    # If we have meaningful words, use first 3-4 of them
+    if [ ${#meaningful_words[@]} -gt 0 ]; then
+        local max_words=3
+        if [ ${#meaningful_words[@]} -eq 4 ]; then max_words=4; fi
+
+        local result=""
+        local count=0
+        for word in "${meaningful_words[@]}"; do
+            if [ $count -ge $max_words ]; then break; fi
+            if [ -n "$result" ]; then result="$result-"; fi
+            result="$result$word"
+            count=$((count + 1))
+        done
+        echo "$result"
+    else
+        # Fallback to basic cleaning if no meaningful words found
+        local cleaned=$(clean_branch_name "$description")
+        echo "$cleaned" | tr '-' '\n' | grep -v '^$' | head -3 | tr '\n' '-' | sed 's/-$//'
+    fi
+}
+
+# =============================================================================
+# Feature Number Detection (from next-feature-number.sh)
+# =============================================================================
+
+# Get highest feature number from specs directory
+get_highest_from_specs() {
+    local specs_dir="$1"
+    local highest=0
+
+    if [ -d "$specs_dir" ]; then
+        for dir in "$specs_dir"/*; do
+            [ -d "$dir" ] || continue
+            dirname=$(basename "$dir")
+            number=$(echo "$dirname" | grep -o '^[0-9]\+' || echo "0")
+            number=$((10#$number))
+            if [ "$number" -gt "$highest" ]; then
+                highest=$number
+            fi
+        done
+    fi
+
+    echo "$highest"
+}
+
+# Get highest feature number from git branches
+get_highest_from_branches() {
+    local highest=0
+
+    # Get all branches (local and remote)
+    branches=$(git branch -a 2>/dev/null || echo "")
+
+    if [ -n "$branches" ]; then
+        while IFS= read -r branch; do
+            # Clean branch name: remove leading markers and remote prefixes
+            clean_branch=$(echo "$branch" | sed 's/^[* ]*//; s|^remotes/[^/]*/||')
+
+            # Extract feature number if branch matches pattern ###-*
+            if echo "$clean_branch" | grep -q '^[0-9]\{3\}-'; then
+                number=$(echo "$clean_branch" | grep -o '^[0-9]\{3\}' || echo "0")
+                number=$((10#$number))
+                if [ "$number" -gt "$highest" ]; then
+                    highest=$number
+                fi
+            fi
+        done <<< "$branches"
+    fi
+
+    echo "$highest"
+}
+
+# Determine the next available feature number
+get_next_feature_number() {
+    local specs_dir="$1"
+    local has_git="$2"
+
+    if [ "$has_git" = true ]; then
+        # Fetch all remotes to get latest branch info (suppress errors if no remotes)
+        git fetch --all --prune 2>/dev/null || true
+
+        # Get highest number from ALL branches
+        local highest_branch=$(get_highest_from_branches)
+
+        # Get highest number from ALL specs
+        local highest_spec=$(get_highest_from_specs "$specs_dir")
+
+        # Take the maximum of both
+        local max_num=$highest_branch
+        if [ "$highest_spec" -gt "$max_num" ]; then
+            max_num=$highest_spec
+        fi
+
+        echo $((max_num + 1))
+    else
+        # Fall back to local directory check only
+        local highest=$(get_highest_from_specs "$specs_dir")
+        echo $((highest + 1))
+    fi
+}
+
+# =============================================================================
+# Argument Parsing
+# =============================================================================
+
 JSON_MODE=false
 SHORT_NAME=""
 BRANCH_NUMBER=""
@@ -91,24 +249,9 @@ if [ -z "$FEATURE_DESCRIPTION" ]; then
     exit 1
 fi
 
-# Function to find the repository root by searching for existing project markers
-find_repo_root() {
-    local dir="$1"
-    while [ "$dir" != "/" ]; do
-        if [ -d "$dir/.git" ] || [ -d "$dir/.humaninloop" ]; then
-            echo "$dir"
-            return 0
-        fi
-        dir="$(dirname "$dir")"
-    done
-    return 1
-}
-
-# Function to clean and format a branch name
-clean_branch_name() {
-    local name="$1"
-    echo "$name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | sed 's/^-//' | sed 's/-$//'
-}
+# =============================================================================
+# Main Execution
+# =============================================================================
 
 # Resolve repository root
 if git rev-parse --show-toplevel >/dev/null 2>&1; then
@@ -128,33 +271,27 @@ cd "$REPO_ROOT"
 SPECS_DIR="$REPO_ROOT/specs"
 mkdir -p "$SPECS_DIR"
 
-# Generate branch name using extracted script (or clean provided short name)
+# Generate branch name (or clean provided short name)
 if [ -n "$SHORT_NAME" ]; then
     BRANCH_SUFFIX=$(clean_branch_name "$SHORT_NAME")
 else
-    BRANCH_SUFFIX=$("$SCRIPT_DIR/generate-branch-name.sh" "$FEATURE_DESCRIPTION")
+    BRANCH_SUFFIX=$(generate_branch_name "$FEATURE_DESCRIPTION")
 fi
 
-# Determine branch number using extracted script (or use provided)
+# Determine branch number (or use provided)
 if [ -z "$BRANCH_NUMBER" ]; then
-    BRANCH_NUMBER=$("$SCRIPT_DIR/next-feature-number.sh" "$SPECS_DIR")
+    BRANCH_NUMBER=$(get_next_feature_number "$SPECS_DIR" "$HAS_GIT")
 fi
 
-# Force base-10 interpretation to prevent octal conversion (e.g., 010 -> 8 in octal, but should be 10 in decimal)
+# Force base-10 interpretation to prevent octal conversion
 FEATURE_NUM=$(printf "%03d" "$((10#$BRANCH_NUMBER))")
 BRANCH_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
 
 # GitHub enforces a 244-byte limit on branch names
-# Validate and truncate if necessary
 MAX_BRANCH_LENGTH=244
 if [ ${#BRANCH_NAME} -gt $MAX_BRANCH_LENGTH ]; then
-    # Calculate how much we need to trim from suffix
-    # Account for: feature number (3) + hyphen (1) = 4 chars
     MAX_SUFFIX_LENGTH=$((MAX_BRANCH_LENGTH - 4))
-
-    # Truncate suffix at word boundary if possible
     TRUNCATED_SUFFIX=$(echo "$BRANCH_SUFFIX" | cut -c1-$MAX_SUFFIX_LENGTH)
-    # Remove trailing hyphen if truncation created one
     TRUNCATED_SUFFIX=$(echo "$TRUNCATED_SUFFIX" | sed 's/-$//')
 
     ORIGINAL_BRANCH_NAME="$BRANCH_NAME"

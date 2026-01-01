@@ -7,63 +7,22 @@ description: Execute the scaffolding phase of the HumanInLoop specification work
 
 ## Purpose
 
-Orchestrate the scaffolding phase of the HumanInLoop specification-driven development workflow. This skill provides deterministic scripts and step-by-step procedures for creating feature infrastructure without modifying specification content.
+Orchestrate the scaffolding phase of the HumanInLoop specification-driven development workflow. This skill provides a single deterministic script for creating feature infrastructure without modifying specification content.
 
 ## Exclusivity Notice
 
 This skill is **exclusively used by scaffold-agent**. Other agents (spec-writer, clarify, plan, tasks) should not invoke these procedures directly. The scaffold-agent declares this skill in its frontmatter to establish ownership.
 
-## Utility Scripts
+## Script
 
-All scripts are located in the `scripts/` subdirectory relative to this skill.
-
-### generate-branch-name.sh
-
-Generate a clean branch slug from a feature description.
-
-```bash
-./scripts/generate-branch-name.sh "Add user authentication with OAuth2"
-# Output: user-auth-oauth2
-```
-
-**Behavior**:
-- Filters common stop words (I, want, add, the, to, for, with, create, build, implement, etc.)
-- Preserves technical terms and acronyms (OAuth2, API, JWT, SSO, CRUD, REST, GraphQL)
-- Uses lowercase with hyphens as separators
-- Limits output to 3-4 meaningful words
-- Minimum 3 characters per word (except recognized acronyms)
-
-**Examples**:
-| Input | Output |
-|-------|--------|
-| "I want to add user authentication" | `user-authentication` |
-| "Implement OAuth2 integration for the API" | `oauth2-integration-api` |
-| "Create a dashboard for analytics" | `dashboard-analytics` |
-| "Add task priority levels" | `task-priority-levels` |
-
-### next-feature-number.sh
-
-Determine the next sequential feature number.
-
-```bash
-./scripts/next-feature-number.sh [specs_dir]
-# Output: 005
-```
-
-**Behavior**:
-- Fetches all remote branches (if git repository detected)
-- Scans both local/remote branches for `###-*` pattern
-- Scans specs directory for existing feature directories
-- Returns the maximum found + 1
-- Zero-pads to 3 digits
-- Starts at `001` if no existing features found
+The skill provides a single consolidated script: `scripts/create-new-feature.sh`
 
 ### create-new-feature.sh
 
 Create the complete feature scaffold (branch + directory + template).
 
 ```bash
-./scripts/create-new-feature.sh --json --number 005 --short-name "user-auth" "Add user authentication"
+./scripts/create-new-feature.sh --json "Add user authentication with OAuth2"
 # Output: {"BRANCH_NAME":"005-user-auth","SPEC_FILE":"specs/005-user-auth/spec.md","FEATURE_NUM":"005"}
 ```
 
@@ -73,12 +32,36 @@ Create the complete feature scaffold (branch + directory + template).
 - `--short-name <name>`: Override generated branch slug
 
 **What it does**:
-1. Calls `generate-branch-name.sh` (unless `--short-name` provided)
-2. Calls `next-feature-number.sh` (unless `--number` provided)
+1. Generates a clean branch slug from the feature description
+2. Determines the next sequential feature number
 3. Creates git branch (if git repository detected)
 4. Creates feature directory at `specs/{BRANCH_NAME}/`
 5. Copies spec template to `specs/{BRANCH_NAME}/spec.md`
 6. Exports `HUMANINLOOP_FEATURE` environment variable
+
+### Internal Behaviors
+
+**Branch Name Generation**:
+- Filters common stop words (I, want, add, the, to, for, with, create, build, implement, etc.)
+- Preserves technical terms and acronyms (OAuth2, API, JWT, SSO, CRUD, REST, GraphQL)
+- Uses lowercase with hyphens as separators
+- Limits output to 3-4 meaningful words
+- Minimum 3 characters per word (except recognized acronyms)
+
+| Input | Generated Slug |
+|-------|----------------|
+| "I want to add user authentication" | `user-authentication` |
+| "Implement OAuth2 integration for the API" | `oauth2-integration-api` |
+| "Create a dashboard for analytics" | `dashboard-analytics` |
+| "Add task priority levels" | `task-priority-levels` |
+
+**Feature Number Detection**:
+- Fetches all remote branches (if git repository detected)
+- Scans both local/remote branches for `###-*` pattern
+- Scans specs directory for existing feature directories
+- Returns the maximum found + 1
+- Zero-pads to 3 digits
+- Starts at `001` if no existing features found
 
 ## Scaffolding Procedure
 
