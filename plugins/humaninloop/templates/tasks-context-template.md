@@ -59,7 +59,7 @@
 
 ## Phase T1: Planner Handoff
 
-> State from task-planner agent. Produces task-mapping.md.
+> State from task-builder agent (phase 1). Produces task-mapping.md.
 
 | Field | Value |
 |-------|-------|
@@ -94,7 +94,7 @@
 
 ## Phase T2: Generator Handoff
 
-> State from task-generator agent. Produces tasks.md.
+> State from task-builder agent (phase 2). Produces tasks.md.
 
 | Field | Value |
 |-------|-------|
@@ -220,7 +220,7 @@ T001 ──> T002 ──> T003
 
 ## Agent Handoff Notes
 
-### From Task-Planner Agent (Phase T1)
+### From Task-Builder Agent (Phase T1)
 
 - **Stories extracted**: {{planner_stories}}
 - **Entities mapped**: {{planner_entities}}
@@ -229,7 +229,7 @@ T001 ──> T002 ──> T003
 - **Orphaned items**: {{planner_orphans}}
 - **Ready for**: Validator (mapping-checks)
 
-### From Task-Generator Agent (Phase T2)
+### From Task-Builder Agent (Phase T2)
 
 - **Tasks generated**: {{generator_tasks}}
 - **Phases created**: {{generator_phases}}

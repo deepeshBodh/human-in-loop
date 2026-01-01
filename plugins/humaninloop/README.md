@@ -108,8 +108,7 @@ Generate implementation tasks from an existing plan.
 
 | Agent | Purpose |
 |-------|---------|
-| **Task Planner Agent** | Extracts from spec/plan/data-model/contracts, maps to user stories |
-| **Task Generator Agent** | Generates `tasks.md` with format, phases, and brownfield markers |
+| **Task Builder Agent** | Phase-aware agent: T1 maps to stories, T2 generates `tasks.md` with format, phases, and brownfield markers |
 | **Task Validator Agent** | Validates artifacts against phase-specific check modules |
 
 ### Validation Check Modules

@@ -238,7 +238,7 @@ For failure with gaps:
   "tasks_context_updated": true,
   "index_synced": true,
   "ready_for_next_phase": false,
-  "loop_back_to": "task-planner"
+  "loop_back_to": "task-builder"
 }
 ```
 

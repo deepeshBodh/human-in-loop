@@ -16,7 +16,7 @@ Use a **multi-agent architecture** where each workflow stage is handled by focus
 Current agents in the humaninloop plugin:
 - **Specification stage:** `spec-writer`, `spec-clarify`
 - **Planning stage:** `plan-builder` (phase-aware), `plan-validator`, `codebase-discovery`
-- **Task stage:** `task-planner`, `task-generator`, `task-validator`, `gap-classifier`
+- **Task stage:** `task-builder` (phase-aware), `task-validator`, `gap-classifier`
 - **Implementation stage:** `scaffold-agent`, `checklist-writer`, `checklist-context-analyzer`
 
 ## Rationale

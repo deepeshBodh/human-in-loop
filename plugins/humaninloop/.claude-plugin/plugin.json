@@ -29,8 +29,7 @@
     "./agents/scaffold-agent.md",
     "./agents/spec-clarify.md",
     "./agents/spec-writer.md",
-    "./agents/task-generator.md",
-    "./agents/task-planner.md",
+    "./agents/task-builder.md",
     "./agents/task-validator.md"
   ]
 }

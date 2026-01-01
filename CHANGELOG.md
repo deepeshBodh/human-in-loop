@@ -6,6 +6,29 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [Unreleased]
+
+### humaninloop
+
+#### Changed
+- **Task agent consolidation (3→2)**: Merged `task-planner` and `task-generator` into single `task-builder` agent
+  - `task-builder` is now phase-aware: phase 1 for mapping, phase 2 for generation
+  - Matches the `plan-builder` pattern for architectural consistency
+  - Uses Opus model (consistent with all builder agents)
+- Added `skills/task-workflow/` with modular skill files:
+  - `SKILL.md` - Entry point and quick reference
+  - `CONTEXT.md` - Shared context loading patterns
+  - `BROWNFIELD.md` - Brownfield handling guidelines
+  - `MAPPING.md` - Phase T1 procedures
+  - `TASKS.md` - Phase T2 procedures
+  - `VALIDATION.md` - Validation coordination
+
+#### Removed
+- `task-planner` agent (consolidated into `task-builder`)
+- `task-generator` agent (consolidated into `task-builder`)
+
+---
+
 ## [0.2.6] - 2026-01-01
 
 Fix skill description parsing for proper model-invoked triggering.
