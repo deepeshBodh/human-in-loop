@@ -6,9 +6,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
-## [0.2.4] - 2026-01-01
+## [0.2.5] - 2026-01-01
 
-Stable release of the constitution plugin.
+New iterative-analysis skill for progressive brainstorming.
+
+### humaninloop 0.2.5
+
+#### New Skills
+- **iterative-analysis** - Progressive deep analysis through one-by-one questioning with recommendations
+  - Triggered by: "brainstorm", "deep analysis", "let's think through", "analyze this with me"
+  - Presents 2-3 options per question with clear recommendation and reasoning
+  - Challenges disagreement to strengthen thinking
+  - Concludes with structured synthesis document
 
 ### humaninloop-constitution 1.0.0
 
@@ -147,6 +156,7 @@ Initial marketplace scaffold.
 
 ---
 
+[0.2.5]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.5
 [0.2.4]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.4
 [0.2.3]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.3
 [0.2.2]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.2
