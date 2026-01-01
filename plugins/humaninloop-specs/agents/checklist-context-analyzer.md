@@ -1,6 +1,6 @@
 ---
 name: checklist-context-analyzer
-description: Use this agent when you need to analyze feature documentation and extract signals before generating a requirements checklist. This agent should be invoked at the start of the checklist workflow to parse spec.md and optional planning documents, identify focus areas, and generate clarifying questions. Examples:\n\n<example>\nContext: User wants to generate a checklist for a feature they've been working on.\nuser: "/humaninloop:checklist for authentication"\nassistant: "I'll use the checklist-context-analyzer agent to analyze your feature documentation and extract the relevant signals for checklist generation."\n<commentary>\nSince the user wants to generate a checklist, use the Task tool to launch the checklist-context-analyzer agent to parse the feature docs, extract signals like 'auth' and 'security', and generate any clarifying questions before the actual checklist is written.\n</commentary>\n</example>\n\n<example>\nContext: User requests a quick pre-commit checklist.\nuser: "Generate a quick checklist for my current feature"\nassistant: "Let me analyze your feature context first using the checklist-context-analyzer agent."\n<commentary>\nEven for quick checklists, the context analyzer must run first to load spec.md, identify focus areas, and determine appropriate defaults. The 'quick' signal will be captured and used to skip clarifying questions.\n</commentary>\n</example>\n\n<example>\nContext: User is on a feature branch and wants a security-focused checklist.\nuser: "I need a security review checklist for the OAuth implementation"\nassistant: "I'll launch the checklist-context-analyzer agent to extract security-related signals from your feature documentation and prepare the context for checklist generation."\n<commentary>\nThe user has provided specific signals ('security', 'OAuth'). Use the checklist-context-analyzer agent to parse these signals, load the feature spec, cluster into focus areas like 'authentication-security', and determine if clarifying questions are needed about scope depth.\n</commentary>\n</example>
+description: Use this agent when you need to analyze feature documentation and extract signals before generating a requirements checklist. This agent should be invoked at the start of the checklist workflow to parse spec.md and optional planning documents, identify focus areas, and generate clarifying questions. Examples:\n\n<example>\nContext: User wants to generate a checklist for a feature they've been working on.\nuser: "/humaninloop-specs:checklist for authentication"\nassistant: "I'll use the checklist-context-analyzer agent to analyze your feature documentation and extract the relevant signals for checklist generation."\n<commentary>\nSince the user wants to generate a checklist, use the Task tool to launch the checklist-context-analyzer agent to parse the feature docs, extract signals like 'auth' and 'security', and generate any clarifying questions before the actual checklist is written.\n</commentary>\n</example>\n\n<example>\nContext: User requests a quick pre-commit checklist.\nuser: "Generate a quick checklist for my current feature"\nassistant: "Let me analyze your feature context first using the checklist-context-analyzer agent."\n<commentary>\nEven for quick checklists, the context analyzer must run first to load spec.md, identify focus areas, and determine appropriate defaults. The 'quick' signal will be captured and used to skip clarifying questions.\n</commentary>\n</example>\n\n<example>\nContext: User is on a feature branch and wants a security-focused checklist.\nuser: "I need a security review checklist for the OAuth implementation"\nassistant: "I'll launch the checklist-context-analyzer agent to extract security-related signals from your feature documentation and prepare the context for checklist generation."\n<commentary>\nThe user has provided specific signals ('security', 'OAuth'). Use the checklist-context-analyzer agent to parse these signals, load the feature spec, cluster into focus areas like 'authentication-security', and determine if clarifying questions are needed about scope depth.\n</commentary>\n</example>
 model: sonnet
 color: yellow
 ---
@@ -58,7 +58,7 @@ Parse the JSON output to extract:
 ### Step 2: Validate Feature Directory and Read Index
 
 1. Check if `FEATURE_DIR` exists
-   - If not: Return error with guidance to run `/humaninloop:specify` first
+   - If not: Return error with guidance to run `/humaninloop-specs:specify` first
 
 2. **Read index.md** (if exists) at `FEATURE_DIR/.workflow/index.md`:
    - Get document availability from Document Availability Matrix
@@ -269,7 +269,7 @@ If no questions are needed, set `"next_step": "generate"` to indicate readiness 
   "success": false,
   "error": "Feature directory not found",
   "feature_dir": "specs/005-user-auth/",
-  "guidance": "Run /humaninloop:specify first to create the feature structure."
+  "guidance": "Run /humaninloop-specs:specify first to create the feature structure."
 }
 ```
 
@@ -279,7 +279,7 @@ If no questions are needed, set `"next_step": "generate"` to indicate readiness 
   "success": false,
   "error": "spec.md not found - required for checklist generation",
   "feature_dir": "specs/005-user-auth/",
-  "guidance": "Run /humaninloop:specify first to create the feature specification."
+  "guidance": "Run /humaninloop-specs:specify first to create the feature specification."
 }
 ```
 

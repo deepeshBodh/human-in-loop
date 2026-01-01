@@ -1,15 +1,16 @@
 # HumanInLoop Plugin
 
-Specification-driven development workflow: **specify → plan → tasks → implement**
+Implementation workflow: **plan → tasks → implement**
 
 ## Overview
 
-The HumanInLoop plugin provides a comprehensive multi-agent workflow for specification-driven development. It automates the entire feature development lifecycle from specification to implementation.
+The HumanInLoop plugin provides a multi-agent workflow for implementation planning and task generation. It consumes feature specifications (from `humaninloop-specs`) and produces implementation plans and actionable tasks.
 
 **Core Workflows:**
-- **Specify** - Create feature specifications with integrated quality validation
 - **Plan** - Generate implementation plans with research, data models, and API contracts
 - **Tasks** - Generate actionable implementation tasks with dependency tracking and brownfield markers
+- **Implement** - Execute tasks from the generated task list
+- **Analyze** - Cross-artifact consistency validation
 
 ## Installation
 
@@ -21,28 +22,21 @@ claude-code plugins add humaninloop
 
 ## Prerequisites
 
-This plugin requires a project constitution to be set up first:
+This plugin requires:
 
+1. **Project constitution** to be set up first:
 ```bash
 claude-code plugins add humaninloop-constitution
 /humaninloop-constitution:setup
 ```
 
+2. **Feature specification** created using `humaninloop-specs`:
+```bash
+claude-code plugins add humaninloop-specs
+/humaninloop-specs:specify <description>
+```
+
 ## Commands
-
-### `/humaninloop:specify <description>`
-
-Create a feature specification with integrated quality validation.
-
-```
-/humaninloop:specify Add user authentication with OAuth2 support
-```
-
-**Workflow:**
-1. Create a feature branch (e.g., `001-user-auth`)
-2. Generate structured specification in `specs/001-user-auth/spec.md`
-3. Run automatic quality validation via Priority Loop
-4. Present gaps for clarification until resolved
 
 ### `/humaninloop:plan`
 
@@ -52,7 +46,7 @@ Generate an implementation plan from an existing specification.
 /humaninloop:plan
 ```
 
-**Requires:** `spec.md` to exist (run specify workflow first)
+**Requires:** `spec.md` to exist (run `/humaninloop-specs:specify` first)
 
 **Workflow:**
 1. **Phase A0**: Codebase discovery (detects existing code conflicts)
@@ -83,18 +77,23 @@ Generate implementation tasks from an existing plan.
 - **Story labels**: `[US#]` maps each task to its user story
 - **Phase structure**: Setup → Foundational → User Stories → Polish
 
+### `/humaninloop:analyze`
+
+Perform cross-artifact consistency and quality analysis.
+
+```
+/humaninloop:analyze
+```
+
+### `/humaninloop:implement`
+
+Execute tasks from the generated task list.
+
+```
+/humaninloop:implement
+```
+
 ## Workflow Architecture
-
-### Specify Workflow Agents
-
-| Agent | Purpose |
-|-------|---------|
-| **Scaffold Agent** | Creates branch, directories, and initializes templates |
-| **Spec Writer Agent** | Generates user stories, requirements, success criteria |
-| **Checklist Context Analyzer** | Extracts signals for quality validation |
-| **Checklist Writer Agent** | Generates validation checklists |
-| **Gap Classifier Agent** | Groups and prioritizes specification gaps |
-| **Spec Clarify Agent** | Applies user answers to resolve gaps |
 
 ### Plan Workflow Agents
 
@@ -136,7 +135,7 @@ Generate implementation tasks from an existing plan.
 
 ```
 specs/<###-feature-name>/
-├── spec.md                    # Feature specification
+├── spec.md                    # Feature specification (from humaninloop-specs)
 ├── plan.md                    # Implementation plan summary
 ├── research.md                # Technology decisions
 ├── data-model.md              # Entity definitions
@@ -144,24 +143,11 @@ specs/<###-feature-name>/
 ├── task-mapping.md            # Story-to-component mappings
 ├── tasks.md                   # Actionable task list
 ├── contracts/                 # API specifications (OpenAPI)
-├── checklists/
-│   └── requirements.md        # Quality validation checklist
 └── .workflow/
     ├── index.md              # Cross-workflow state
-    ├── specify-context.md    # Specify workflow state
     ├── plan-context.md       # Plan workflow state
     └── tasks-context.md      # Tasks workflow state
 ```
-
-## Specification Format
-
-Generated specifications include:
-
-- **User Stories** - Prioritized (P1/P2/P3) with acceptance scenarios
-- **Edge Cases** - Boundary conditions and error scenarios
-- **Functional Requirements** - FR-XXX format with RFC 2119 keywords
-- **Key Entities** - Domain concepts without implementation details
-- **Success Criteria** - Measurable, technology-agnostic outcomes
 
 ## Task Format
 
@@ -203,6 +189,7 @@ The plugin uses:
 
 ## Related Plugins
 
+- **humaninloop-specs** - Specification workflow (required for spec.md)
 - **humaninloop-constitution** - Project constitution setup (required)
 
 ## License

@@ -107,7 +107,7 @@ To set up your constitution, run:
 
 This will walk you through defining your project's core principles.
 
-Then retry /humaninloop:specify
+Then retry /humaninloop-specs:specify
 ```
 
 3. **If found**: Continue to Resume Detection
@@ -146,7 +146,7 @@ Before starting, check if a workflow is already in progress:
 
 ```
 Task(
-  subagent_type: "scaffold-agent",
+  subagent_type: "humaninloop-specs:scaffold-agent",
   description: "Scaffold feature branch",
   prompt: "Execute scaffold for feature: $ARGUMENTS"
 )
@@ -169,7 +169,7 @@ Task(
 
 ```
 Task(
-  subagent_type: "spec-writer-agent",
+  subagent_type: "humaninloop-specs:spec-writer-agent",
   description: "Write spec content",
   prompt: [Include feature_id, spec_path, index_path, specify_context_path, description]
 )
@@ -189,7 +189,7 @@ Task(
 
 ```
 Task(
-  subagent_type: "checklist-context-analyzer",
+  subagent_type: "humaninloop-specs:checklist-context-analyzer",
   description: "Analyze spec for checklist",
   prompt: [Include feature_id, specify_context_path]
 )
@@ -199,7 +199,7 @@ Task(
 
 ```
 Task(
-  subagent_type: "checklist-writer",
+  subagent_type: "humaninloop-specs:checklist-writer",
   description: "Generate checklist with gaps",
   prompt: [Include feature_id, specify_context_path, focus_areas]
 )
@@ -220,7 +220,7 @@ Task(
 
 ```
 Task(
-  subagent_type: "gap-classifier",
+  subagent_type: "humaninloop-specs:gap-classifier",
   description: "Classify and group gaps",
   prompt: [Execute gap classification with gaps output]
 )
@@ -279,7 +279,7 @@ AskUserQuestion(
 
 ```
 Task(
-  subagent_type: "spec-clarify",
+  subagent_type: "humaninloop-specs:spec-clarify",
   description: "Apply clarifications",
   prompt: [Include feature_id, paths, iteration, user_answers JSON]
 )
@@ -298,7 +298,7 @@ Task(
 
 ```
 Task(
-  subagent_type: "checklist-writer",
+  subagent_type: "humaninloop-specs:checklist-writer",
   description: "Re-validate spec",
   prompt: [Include feature_id, specify_context_path, iteration]
 )
@@ -308,7 +308,7 @@ Task(
 
 ```
 Task(
-  subagent_type: "gap-classifier",
+  subagent_type: "humaninloop-specs:gap-classifier",
   description: "Classify new gaps",
   prompt: [Execute gap classification with new gaps]
 )
@@ -494,7 +494,7 @@ Error: {{error_message}}
 Failed Agent: {{agent_name}}
 
 The workflow state has been preserved in index.md.
-Run `/humaninloop:specify` to resume from iteration {{iteration}}.
+Run `/humaninloop-specs:specify` to resume from iteration {{iteration}}.
 ```
 
 ### Stale Escalation
