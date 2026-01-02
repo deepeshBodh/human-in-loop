@@ -6,7 +6,7 @@ handoffs:
     prompt: Generate tasks from the plan
     send: true
   - label: Run Checklist
-    agent: humaninloop:checklist
+    agent: humaninloop-specs:checklist
     prompt: Create a checklist for implementation review
 ---
 
