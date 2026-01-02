@@ -19,8 +19,6 @@
   "skills": "./skills/",
   "agents": [
     "./agents/plan-builder.md",
-    "./agents/plan-validator.md",
-    "./agents/task-builder.md",
-    "./agents/task-validator.md"
+    "./agents/task-builder.md"
   ]
 }

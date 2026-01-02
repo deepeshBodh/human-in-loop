@@ -83,7 +83,7 @@ AskUserQuestion(
 | Agent | Type | Purpose | Model |
 |-------|------|---------|-------|
 | task-builder | Phase-aware | T1: Map to stories, T2: Generate task list | Opus |
-| task-validator | Modular | Validate artifacts against check modules | Sonnet |
+| validator-agent (core) | Generic | Validate artifacts against check modules | Sonnet |
 
 ---
 
@@ -338,20 +338,20 @@ FUNCTION check_termination():
 4. **Spawn Validator (mapping-checks)**:
    ```
    Task(
-     subagent_type: "task-validator",
+     subagent_type: "humaninloop-core:validator-agent",
      description: "Validate mapping",
      prompt: JSON.stringify({
-       feature_id: "{feature_id}",
-       phase: "T1",
+       artifact_paths: [
+         "specs/{feature_id}/task-mapping.md",
+         "specs/{feature_id}/spec.md",
+         "specs/{feature_id}/data-model.md",
+         "specs/{feature_id}/contracts/"
+       ],
        check_module: "${CLAUDE_PLUGIN_ROOT}/check-modules/mapping-checks.md",
-       artifacts: {
-         mapping_path: "specs/{feature_id}/task-mapping.md",
-         spec_path: "specs/{feature_id}/spec.md",
-         datamodel_path: "specs/{feature_id}/data-model.md",
-         contracts_path: "specs/{feature_id}/contracts/"
-       },
+       context_path: "specs/{feature_id}/.workflow/tasks-context.md",
        index_path: "specs/{feature_id}/.workflow/index.md",
-       tasks_context_path: "specs/{feature_id}/.workflow/tasks-context.md",
+       artifact_type: "task",
+       phase: "T1",
        iteration: phase_iteration
      })
    )
@@ -411,19 +411,19 @@ FUNCTION check_termination():
 3. **Spawn Validator (task-checks)**:
    ```
    Task(
-     subagent_type: "task-validator",
+     subagent_type: "humaninloop-core:validator-agent",
      description: "Validate tasks",
      prompt: JSON.stringify({
-       feature_id: "{feature_id}",
-       phase: "T2",
+       artifact_paths: [
+         "specs/{feature_id}/tasks.md",
+         "specs/{feature_id}/task-mapping.md",
+         "specs/{feature_id}/spec.md"
+       ],
        check_module: "${CLAUDE_PLUGIN_ROOT}/check-modules/task-checks.md",
-       artifacts: {
-         tasks_path: "specs/{feature_id}/tasks.md",
-         mapping_path: "specs/{feature_id}/task-mapping.md",
-         spec_path: "specs/{feature_id}/spec.md"
-       },
+       context_path: "specs/{feature_id}/.workflow/tasks-context.md",
        index_path: "specs/{feature_id}/.workflow/index.md",
-       tasks_context_path: "specs/{feature_id}/.workflow/tasks-context.md",
+       artifact_type: "task",
+       phase: "T2",
        iteration: phase_iteration
      })
    )
