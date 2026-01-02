@@ -66,21 +66,21 @@ AskUserQuestion(
 │  PHASE B: Agent Loop (C-lite)                                        │
 │  ├── B0: Research Phase (max 3 iterations)                          │
 │  │   ├── Spawn plan-builder (phase=0)                               │
-│  │   ├── Spawn plan-validator (research-checks)                     │
+│  │   ├── Spawn validator-agent (research-checks)                    │
 │  │   └── Loop if gaps, escalate if stale                            │
 │  │                                                                   │
 │  ├── B1: Domain Model Phase (max 3 iterations)                      │
 │  │   ├── Spawn plan-builder (phase=1)                               │
-│  │   ├── Spawn plan-validator (model-checks)                        │
+│  │   ├── Spawn validator-agent (model-checks)                       │
 │  │   └── Loop if gaps, escalate if stale                            │
 │  │                                                                   │
 │  ├── B2: Contract Phase (max 3 iterations)                          │
 │  │   ├── Spawn plan-builder (phase=2)                               │
-│  │   ├── Spawn plan-validator (contract-checks)                     │
+│  │   ├── Spawn validator-agent (contract-checks)                    │
 │  │   └── Loop if gaps, escalate if stale                            │
 │  │                                                                   │
 │  └── B3: Final Validation                                            │
-│      ├── Spawn plan-validator (final-checks)                        │
+│      ├── Spawn validator-agent (final-checks)                       │
 │      └── Loop back to affected phase if cross-artifact gaps         │
 │                                                                      │
 │  PHASE C: Completion                                                 │

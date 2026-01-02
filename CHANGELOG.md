@@ -8,6 +8,39 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ## [Unreleased]
 
+### humaninloop-specs 0.1.0 (NEW PLUGIN)
+
+Extracted specification workflow into dedicated plugin for cleaner separation of concerns.
+
+#### New Commands
+- `/humaninloop-specs:specify` - Create feature specifications with integrated Priority Loop validation
+- `/humaninloop-specs:checklist` - Generate requirements quality checklists ("Unit Tests for English")
+
+#### New Agents
+- `scaffold-agent` - Creates feature branches and directory structure
+- `spec-writer` - Dual-mode agent for spec creation and clarification updates
+- `checklist-agent` - Generates requirements quality checklists with signal extraction
+- `gap-classifier` - Groups validation gaps into clarification questions (max 3 per iteration)
+
+#### New Skills
+- `spec-writing/` - Specification writing patterns, templates, and frameworks
+- `clarification-patterns/` - Gap classification and answer application patterns
+- `requirements-quality-validation/` - Quality dimensions for requirements checklists
+- `spec-gap-prioritization/` - Gap filtering, grouping, and staleness detection
+- `scaffold-workflow/` - Feature scaffolding procedures and scripts
+- `specification-workflow-lifecycle/` - Workflow phases, state, and recovery patterns
+
+#### Architecture
+- Implements ADR-005 hexagonal architecture (skills → agents → workflows)
+- Implements ADR-007 agent communication schema (standardized input/output envelopes)
+- Unified index.md for cross-agent state sharing
+- Priority Loop with max 10 iterations and 3 clarifications per iteration
+
+### humaninloop-core 1.1.0
+
+#### New Agents
+- `validator-agent` - Generic validation for any artifact type against check modules
+
 ### humaninloop
 
 #### Changed
@@ -22,6 +55,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
   - `MAPPING.md` - Phase T1 procedures
   - `TASKS.md` - Phase T2 procedures
   - `VALIDATION.md` - Validation coordination
+
+#### Fixed
+- Added missing `dependencies: ["humaninloop-core"]` to plugin.json
+- Fixed agent namespace consistency: all agents now use full `{plugin}:{agent}` pattern
+  - `codebase-discovery` → `humaninloop-core:codebase-discovery`
+  - `plan-builder` → `humaninloop:plan-builder`
+  - `task-builder` → `humaninloop:task-builder`
 
 #### Removed
 - `task-planner` agent (consolidated into `task-builder`)

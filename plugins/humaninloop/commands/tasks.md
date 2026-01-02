@@ -60,12 +60,12 @@ AskUserQuestion(
 │                                                                      │
 │  PHASE T1: Planning Loop (max 3 iterations)                          │
 │  ├── Spawn task-builder agent (phase=1) → task-mapping.md            │
-│  ├── Spawn task-validator (mapping-checks)                           │
+│  ├── Spawn validator-agent (mapping-checks)                          │
 │  └── Loop if gaps, escalate if stale                                 │
 │                                                                      │
 │  PHASE T2: Generation Loop (max 3 iterations)                        │
 │  ├── Spawn task-builder agent (phase=2) → tasks.md                   │
-│  ├── Spawn task-validator (task-checks)                              │
+│  ├── Spawn validator-agent (task-checks)                             │
 │  └── Loop if gaps, escalate if stale                                 │
 │                                                                      │
 │  PHASE T3: Completion                                                │
