@@ -16,6 +16,7 @@ An ADR captures the context, decision, and consequences of an architectural choi
 | [004](./004-specify-plugin-extraction.md) | Specify Plugin Extraction | Accepted |
 | [005](./005-hexagonal-agent-architecture.md) | Hexagonal Multi-Agent Architecture | Accepted |
 | [006](./006-humaninloop-core-plugin.md) | humaninloop-core Plugin | Accepted |
+| [007](./007-agent-communication-schema.md) | Agent Communication Schema | Proposed |
 
 ## ADR Template
 

@@ -72,7 +72,11 @@ The plugin ecosystem follows a **hexagonal (clean) architecture** with three lay
 2. `humaninloop-core` (shared skills and agents)
 3. `humaninloop-specs` / `humaninloop` (workflow plugins, depend on core)
 
-See [ADR-005](docs/decisions/005-hexagonal-agent-architecture.md) and [ADR-006](docs/decisions/006-humaninloop-core-plugin.md) for full details.
+**Agent communication:** Agents use standardized input/output envelopes for workflow composition:
+- **Input**: `context`, `paths`, `task`, `prior_context`
+- **Output**: `success`, `summary`, `artifacts`, `notes`, `recommendation`
+
+See [ADR-005](docs/decisions/005-hexagonal-agent-architecture.md) (layer architecture), [ADR-006](docs/decisions/006-humaninloop-core-plugin.md) (core plugin), and [ADR-007](docs/decisions/007-agent-communication-schema.md) (communication schema) for full details.
 
 ## Development Workflow
 
