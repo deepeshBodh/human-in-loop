@@ -211,15 +211,17 @@ For each focus area, generate items:
 
 ### Phase 4: Classify Gaps
 
-For each checklist item that identifies a gap:
+*Apply the Gap Classification and Severity Classification patterns from validation-expertise and prioritization-patterns skills.*
 
-| Priority | Criteria |
-|----------|----------|
-| **Critical** | Affects MUST requirements, P1 user stories, security, core data |
-| **Important** | Affects SHOULD requirements, P2 user stories, consistency |
-| **Minor** | Affects MAY requirements, P3 user stories, polish items |
+For each checklist item that identifies a gap, classify using the core priority framework:
 
-**Gap Output**:
+| Priority | Domain-Specific Criteria (Requirement Quality) |
+|----------|------------------------------------------------|
+| **Critical** | Affects MUST requirements, P1 user stories, security, core data integrity |
+| **Important** | Affects SHOULD requirements, P2 user stories, cross-requirement consistency |
+| **Minor** | Affects MAY requirements, P3 user stories, polish/optimization items |
+
+**Gap Output** (follows validation-expertise Gap Queue format):
 ```json
 {
   "critical": [{"chk_id": "CHK015", "fr_ref": "FR-003", "question": "...", "options": [...]}],
@@ -232,17 +234,29 @@ For each checklist item that identifies a gap:
 
 ### Phase 5: Apply Consolidation Rules
 
-**Soft cap: 40 items maximum**
+*Apply the Quality Gate pattern from quality-thinking and Coverage Analysis from traceability-patterns skills.*
 
-If raw items > 40:
-1. Prioritize by risk/impact
-2. Merge near-duplicates
-3. Consolidate similar edge cases
+**Quality Gate: Checklist Size**
+
+| Threshold | Action |
+|-----------|--------|
+| Items ≤ 40 | Accept |
+| Items > 40 | Apply consolidation |
+
+**Consolidation Steps** (if over threshold):
+1. Prioritize by risk/impact (use prioritization-patterns severity ranking)
+2. Merge near-duplicates checking the same requirement aspect
+3. Consolidate similar edge cases into compound items
 4. Remove lowest-impact items
 
-**Traceability minimum: 80%**
+**Quality Gate: Traceability Coverage**
 
-At least 80% of items must include traceability marker.
+| Threshold | Action |
+|-----------|--------|
+| Coverage ≥ 80% | Accept |
+| Coverage < 80% | Add missing traceability markers |
+
+Coverage = (items with spec reference or gap marker) / (total items) × 100
 
 ---
 
@@ -713,10 +727,20 @@ If ANY of these appear, the checklist FAILS:
 
 ## Quality Validation
 
-Before returning, verify:
-- [ ] ZERO items test implementation behavior
-- [ ] 100% items are in question format
-- [ ] 100% items include quality dimension marker
-- [ ] 80%+ items have traceability reference
-- [ ] Item count is <= 40
-- [ ] index.md was updated with gaps and traceability
+*Apply the Validation Execution pattern from validation-expertise skill before returning.*
+
+**Self-Validation Checks** (domain-specific for requirement quality checklists):
+
+| ID | Check | Tier |
+|----|-------|------|
+| QV-001 | Zero items test implementation behavior | auto-retry |
+| QV-002 | 100% items in question format | auto-retry |
+| QV-003 | 100% items include quality dimension marker | auto-resolve |
+| QV-004 | 80%+ items have traceability reference | auto-retry |
+| QV-005 | Item count ≤ 40 (after consolidation) | auto-resolve |
+| QV-006 | State updates include gaps and traceability | auto-resolve |
+
+**Verdict Determination** (per validation-expertise):
+- **Pass**: All checks pass
+- **Partial**: Minor gaps auto-resolved
+- **Fail**: Critical or Important gaps unresolved → retry before returning
