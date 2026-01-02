@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "summary": "Validated spec. 8/9 checks passed. 1 Important gap auto-resolved.",
+  "artifacts": [
+    {
+      "path": "specs/005-user-auth/.workflow/index.md",
+      "operation": "update",
+      "content": "# Feature Index: 005-user-auth\n\n## Workflow Status\n| Phase | Status | Last Run |\n|-------|--------|----------|\n| Specify | complete | 2026-01-02 |\n\n## Gap Priority Queue\n(empty - all gaps resolved)\n\n..."
+    }
+  ],
+  "notes": [
+    "Verdict: partial (auto-resolved to pass)",
+    "Gaps: 0 critical, 1 important (auto-resolved), 0 minor",
+    "Auto-resolved: CHK-010 formatting inconsistency",
+    "Constitution: pass (all principles verified)",
+    "Ready for next phase"
+  ],
+  "recommendation": "proceed"
+}

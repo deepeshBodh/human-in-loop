@@ -1,0 +1,26 @@
+{
+  "context": {
+    "feature_id": "005-user-auth",
+    "workflow": "specify",
+    "iteration": 1
+  },
+  "paths": {
+    "feature_root": "specs/005-user-auth/",
+    "spec": "specs/005-user-auth/spec.md",
+    "index": "specs/005-user-auth/.workflow/index.md",
+    "constitution": ".humaninloop/memory/constitution.md",
+    "checks": "check-modules/spec-checks.md"
+  },
+  "task": {
+    "action": "validate",
+    "params": {
+      "artifact_type": "spec",
+      "phase": "initial"
+    }
+  },
+  "prior_context": [
+    "Spec draft complete",
+    "3 user stories defined",
+    "8 functional requirements extracted"
+  ]
+}
