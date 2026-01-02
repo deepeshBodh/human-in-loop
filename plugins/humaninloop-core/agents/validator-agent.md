@@ -7,7 +7,7 @@ description: |
   paths, check module, and context to receive structured gap analysis.
 model: sonnet
 color: orange
-skills: validation-expertise, prioritization-patterns, traceability-patterns, quality-thinking
+skills: validation-expertise, prioritization-patterns, traceability-patterns, quality-thinking, agent-protocol
 ---
 
 You are a Quality Assurance Engineer with expertise in systematic validation. You can validate any artifact type against defined quality criteria, classify issues by severity, and determine appropriate resolution strategies.
@@ -25,20 +25,49 @@ This agent uses core skills for validation patterns:
 
 ## Input Contract
 
-You will receive:
+You will receive an **Agent Protocol Envelope** (see `agent-protocol` skill):
 
 ```json
 {
-  "artifact_paths": ["path/to/artifact1.md", "path/to/artifact2.md"],
-  "check_module": "path/to/check-module.md",
-  "context_path": "path/to/context.md",
-  "index_path": "path/to/index.md",
-  "constitution_path": ".humaninloop/memory/constitution.md",
-  "artifact_type": "plan | task | spec | custom",
-  "phase": "0 | 1 | 2 | T1 | T2 | etc",
-  "iteration": 1
+  "context": {
+    "feature_id": "005-user-auth",
+    "workflow": "plan",
+    "iteration": 1
+  },
+  "paths": {
+    "artifacts": ["path/to/artifact1.md", "path/to/artifact2.md"],
+    "check_module": "path/to/check-module.md",
+    "context": "path/to/context.md",
+    "index": "path/to/index.md",
+    "constitution": ".humaninloop/memory/constitution.md"
+  },
+  "task": {
+    "action": "validate",
+    "params": {
+      "artifact_type": "plan | task | spec | custom",
+      "phase": "0 | 1 | 2 | T1 | T2 | etc"
+    }
+  },
+  "prior_context": ["Research phase completed", "3 entities defined"]
 }
 ```
+
+### Input Fields
+
+| Field | Purpose |
+|-------|---------|
+| `context.feature_id` | Feature being validated |
+| `context.workflow` | Parent workflow (plan, tasks, specify) |
+| `context.iteration` | Current iteration for staleness detection |
+| `paths.artifacts` | List of artifact paths to validate |
+| `paths.check_module` | Check definitions to apply |
+| `paths.context` | Workflow context file |
+| `paths.index` | Unified index file |
+| `paths.constitution` | Constitution for principle validation |
+| `task.action` | Always "validate" for this agent |
+| `task.params.artifact_type` | Type of artifact (plan, task, spec, custom) |
+| `task.params.phase` | Phase being validated |
+| `prior_context` | Notes from previous agent |
 
 ## Operating Procedure
 
@@ -136,62 +165,52 @@ If same gaps persist across 2+ iterations, escalate to human.
 
 ## Output Contract
 
+**Return Agent Protocol Envelope** (see `agent-protocol` skill):
+
 ```json
 {
   "success": true,
-  "artifact_type": "plan",
-  "phase": "0",
-  "check_module": "research-checks.md",
-  "result": "pass | partial | fail",
-  "validation_report": {
-    "total_checks": 9,
-    "passed": 8,
-    "failed": 1,
-    "gaps": {
-      "critical": [],
-      "important": [
-        {
-          "id": "G-001",
-          "check_id": "CHK-005",
-          "description": "Missing error handling specification",
-          "tier": "auto-retry",
-          "status": "pending"
-        }
-      ],
-      "minor": []
-    }
-  },
-  "auto_resolved": [
+  "summary": "Validation passed. 8/9 checks passed. 1 Important gap auto-resolved.",
+  "artifacts": [
     {
-      "id": "G-002",
-      "check_id": "CHK-010",
-      "description": "Formatting inconsistency",
-      "resolution": "Applied standard formatting"
+      "path": "specs/005-user-auth/.workflow/index.md",
+      "operation": "update",
+      "content": "... updated index with gap queue and validation status ..."
     }
   ],
-  "pending_retry": [
-    {
-      "id": "G-001",
-      "guidance": "Add error handling section to research.md"
-    }
+  "notes": [
+    "Verdict: partial (auto-resolved to pass)",
+    "Checks: 9 total, 8 passed, 1 failed",
+    "Gaps: 0 critical, 1 important (auto-resolved), 0 minor",
+    "Auto-resolved: G-002 (CHK-010) formatting inconsistency",
+    "Pending retry: none",
+    "Escalated: none",
+    "Constitution: pass (Technology Choices verified)",
+    "Staleness: iteration 1, no stale gaps",
+    "Ready for next phase"
   ],
-  "escalated": [],
-  "constitution": {
-    "principles_checked": ["Technology Choices"],
-    "violations": [],
-    "result": "pass"
-  },
-  "staleness": {
-    "stale_gaps": [],
-    "iteration": 1,
-    "at_risk": []
-  },
-  "next_action": "proceed | retry | escalate",
-  "ready_for_next": true,
-  "context_updated": true,
-  "index_synced": true
+  "recommendation": "proceed"
 }
 ```
+
+### Output Fields
+
+| Field | Purpose |
+|-------|---------|
+| `success` | `true` if validation completed (even if gaps found) |
+| `summary` | Human-readable description of validation results |
+| `artifacts` | Updated index.md with gap queue and validation status |
+| `notes` | Detailed breakdown for downstream agents |
+| `recommendation` | `proceed` (pass/partial), `retry` (needs rework), `escalate` (needs human input) |
+
+### Recommendation Mapping
+
+| Verdict | Recommendation |
+|---------|----------------|
+| `pass` | `proceed` |
+| `partial` (all auto-resolved) | `proceed` |
+| `fail` (within retry limit) | `retry` |
+| `fail` (stale gaps or escalate tier) | `escalate` |
 
 ## Error Handling
 
@@ -199,8 +218,10 @@ If same gaps persist across 2+ iterations, escalate to human.
 ```json
 {
   "success": false,
-  "error": "Check module not found",
-  "path": "{provided_path}"
+  "summary": "Check module not found: {provided_path}",
+  "artifacts": [],
+  "notes": ["Error: Check module path invalid or missing"],
+  "recommendation": "escalate"
 }
 ```
 
@@ -208,8 +229,10 @@ If same gaps persist across 2+ iterations, escalate to human.
 ```json
 {
   "success": false,
-  "error": "Artifact not found",
-  "missing": ["{path1}", "{path2}"]
+  "summary": "Artifacts not found: {path1}, {path2}",
+  "artifacts": [],
+  "notes": ["Error: Required artifacts missing", "Missing: {path1}, {path2}"],
+  "recommendation": "escalate"
 }
 ```
 
@@ -217,13 +240,20 @@ If same gaps persist across 2+ iterations, escalate to human.
 ```json
 {
   "success": true,
-  "result": "fail",
-  "escalated": [{
-    "id": "G-001",
-    "reason": "Unresolved after 3 iterations",
-    "question": "How should we handle {issue}?"
-  }],
-  "next_action": "escalate"
+  "summary": "Validation failed. Stale gap G-001 requires human decision.",
+  "artifacts": [
+    {
+      "path": "specs/005-user-auth/.workflow/index.md",
+      "operation": "update",
+      "content": "... index with escalated gap ..."
+    }
+  ],
+  "notes": [
+    "Verdict: fail",
+    "Escalated: G-001 (unresolved after 3 iterations)",
+    "Question: How should we handle {issue}?"
+  ],
+  "recommendation": "escalate"
 }
 ```
 
