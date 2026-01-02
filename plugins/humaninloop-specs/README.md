@@ -79,12 +79,10 @@ This plugin follows **hexagonal (clean) architecture** with three layers where d
 
 | Agent | Purpose | Skills | Source |
 |-------|---------|--------|--------|
-| **Scaffold Agent** | Creates branch, directories, and initializes templates | scaffold-workflow | local |
-| **Spec Writer Agent** | Generates user stories, requirements, success criteria | spec-writing, context-patterns, quality-thinking | local |
-| **Checklist Context Analyzer** | Extracts signals for quality validation | context-patterns, quality-thinking | local |
-| **Checklist Writer Agent** | Generates validation checklists, classifies gaps | quality-thinking, validation-expertise, clarification-patterns | local |
-| **Gap Classifier Agent** | Groups and prioritizes specification gaps | prioritization-patterns, clarification-patterns | local |
-| **Spec Clarify Agent** | Applies user answers to resolve gaps | clarification-patterns, spec-clarify, context-patterns | local |
+| **Scaffold Agent** | Creates branch, directories, and initializes templates | scaffold-workflow, agent-protocol | local |
+| **Spec Writer Agent** | Dual-mode: creates initial specs OR applies clarification answers | spec-writing, context-patterns, quality-thinking, clarification-patterns, agent-protocol | local |
+| **Checklist Agent** | Generates validation checklists (create/update modes) | quality-thinking, prioritization-patterns, traceability-patterns, spec-writing, agent-protocol | local |
+| **Gap Classifier Agent** | Groups and prioritizes specification gaps into questions | context-patterns, prioritization-patterns, clarification-patterns, agent-protocol | local |
 
 ### Priority Loop
 

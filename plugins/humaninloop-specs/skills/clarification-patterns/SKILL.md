@@ -59,14 +59,14 @@ When the agent declares `skills: clarification-patterns, prioritization-patterns
 
 ## Workflow Position
 
-This skill supports the spec-clarify agent in dual-mode operation:
+This skill supports the clarification lifecycle across two agents:
 
-1. **Gap Classification Mode** (before user interaction)
+1. **Gap Classifier Agent** (before user interaction)
    - Groups gaps from checklist validation
    - Generates clarification questions
    - Updates Gap Priority Queue with `clarifying` status
 
-2. **Answer Application Mode** (after user interaction)
+2. **Spec Writer Agent [update mode]** (after user interaction)
    - Applies user answers to spec
    - Updates Gap Priority Queue with `resolved` status
    - Validates spec quality

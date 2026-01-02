@@ -4,14 +4,14 @@ Patterns for gap classification and answer application workflows.
 
 ---
 
-## Mode Selection Pattern
+## Agent Responsibilities
 
-The spec-clarify agent operates in two modes:
+The clarification lifecycle is handled by two agents:
 
-| Mode | When | Input | Output |
-|------|------|-------|--------|
-| `classify_gaps` | After checklist validation | Gaps from checklist-agent | Clarification questions |
-| `apply_answers` | After user responds | User answers | Updated spec |
+| Agent | Mode/Action | When | Input | Output |
+|-------|-------------|------|-------|--------|
+| Gap Classifier | `classify_gaps` | After checklist validation | Gaps from validator | Clarification questions |
+| Spec Writer | `update` | After user responds | User answers | Updated spec |
 
 ---
 

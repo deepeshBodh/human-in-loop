@@ -50,15 +50,15 @@ AskUserQuestion(
 │                                                                      │
 │  PHASE A: Initial Specification                                      │
 │  ├── A1: Scaffold Agent (create branch, directories)                │
-│  ├── A2: Spec Writer Agent (write spec content)                     │
+│  ├── A2: Spec Writer Agent [create] (write spec content)            │
 │  ├── A3: Validator Agent (validate with spec-checks.md)             │
 │  ├── A4: Checklist Agent (generate requirements checklist)          │
-│  └── A5: Spec Clarify Agent (classify gaps)                         │
+│  └── A5: Gap Classifier Agent (classify gaps into questions)        │
 │                                                                      │
 │  PHASE B: Priority Loop                                              │
 │  WHILE (critical + important > 0) AND (iteration < 10):             │
 │  ├── B1: Present gaps via AskUserQuestion                           │
-│  ├── B2: Spec Clarify Agent (apply answers)                         │
+│  ├── B2: Spec Writer Agent [update] (apply answers to spec)         │
 │  ├── B3: Validator Agent (re-validate spec)                         │
 │  ├── B4: Check termination conditions                                │
 │  └── B5: Update index.md state                                       │
@@ -78,10 +78,10 @@ AskUserQuestion(
 | Agent | Type | Purpose |
 |-------|------|---------|
 | Scaffold | `${CLAUDE_PLUGIN_ROOT}/agents/scaffold-agent.md` | Create branch, directories, initialize unified index |
-| Spec Writer | `${CLAUDE_PLUGIN_ROOT}/agents/spec-writer.md` | Write user stories, requirements, criteria |
+| Spec Writer | `${CLAUDE_PLUGIN_ROOT}/agents/spec-writer.md` | Dual-mode: create initial spec OR update with answers |
 | Validator (core) | `humaninloop-core:validator-agent` | Validate spec against check modules |
 | Checklist | `${CLAUDE_PLUGIN_ROOT}/agents/checklist-agent.md` | Generate requirements quality checklist |
-| Spec Clarify | `${CLAUDE_PLUGIN_ROOT}/agents/spec-clarify.md` | Dual-mode: classify gaps OR apply user answers |
+| Gap Classifier | `${CLAUDE_PLUGIN_ROOT}/agents/gap-classifier.md` | Classify and group validation gaps into questions |
 
 ### Check Modules
 
@@ -320,13 +320,13 @@ Task(
 
 **If gaps from A3 or A4 have critical + important > 0**:
 
-**Spawn Spec Clarify Agent** in `classify_gaps` mode:
+**Spawn Gap Classifier Agent**:
 
 ```
 Task(
-  subagent_type: "humaninloop-specs:spec-clarify",
+  subagent_type: "humaninloop-specs:gap-classifier",
   description: "Classify and group gaps",
-  prompt: [Execute with mode="classify_gaps", gaps from checklist-agent output]
+  prompt: [Execute with action="classify_gaps", gaps from validator output]
 )
 ```
 
@@ -382,13 +382,13 @@ AskUserQuestion(
 
 ### B2: Process User Answers
 
-**Spawn Spec Clarify Agent** in `apply_answers` mode:
+**Spawn Spec Writer Agent** in `update` mode:
 
 ```
 Task(
-  subagent_type: "humaninloop-specs:spec-clarify",
-  description: "Apply clarifications",
-  prompt: [Execute with mode="apply_answers", feature_id, paths, iteration, user_answers JSON]
+  subagent_type: "humaninloop-specs:spec-writer-agent",
+  description: "Apply clarifications to spec",
+  prompt: [Execute with action="update", feature_id, paths, iteration, user_answers JSON]
 )
 ```
 
@@ -431,17 +431,17 @@ Task(
 
 **Apply state_updates** to index.md (validation results, gap status)
 
-**If new gaps found**, run Spec Clarify in classify_gaps mode:
+**If new gaps found**, run Gap Classifier:
 
 ```
 Task(
-  subagent_type: "humaninloop-specs:spec-clarify",
+  subagent_type: "humaninloop-specs:gap-classifier",
   description: "Classify new gaps",
-  prompt: [Execute with mode="classify_gaps", new gaps]
+  prompt: [Execute with action="classify_gaps", new gaps]
 )
 ```
 
-**Apply state_updates** from spec-clarify to index.md
+**Apply state_updates** from gap-classifier to index.md
 
 ---
 
