@@ -162,7 +162,7 @@ For contributions to `humaninloop-core`, `humaninloop-specs`, or `humaninloop` p
 
 1. **Open an issue** describing the proposed feature
 2. **Discuss** the approach before implementing
-3. **Create a spec** using `/humaninloop:specify` if the feature is significant
+3. **Create a spec** using `/humaninloop-specs:specify` if the feature is significant
 4. **Submit PR** referencing the issue and spec
 
 ### Bug Fixes

@@ -19,12 +19,12 @@ specs/
 
 ## Creating Specifications
 
-Specifications are created using the `/humaninloop:specify` command. This ensures:
+Specifications are created using the `/humaninloop-specs:specify` command. This ensures:
 - Structured format with required sections
 - Multi-agent validation
 - Consistent quality
 
-See the [humaninloop plugin](../plugins/humaninloop/README.md) for details.
+See the [humaninloop-specs plugin](../plugins/humaninloop-specs/README.md) for details.
 
 ## Why Track Specs Here?
 

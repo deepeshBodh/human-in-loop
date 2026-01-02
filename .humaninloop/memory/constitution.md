@@ -28,7 +28,7 @@ Derived From: ADR-005 (Hexagonal Agent Architecture), ADR-006 (humaninloop-core 
 Every new feature MUST follow the specification-driven development workflow, dogfooding the HumanInLoop plugins:
 
 1. Create GitHub issue describing the feature
-2. Run `/humaninloop:specify` → commit spec to `specs/in-progress/`
+2. Run `/humaninloop-specs:specify` → commit spec to `specs/in-progress/`
 3. Run `/humaninloop:plan` → commit plan
 4. Implement → PR references issue and spec
 5. On merge → move spec to `specs/completed/`
@@ -120,7 +120,7 @@ Installation order: `humaninloop-constitution` → `humaninloop-core` → workfl
 ### Feature Development Process
 
 1. **Issue First**: Every non-trivial feature MUST have a GitHub issue
-2. **Specify**: Run `/humaninloop:specify` to create formal specification
+2. **Specify**: Run `/humaninloop-specs:specify` to create formal specification
 3. **Plan**: Run `/humaninloop:plan` to create implementation plan
 4. **Implement**: Code against the specification and plan
 5. **Review**: PR MUST reference issue and spec
