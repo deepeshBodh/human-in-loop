@@ -81,37 +81,28 @@ DEPENDENCY RULE: Dependencies point INWARD only
 
 ### Contract Patterns
 
-**Agent Input Contract:**
-```yaml
-input:
-  task: "extract-entities"
-  context:
-    spec: <spec content>
-    constitution: <principles>
-    prior_decisions: <from workflow state>
-  config:              # Workflow-owned config passed in
-    checks: <check-module if validator>
-```
+Agents communicate through standardized input/output envelopes. See [ADR-007: Agent Communication Schema](./007-agent-communication-schema.md) for the authoritative specification.
 
-**Agent Output Contract:**
-```yaml
-output:
-  success: true
-  result: <primary output>
-  artifacts:           # What agent produced
-    - path: "data-model.md"
-      content: <...>
-  state_updates:       # Workflow applies these
-    entity_registry: {...}
-    gaps_found: [...]
-  next_recommendation: "proceed" | "retry" | "escalate"
-```
+**Summary:**
+
+| Input Envelope | Output Envelope |
+|----------------|-----------------|
+| `context` - workflow identity | `success` - completion status |
+| `paths` - file references (including config) | `summary` - human-readable description |
+| `task` - action and params | `artifacts` - files to write |
+| `prior_context` - notes from previous agent | `notes` - context for next agent |
+| | `recommendation` - proceed/retry/escalate |
+
+**Key principles:**
+- Agents receive paths and read files themselves (autonomous workers with tool bindings)
+- Artifacts are the source of truth (no separate state structures)
+- Context flows via notes, not agent names (decoupled from workflow graph)
 
 ## Rationale
 
 ### Why Hexagonal/Clean Architecture?
 
-1. **Testability**: Skills are pure knowledge (no side effects). Agents are pure functions `(input) → output`. Both can be tested in isolation.
+1. **Testability**: Skills are pure knowledge (no side effects). Agents are stateless regarding workflow state and can be tested with controlled file fixtures.
 
 2. **Composability**: Atomic skills can be mixed and matched. `spec-clarify` agent uses `skills: spec-writing, clarification-patterns` instead of one monolithic skill.
 
@@ -139,10 +130,10 @@ With contracts:
 Current pain: `plan-builder` writes to `plan-context.md`, creating implicit dependency on `plan-validator` reading it. This couples agents.
 
 With workflow-owned state:
-- Agent returns `state_updates: {...}`
+- Agent returns artifacts (files to write)
 - Workflow decides where to persist
-- Next agent receives relevant state as input
-- Agents become pure functions, easy to test and reason about
+- Next agent receives relevant paths and prior context as input
+- Agents are stateless regarding workflow state, but perform I/O via tool bindings
 
 ### Why Check-Modules as Workflow Config?
 
@@ -197,7 +188,7 @@ This is orchestration logic. The validator agent becomes generic: `validate(arti
 
 ### Positive
 
-- **Testable agents**: Pure functions with no side effects
+- **Testable agents**: Stateless regarding workflow; testable with file fixtures
 - **Composable skills**: Atomic skills that can be mixed and matched
 - **Clear boundaries**: Each layer has well-defined responsibilities
 - **Reduced coupling**: Agents don't know about each other or workflow state
@@ -235,10 +226,10 @@ This is orchestration logic. The validator agent becomes generic: `validate(arti
    - `brownfield-patterns` (how to reason about existing code)
 3. Update agents to compose atomic skills
 
-### Phase 3: Stateless Agents
-1. Refactor agents to return `state_updates` instead of writing files
-2. Update agent output format to match contracts
-3. Remove direct file I/O from agents
+### Phase 3: Standardize Agent Communication
+1. Refactor agents to use ADR-007 input/output envelopes
+2. Agents return artifacts; workflows handle persistence
+3. Implement `prior_context` / `notes` for inter-agent context flow
 
 ### Phase 4: Workflow State Management
 1. Update workflow commands to handle state persistence
@@ -254,6 +245,7 @@ This is orchestration logic. The validator agent becomes generic: `validate(arti
 
 ## Related
 
+- [ADR-007: Agent Communication Schema](./007-agent-communication-schema.md) - Concrete input/output envelope specification
 - [ADR-001: Multi-Agent Architecture](./001-multi-agent-architecture.md) - Establishes multi-agent approach; this ADR refines layer boundaries
 - [ADR-004: Specify Plugin Extraction](./004-specify-plugin-extraction.md) - Plugin separation that aligns with layer boundaries
 - [Plugin structure](../../plugins/humaninloop/README.md)
