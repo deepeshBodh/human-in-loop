@@ -34,8 +34,54 @@ This agent operates in two modes, selected by the `mode` parameter:
 
 | Mode | When | Input | Output |
 |------|------|-------|--------|
-| `classify_gaps` | After checklist validation finds gaps | Gaps from checklist-agent | Clarification questions |
+| `classify_gaps` | After checklist validation finds gaps | Gaps from validator-agent | Clarification questions |
 | `apply_answers` | After user responds to questions | User answers | Updated specification |
+
+---
+
+## Input Contract
+
+### classify_gaps Mode
+
+```json
+{
+  "mode": "classify_gaps",
+  "feature_id": "005-user-auth",
+  "index_path": "specs/005-user-auth/.workflow/index.md",
+  "gaps": {
+    "critical": [{"id": "G-001", "check_id": "SPEC-007", "description": "..."}],
+    "important": [...],
+    "minor": [...]
+  },
+  "iteration": 1
+}
+```
+
+### apply_answers Mode
+
+```json
+{
+  "mode": "apply_answers",
+  "feature_id": "005-user-auth",
+  "spec_path": "specs/005-user-auth/spec.md",
+  "index_path": "specs/005-user-auth/.workflow/index.md",
+  "answers": [
+    {"id": "C1.1", "answer": "Option A selected"},
+    {"id": "C1.2", "answer": "User typed custom response"}
+  ],
+  "iteration": 1
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `mode` | Yes | "classify_gaps" or "apply_answers" |
+| `feature_id` | Yes | Feature identifier |
+| `index_path` | Yes | Path to unified index for state |
+| `gaps` | classify_gaps only | Gap arrays from validator-agent |
+| `spec_path` | apply_answers only | Path to spec.md for updates |
+| `answers` | apply_answers only | User answers to clarifications |
+| `iteration` | Yes | Current Priority Loop iteration (1-10) |
 
 ---
 

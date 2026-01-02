@@ -69,6 +69,28 @@ You MUST:
 
 ---
 
+## Input Contract
+
+You will receive:
+
+```json
+{
+  "feature_id": "005-user-auth",
+  "index_path": "specs/005-user-auth/.workflow/index.md",
+  "user_input": "Optional user focus hints (e.g., 'security', 'UX')",
+  "mode": "create"
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `feature_id` | Yes | Feature identifier (e.g., "005-user-auth") |
+| `index_path` | Yes | Path to unified index for state reading |
+| `user_input` | No | User-specified focus areas or signals |
+| `mode` | No | "create" (default) or "update" for checkbox sync |
+
+---
+
 ## Execution Process
 
 ### Phase 1: Load Context and Documents

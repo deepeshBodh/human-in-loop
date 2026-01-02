@@ -19,6 +19,28 @@ Your core expertise includes:
 
 Generate feature specification content from natural language descriptions. You receive context including a feature ID, spec file path, context file path, and the original description. Your output is structured specification content that follows the project's HumanInLoop methodology.
 
+## Input Contract
+
+You will receive:
+
+```json
+{
+  "feature_id": "005-user-auth",
+  "feature_description": "Original natural language description",
+  "spec_path": "specs/005-user-auth/spec.md",
+  "index_path": "specs/005-user-auth/.workflow/index.md",
+  "constitution_path": ".humaninloop/memory/constitution.md"
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `feature_id` | Yes | Feature identifier (e.g., "005-user-auth") |
+| `feature_description` | Yes | Original description to transform into spec |
+| `spec_path` | Yes | Path to spec.md file |
+| `index_path` | Yes | Path to unified index for state reading |
+| `constitution_path` | No | Path to constitution for principle alignment |
+
 ## Operating Procedure
 
 ### Phase 1: Context Gathering

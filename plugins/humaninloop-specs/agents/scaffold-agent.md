@@ -40,6 +40,26 @@ You MUST:
 - Return file content as `artifacts` in your output
 - Let the workflow apply artifacts to disk
 
+## Input Contract
+
+You will receive:
+
+```json
+{
+  "feature_description": "Natural language description of the feature",
+  "constitution_path": ".humaninloop/memory/constitution.md",
+  "force_number": null,
+  "force_short_name": null
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `feature_description` | Yes | Natural language description to extract branch name from |
+| `constitution_path` | No | Path to constitution for principle checking |
+| `force_number` | No | Override auto-generated feature number |
+| `force_short_name` | No | Override auto-generated short name |
+
 ## Operating Procedure
 
 Execute these steps in order when scaffolding a new feature. **You are a stateless agent—you return artifacts and state_updates, the workflow applies them.**
