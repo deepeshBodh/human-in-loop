@@ -9,9 +9,14 @@
   },
   "plugins": [
     {
+      "name": "humaninloop-core",
+      "source": "./plugins/humaninloop-core",
+      "description": "Domain-agnostic capabilities for software engineering: deep thinking, codebase understanding, context management, and validation patterns"
+    },
+    {
       "name": "humaninloop",
       "source": "./plugins/humaninloop",
-      "description": "Specification-driven development workflow: specify → plan → tasks → implement"
+      "description": "Implementation workflow: plan → tasks → implement (requires humaninloop-core)"
     },
     {
       "name": "humaninloop-constitution",

@@ -1,0 +1,23 @@
+{
+  "name": "humaninloop-core",
+  "version": "1.0.0",
+  "description": "Domain-agnostic capabilities for software engineering: deep thinking, codebase understanding, context management, and validation patterns",
+  "author": {
+    "name": "HumanInLoop",
+    "url": "https://humaninloop.dev"
+  },
+  "license": "MIT",
+  "keywords": [
+    "core",
+    "foundation",
+    "analysis",
+    "codebase",
+    "validation",
+    "patterns",
+    "software-engineering"
+  ],
+  "skills": "./skills/",
+  "agents": [
+    "./agents/codebase-discovery.md"
+  ]
+}
