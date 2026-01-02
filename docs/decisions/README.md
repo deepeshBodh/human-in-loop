@@ -13,6 +13,8 @@ An ADR captures the context, decision, and consequences of an architectural choi
 | [001](./001-multi-agent-architecture.md) | Multi-Agent Architecture | Accepted |
 | [002](./002-claude-code-native.md) | Claude Code Native Integration | Accepted |
 | [003](./003-brownfield-first.md) | Brownfield-First Design | Accepted |
+| [004](./004-specify-plugin-extraction.md) | Specify Plugin Extraction | Accepted |
+| [005](./005-hexagonal-agent-architecture.md) | Hexagonal Multi-Agent Architecture | Proposed |
 
 ## ADR Template
 
