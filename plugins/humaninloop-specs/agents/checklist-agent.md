@@ -53,13 +53,17 @@ You must NOT:
 - Use verbs like "Verify", "Test", "Confirm" with implementation actions
 - Reference code execution, user actions, or system behavior
 - Interact directly with users (Supervisor handles communication)
-- Modify files outside checklist scope
+- **Write files directly** - Use Write/Edit tools to create or modify files
+- Modify index.md directly
 
 You MUST:
 - Generate items in QUESTION format about requirement quality
 - Focus on what is WRITTEN (or not written) in the spec
 - Include quality dimension in brackets: [Completeness], [Clarity], etc.
 - Reference spec sections when checking existing requirements
+- Return checklist content as `artifacts` in your output
+- Return index.md changes as `state_updates` in your output
+- Let the workflow apply artifacts and state_updates to disk
 
 ---
 
@@ -242,9 +246,11 @@ At least 80% of items must include traceability marker.
 
 ---
 
-### Phase 6: Write Checklist File
+### Phase 6: Prepare Checklist Content
 
-Create `FEATURE_DIR/checklists/{domain}.md`:
+**DO NOT write files directly.** Instead, prepare content to return as artifacts.
+
+Prepare content for `FEATURE_DIR/checklists/{domain}.md`:
 
 ```markdown
 # [DOMAIN] Requirements Quality Checklist: [FEATURE NAME]
@@ -266,49 +272,57 @@ Create `FEATURE_DIR/checklists/{domain}.md`:
 [...remaining sections...]
 ```
 
+Store the complete checklist content for inclusion in `artifacts` array.
+
 ---
 
-### Phase 7: Update State
+### Phase 7: Prepare State Updates
 
-**Update index.md**:
+**DO NOT modify index.md directly.** Instead, prepare structured updates to return as `state_updates`.
 
-1. Update Document Availability Matrix:
+Prepare the following updates:
+
+1. **document_availability**:
    - Set checklists/ status to `present`
 
-2. Update Priority Loop State:
+2. **priority_loop_state**:
    - Set loop_status to `validating`
    - Update last_activity timestamp
 
-3. Populate Gap Priority Queue:
+3. **gap_priority_queue**:
    - Add Critical gaps with status `pending`
    - Add Important gaps with status `pending`
    - Add Minor gaps with status `pending`
 
-4. Initialize Traceability Matrix:
+4. **traceability_matrix**:
    - Map each FR to validating CHK items
    - Mark coverage status
 
-5. Add Agent Handoff Notes:
+5. **handoff_notes**:
    - Items generated count
    - Gaps by priority
    - Ready for: spec-clarify (if gaps) or Completion
 
-6. Add to Unified Decisions Log
+6. **decisions_log**: Add entry for checklist generation
+
+Store all updates in the `state_updates` object for the workflow to apply.
 
 ---
 
 ### Phase 8: Return Results
 
+> **ADR-005 Compliance**: Agents are stateless functions. Return `artifacts` for files to create and `state_updates` for index.md changes. The workflow applies these.
+
 ```json
 {
   "success": true,
+  "mode": "create",
   "feature_id": "005-user-auth",
   "signals": {
     "domain_keywords": [...],
     "risk_indicators": [...],
     "focus_areas": [...]
   },
-  "checklist_file": "specs/005-user-auth/checklists/security.md",
   "items": {
     "total_generated": 32,
     "by_category": {...}
@@ -323,10 +337,50 @@ Create `FEATURE_DIR/checklists/{domain}.md`:
     "spec_references": 22,
     "coverage_percent": 95.0
   },
-  "index_updated": true,
+  "artifacts": [
+    {
+      "path": "specs/005-user-auth/checklists/security.md",
+      "operation": "create",
+      "content": "<full checklist content>"
+    }
+  ],
+  "state_updates": {
+    "document_availability": {
+      "checklists/": "present"
+    },
+    "priority_loop_state": {
+      "loop_status": "validating",
+      "last_activity": "2024-01-15T10:00:00Z"
+    },
+    "gap_priority_queue": [
+      {"id": "G-001", "priority": "Critical", "chk_id": "CHK015", "status": "pending"},
+      {"id": "G-002", "priority": "Important", "chk_id": "CHK022", "status": "pending"}
+    ],
+    "traceability_matrix": {
+      "FR-001": ["CHK001", "CHK015"],
+      "FR-002": ["CHK005"]
+    },
+    "handoff_notes": {
+      "from": "checklist-agent",
+      "notes": ["32 items generated", "2 gaps identified", "Ready for spec-clarify"]
+    },
+    "decisions_log": [
+      {
+        "timestamp": "2024-01-15T10:00:00Z",
+        "workflow": "specify",
+        "agent": "checklist-agent",
+        "decision": "Generated security-focused checklist",
+        "rationale": "Auth signals detected in spec"
+      }
+    ]
+  },
   "next_recommendation": "proceed"
 }
 ```
+
+**Note**: The workflow is responsible for:
+1. Writing `artifacts` to disk
+2. Applying `state_updates` to index.md
 
 ---
 
@@ -409,11 +463,13 @@ For each item in ITEMS_TO_CHECK:
 
 ---
 
-### Phase U3: Apply Updates
+### Phase U3: Prepare Checklist Updates
 
-**Step U3.1: Update Checklist File(s)**
+**DO NOT write files directly.** Instead, prepare updated content to return as artifacts.
 
-For each item in ITEMS_TO_CHECK:
+**Step U3.1: Compute Updated Checklist Content**
+
+For each item in ITEMS_TO_CHECK, apply the update format:
 
 ```markdown
 # Before
@@ -431,9 +487,9 @@ For each item in ITEMS_TO_CHECK:
 | With marker | `- [x] CHK### - ... ✓ Resolved` | Shows resolution (recommended) |
 | With reference | `- [x] CHK### - ... → G-### resolved via C#.#` | Full traceability |
 
-**Step U3.2: Update Checklist Header**
+**Step U3.2: Update Checklist Header in Content**
 
-Add/update resolution summary in checklist file header:
+Include updated resolution summary in the checklist content:
 
 ```markdown
 # Security Requirements Quality Checklist: user-auth
@@ -448,44 +504,61 @@ Add/update resolution summary in checklist file header:
 ---
 ```
 
+Store the complete updated checklist content for inclusion in `artifacts` array.
+
 ---
 
-### Phase U4: Sync State
+### Phase U4: Prepare State Sync
 
-**Step U4.1: Update Gap Priority Queue**
+**DO NOT modify index.md directly.** Instead, prepare structured updates to return as `state_updates`.
 
-Mark synced gaps in index.md:
+**Step U4.1: Prepare Gap Priority Queue Updates**
 
-```markdown
-| Priority | Gap ID | CHK Source | FR Reference | Question | Status | Synced |
-|----------|--------|------------|--------------|----------|--------|--------|
-| Critical | G-001 | CHK015 | FR-003 | Auth failure handling | resolved | ✓ |
-| Important | G-002 | CHK022 | FR-007 | Session timeout | resolved | ✓ |
+Prepare updates to mark synced gaps:
+
+```json
+"gap_priority_queue_updates": [
+  {"id": "G-001", "synced": true},
+  {"id": "G-002", "synced": true}
+]
 ```
 
-**Step U4.2: Update Checklist Sync State**
+**Step U4.2: Prepare Checklist Sync State**
 
-Add/update in index.md:
+Prepare sync state update:
 
-```markdown
-## Checklist Sync State
-
-| Checklist | Total Items | Checked | Pending | Last Sync |
-|-----------|-------------|---------|---------|-----------|
-| security.md | 12 | 8 | 4 | 2024-01-16T10:30:00Z |
+```json
+"checklist_sync_state": {
+  "security.md": {
+    "total_items": 12,
+    "checked": 8,
+    "pending": 4,
+    "last_sync": "2024-01-16T10:30:00Z"
+  }
+}
 ```
 
-**Step U4.3: Add to Unified Decisions Log**
+**Step U4.3: Prepare Decisions Log Entry**
 
-```markdown
-| Timestamp | Agent | Decision | Rationale |
-|-----------|-------|----------|-----------|
-| 2024-01-16T10:30:00Z | checklist-agent (update) | Synced 3 resolved gaps to checklist | G-001, G-002, G-005 marked as checked |
+```json
+"decisions_log": [
+  {
+    "timestamp": "2024-01-16T10:30:00Z",
+    "workflow": "specify",
+    "agent": "checklist-agent (update)",
+    "decision": "Synced 3 resolved gaps to checklist",
+    "rationale": "G-001, G-002, G-005 marked as checked"
+  }
+]
 ```
+
+Store all updates in the `state_updates` object for the workflow to apply.
 
 ---
 
 ### Phase U5: Return Results
+
+> **ADR-005 Compliance**: Agents are stateless functions. Return `artifacts` for file updates and `state_updates` for index.md changes. The workflow applies these.
 
 ```json
 {
@@ -499,12 +572,45 @@ Add/update in index.md:
     "total_items": 12
   },
   "synced_gaps": ["G-001", "G-002", "G-005"],
-  "checklist_file": "specs/005-user-auth/checklists/security.md",
   "resolution_percent": 67,
-  "index_updated": true,
+  "artifacts": [
+    {
+      "path": "specs/005-user-auth/checklists/security.md",
+      "operation": "overwrite",
+      "content": "<full updated checklist content with checked items>"
+    }
+  ],
+  "state_updates": {
+    "gap_priority_queue_updates": [
+      {"id": "G-001", "synced": true},
+      {"id": "G-002", "synced": true},
+      {"id": "G-005", "synced": true}
+    ],
+    "checklist_sync_state": {
+      "security.md": {
+        "total_items": 12,
+        "checked": 8,
+        "pending": 4,
+        "last_sync": "2024-01-16T10:30:00Z"
+      }
+    },
+    "decisions_log": [
+      {
+        "timestamp": "2024-01-16T10:30:00Z",
+        "workflow": "specify",
+        "agent": "checklist-agent (update)",
+        "decision": "Synced 3 resolved gaps to checklist",
+        "rationale": "G-001, G-002, G-005 marked as checked"
+      }
+    ]
+  },
   "next_recommendation": "proceed"
 }
 ```
+
+**Note**: The workflow is responsible for:
+1. Writing `artifacts` to disk
+2. Applying `state_updates` to index.md
 
 ---
 

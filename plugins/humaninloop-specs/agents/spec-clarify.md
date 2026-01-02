@@ -111,13 +111,14 @@ For each group, generate question with ID format `C{iteration}.{number}`:
 **Source**: CHK{ids} validating FR-{refs}
 ```
 
-### Step 5: Update State
+### Step 5: Prepare State Updates
 
-Update index.md:
-1. Gap Priority Queue - set status to `clarifying`
-2. Priority Loop State - set loop_status to `clarifying`
-3. Unified Pending Questions - add generated questions
-4. Traceability Matrix - mark gaps
+**DO NOT modify index.md directly.** Instead, prepare structured updates to return as `state_updates`:
+
+1. **gap_priority_queue** - set status to `clarifying`
+2. **priority_loop_state** - set loop_status to `clarifying`
+3. **pending_questions** - add generated questions
+4. **traceability_matrix** - mark gaps
 
 ### Step 6: Detect Stale Gaps
 
@@ -128,6 +129,8 @@ if gap.stale_count >= 3:
 ```
 
 ### Step 7: Return Results (classify_gaps mode)
+
+> **ADR-005 Compliance**: Agents are stateless functions. Return `state_updates` for index.md changes. The workflow applies these.
 
 ```json
 {
@@ -151,7 +154,22 @@ if gap.stale_count >= 3:
     "original_gaps": 8,
     "after_grouping": 2
   },
-  "index_updated": true,
+  "artifacts": [],
+  "state_updates": {
+    "gap_priority_queue": [
+      {"id": "G-001", "status": "clarifying"}
+    ],
+    "priority_loop_state": {
+      "loop_status": "clarifying",
+      "last_activity": "2024-01-15T10:00:00Z"
+    },
+    "pending_questions": [
+      {"id": "C1.1", "question": "What should happen when authentication fails?", "status": "pending"}
+    ],
+    "traceability_matrix": {
+      "gaps_marked": ["G-001"]
+    }
+  },
   "next_recommendation": "proceed"
 }
 ```
@@ -169,12 +187,15 @@ Process user answers and update specifications.
 3. Locate all `[NEEDS CLARIFICATION: ...]` markers
 4. Match markers to user answer IDs
 
-### Phase 2: Answer Application
+### Phase 2: Prepare Answer Application
+
+**DO NOT write to spec.md directly.** Instead, prepare updated spec content to return as artifact.
 
 For each answer:
-1. Locate the exact marker in spec
+1. Locate the exact marker in spec content
 2. Replace with naturally integrated content
 3. Ensure formatting consistency
+4. Store the complete updated spec content for inclusion in `artifacts` array
 
 *See clarification-patterns skill for application patterns.*
 
@@ -182,10 +203,10 @@ For each answer:
 
 For Priority Loop clarifications (C{iter}.{n} format):
 1. Read Gap Priority Queue to find source CHK and FR
-2. Locate original requirement
-3. Apply answer as new sub-requirements or refinements
-4. Update Gap Priority Queue status to `resolved`
-5. Add entry to Gap Resolution History
+2. Locate original requirement in spec content
+3. Apply answer as new sub-requirements or refinements in the spec content
+4. Prepare Gap Priority Queue update (status to `resolved`) for state_updates
+5. Prepare Gap Resolution History entry for state_updates
 
 ### Phase 3: Cascading Updates
 
@@ -216,16 +237,17 @@ Verify:
 - User stories independently testable
 - No remaining markers (or documented assumptions in round 3)
 
-### Phase 6: State Updates
+### Phase 6: Prepare State Updates
 
-Update index.md:
-1. Gap Priority Queue - mark resolved gaps
-2. Gap Resolution History - add resolution entries
-3. Traceability Matrix - update coverage status
-4. Priority Loop State - update status and timestamp
-5. Unified Pending Questions - mark answered
-6. Unified Decisions Log - add entries
-7. Feature Readiness - update if spec ready
+**DO NOT modify index.md directly.** Instead, prepare structured updates to return as `state_updates`:
+
+1. **gap_priority_queue** - mark resolved gaps
+2. **gap_resolution_history** - add resolution entries
+3. **traceability_matrix** - update coverage status
+4. **priority_loop_state** - update status and timestamp
+5. **pending_questions** - mark answered
+6. **decisions_log** - add entries
+7. **feature_readiness** - update if spec ready
 
 ### Phase 7: Round 3 Finality
 
@@ -239,6 +261,8 @@ In final round (iteration 3):
 *See clarification-patterns skill for round 3 patterns.*
 
 ### Phase 8: Return Results (apply_answers mode)
+
+> **ADR-005 Compliance**: Agents are stateless functions. Return `artifacts` for file updates and `state_updates` for index.md changes. The workflow applies these.
 
 ```json
 {
@@ -257,10 +281,53 @@ In final round (iteration 3):
     "all_markers_resolved": true
   },
   "spec_ready": true,
-  "index_updated": true,
+  "artifacts": [
+    {
+      "path": "specs/005-user-auth/spec.md",
+      "operation": "overwrite",
+      "content": "<full updated spec content with answers applied>"
+    }
+  ],
+  "state_updates": {
+    "gap_priority_queue": [
+      {"id": "G-001", "status": "resolved"},
+      {"id": "G-002", "status": "resolved"}
+    ],
+    "gap_resolution_history": [
+      {
+        "gap_id": "G-001",
+        "resolved_by": "C1.1",
+        "resolution": "User selected 'Return 401'",
+        "timestamp": "2024-01-15T10:30:00Z"
+      }
+    ],
+    "priority_loop_state": {
+      "loop_status": "validating",
+      "last_activity": "2024-01-15T10:30:00Z"
+    },
+    "pending_questions": [
+      {"id": "C1.1", "status": "answered"}
+    ],
+    "decisions_log": [
+      {
+        "timestamp": "2024-01-15T10:30:00Z",
+        "workflow": "specify",
+        "agent": "spec-clarify",
+        "decision": "Applied 3 clarification answers",
+        "rationale": "User provided answers to C1.1, C1.2, C1.3"
+      }
+    ],
+    "feature_readiness": {
+      "spec_ready": true
+    }
+  },
   "next_recommendation": "proceed"
 }
 ```
+
+**Note**: The workflow is responsible for:
+1. Writing `artifacts` to disk
+2. Applying `state_updates` to index.md
 
 ---
 
@@ -309,7 +376,10 @@ In final round (iteration 3):
 3. **Round 3 Finality**: Never introduce new markers in round 3
 4. **Minimal Cascading**: Keep updates minimal and justified
 5. **Technology Agnostic**: Maintain technology-agnostic language
-6. **Traceability**: Always update Gap Queue and Resolution History
+6. **Traceability**: Always include Gap Queue and Resolution History in state_updates
+7. **No Direct File Writes**: Do NOT use Write/Edit tools to modify spec.md or index.md
+8. **Return Artifacts**: Return updated spec content as `artifacts` in your output
+9. **Return State Updates**: Return index.md changes as `state_updates` in your output
 
 ---
 

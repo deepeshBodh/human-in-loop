@@ -85,6 +85,47 @@ AskUserQuestion(
 
 ---
 
+## ADR-005: Artifact and State Update Processing
+
+> **Hexagonal Architecture**: Agents are stateless functions that return `artifacts` and `state_updates`. This workflow is responsible for applying them.
+
+### After EVERY Agent Call
+
+After receiving results from any agent, the workflow MUST:
+
+**1. Apply Artifacts (file writes):**
+```
+for artifact in result.artifacts:
+  if artifact.operation == "create":
+    Write(path=artifact.path, content=artifact.content)
+  elif artifact.operation == "overwrite":
+    Write(path=artifact.path, content=artifact.content)
+```
+
+**2. Apply State Updates (index.md updates):**
+```
+if result.state_updates:
+  # Read current index.md
+  index_content = Read(index_path)
+
+  # Apply each state update section
+  for section, updates in result.state_updates:
+    # Update the corresponding section in index.md
+    # (document_availability, priority_loop_state, gap_priority_queue, etc.)
+
+  # Write updated index.md
+  Write(path=index_path, content=updated_index_content)
+```
+
+**3. Then continue to next phase**
+
+This pattern ensures:
+- Agents remain stateless (no file writes)
+- Workflow owns all state
+- Changes are applied consistently
+
+---
+
 ## Pre-Execution: Core Dependency Check
 
 Before any workflow execution, verify that humaninloop-core is installed:
@@ -177,10 +218,13 @@ Task(
 
 **Extract from result**:
 - `feature_id`: e.g., "005-user-auth"
-- `spec_path`: e.g., "specs/005-user-auth/spec.md"
-- `index_path`: e.g., "specs/005-user-auth/.workflow/index.md"
-- `specify_context_path`: e.g., "specs/005-user-auth/.workflow/specify-context.md"
-- `feature_dir`: e.g., "specs/005-user-auth/"
+- `paths.spec_file`: e.g., "specs/005-user-auth/spec.md"
+- `paths.index_file`: e.g., "specs/005-user-auth/.workflow/index.md"
+- `paths.feature_dir`: e.g., "specs/005-user-auth/"
+
+**Apply artifacts** (see ADR-005 section above):
+- Write each artifact in `result.artifacts` to disk
+- The agent returns spec.md template and index.md content as artifacts
 
 **If scaffold fails**: Report error and stop.
 
@@ -194,15 +238,18 @@ Task(
 Task(
   subagent_type: "humaninloop-specs:spec-writer-agent",
   description: "Write spec content",
-  prompt: [Include feature_id, spec_path, index_path, specify_context_path, description]
+  prompt: [Include feature_id, spec_path, index_path, description]
 )
 ```
 
 **Extract from result**:
 - `user_story_count`
 - `requirement_count`
-- `initial_clarifications`: Any spec-writing clarifications (Q-S#)
-- `index_synced`: Confirmation index.md was updated
+- `clarifications`: Any spec-writing clarifications (Q-S#)
+
+**Apply artifacts and state_updates** (see ADR-005 section above):
+- Write each artifact in `result.artifacts` to disk (spec.md content, requirements checklist)
+- Apply `result.state_updates` to index.md (specification_progress, document_availability, etc.)
 
 ---
 
@@ -220,9 +267,12 @@ Task(
 
 **Extract from result**:
 - `gaps`: Object with critical, important, minor arrays
-- `gap_summary`: Counts of each priority
-- `checklist_file`: Path to generated checklist
+- `gaps.summary`: Counts of each priority
 - `signals`: Extracted domain keywords and focus areas
+
+**Apply artifacts and state_updates** (see ADR-005 section above):
+- Write each artifact in `result.artifacts` to disk (checklist file)
+- Apply `result.state_updates` to index.md (document_availability, priority_loop_state, gap_priority_queue, traceability_matrix, etc.)
 
 ---
 
@@ -244,6 +294,9 @@ Task(
 - `clarifications`: Array of grouped clarification questions
 - `clarification_count`: Number of clarifications (max 3)
 - `grouping_summary`: How gaps were grouped
+
+**Apply state_updates** (see ADR-005 section above):
+- Apply `result.state_updates` to index.md (gap_priority_queue, priority_loop_state, pending_questions)
 
 **Then proceed to Phase B.**
 
@@ -302,8 +355,11 @@ Task(
 **Extract from result**:
 - `answers_applied`: Count of answers applied to spec
 - `gaps_resolved`: Count of gaps resolved
-- `spec_updated`: Boolean
 - `remaining_gaps`: Count of remaining unresolved gaps
+
+**Apply artifacts and state_updates** (see ADR-005 section above):
+- Write each artifact in `result.artifacts` to disk (updated spec.md with answers applied)
+- Apply `result.state_updates` to index.md (gap_priority_queue, gap_resolution_history, priority_loop_state, etc.)
 
 ---
 
@@ -319,6 +375,10 @@ Task(
 )
 ```
 
+**Apply artifacts and state_updates** (see ADR-005 section above):
+- Write each artifact in `result.artifacts` to disk (updated checklist with resolved items)
+- Apply `result.state_updates` to index.md
+
 **If new gaps found**, run Spec Clarify in classify_gaps mode:
 
 ```
@@ -328,6 +388,8 @@ Task(
   prompt: [Execute with mode="classify_gaps", new gaps]
 )
 ```
+
+**Apply state_updates** from spec-clarify to index.md
 
 ---
 
@@ -548,7 +610,7 @@ The workflow supports resume from any point:
 
 ## Knowledge Sharing Protocol
 
-All agents share state via the **Unified Index Architecture**:
+All agents share state via the **Unified Index Architecture** (ADR-005 compliant):
 
 1. **Unified Index File** (`index.md`):
    - Feature Metadata & Document Availability
@@ -567,7 +629,11 @@ All agents share state via the **Unified Index Architecture**:
 
 2. **Prompt Injection**: Pass extracted data between agents
 
-3. **Filesystem**: Agents read/write spec.md, checklists, index.md
+3. **State Flow (ADR-005)**:
+   - **Agents READ** files for context
+   - **Agents RETURN** artifacts and state_updates
+   - **Workflow WRITES** files and applies state updates
+   - Agents are stateless functions; workflow owns all state
 
 ---
 

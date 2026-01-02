@@ -103,17 +103,37 @@ Task(
 )
 ```
 
-The checklist-agent handles:
-- Extracting signals from spec/plan/tasks
-- Clustering into focus areas
-- Generating checklist items across quality dimensions
-- Classifying gaps by priority
-- Updating index.md with gaps and traceability
+The checklist-agent prepares:
+- Checklist content (returned as artifact)
+- State updates for index.md (gaps, traceability, etc.)
 
-### Step 3: Report Results
+### Step 3: Apply Artifacts and State Updates (ADR-005)
 
-After the agent completes, report to the user:
-- Full path to created checklist
+> **Hexagonal Architecture**: Agents are stateless functions that return `artifacts` and `state_updates`. This workflow is responsible for applying them.
+
+**Apply Artifacts (file writes):**
+```
+for artifact in result.artifacts:
+  Write(path=artifact.path, content=artifact.content)
+```
+
+**Apply State Updates (index.md updates):**
+```
+if result.state_updates:
+  # Read current index.md
+  index_content = Read(index_path)
+
+  # Apply each state update section to index.md
+  # (document_availability, priority_loop_state, gap_priority_queue, traceability_matrix, etc.)
+
+  # Write updated index.md
+  Write(path=index_path, content=updated_index_content)
+```
+
+### Step 4: Report Results
+
+After applying artifacts and state updates, report to the user:
+- Full path to created checklist (from artifact path)
 - Item count by category
 - Gaps identified (critical/important/minor)
 - Traceability coverage percentage

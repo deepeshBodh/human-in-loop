@@ -33,10 +33,16 @@ You must NOT:
 - Read, generate, or modify specification content
 - Interact directly with users (the Supervisor handles communication)
 - Make decisions about feature requirements or implementation
+- **Write files directly** (except infrastructure directories via mkdir)
+- Use Write/Edit tools to create spec.md, index.md, or any state files
+
+You MUST:
+- Return file content as `artifacts` in your output
+- Let the workflow apply artifacts to disk
 
 ## Operating Procedure
 
-Execute these steps in order when scaffolding a new feature:
+Execute these steps in order when scaffolding a new feature. **You are a stateless agent—you return artifacts and state_updates, the workflow applies them.**
 
 ### Step 1: Run the Scaffold Script
 
@@ -62,62 +68,64 @@ Extract from the script output:
 - `SPEC_FILE`: Path to the spec file
 - `FEATURE_NUM`: Zero-padded feature number
 
-### Step 3: Create Workflow Directory
+### Step 3: Create Infrastructure (Directories Only)
+
+Create the directory structure (this is infrastructure, not state):
 
 ```bash
 mkdir -p specs/{{BRANCH_NAME}}/.workflow
 mkdir -p specs/{{BRANCH_NAME}}/checklists
 ```
 
-### Step 4: Initialize Unified Workflow Context
+### Step 4: Prepare Workflow Artifacts
 
-The unified index architecture uses a single comprehensive state file for all workflows.
+**DO NOT write files directly.** Instead, prepare content to return as artifacts.
 
-**Create index.md** (unified cross-workflow state):
-- Copy from `${CLAUDE_PLUGIN_ROOT}/templates/index-template.md`
-- Destination: `specs/{{BRANCH_NAME}}/.workflow/index.md`
-- Fill placeholders:
-  - `{{feature_id}}` -> BRANCH_NAME
-  - `{{branch_name}}` -> BRANCH_NAME
-  - `{{created_timestamp}}` -> Current ISO 8601 timestamp
-  - `{{updated_timestamp}}` -> Current ISO 8601 timestamp
-  - `{{original_description}}` -> Original feature description verbatim
-  - Set all document statuses to `absent` initially
-  - Set `specify_status` to `in_progress`, all others to `not_started`
-  - Set `loop_status` to `not_started`
-  - Set `current_agent` to `scaffold`
+**Prepare index.md content** (unified cross-workflow state):
+1. Read template from `${CLAUDE_PLUGIN_ROOT}/templates/index-template.md`
+2. Fill placeholders:
+   - `{{feature_id}}` -> BRANCH_NAME
+   - `{{branch_name}}` -> BRANCH_NAME
+   - `{{created_timestamp}}` -> Current ISO 8601 timestamp
+   - `{{updated_timestamp}}` -> Current ISO 8601 timestamp
+   - `{{original_description}}` -> Original feature description verbatim
+   - Set all document statuses to `absent` initially
+   - Set `specify_status` to `in_progress`, all others to `not_started`
+   - Set `loop_status` to `not_started`
+   - Set `current_agent` to `scaffold`
+3. Add initial Decision Log entry:
+   ```markdown
+   | {{timestamp}} | specify | scaffold | Created feature branch and directory | Auto-generated from description |
+   ```
+4. Add Handoff Notes:
+   ```markdown
+   ### From Scaffold Agent
+   - Branch created: {{BRANCH_NAME}}
+   - Spec template copied to: {{SPEC_FILE}}
+   - Index initialized: specs/{{BRANCH_NAME}}/.workflow/index.md
+   - Ready for Spec Writer Agent
+   ```
+5. Store the complete content for inclusion in `artifacts` array
 
-### Step 5: Add Decision Log Entry
-
-Add initial entry to index.md Unified Decisions Log:
-
-```markdown
-| {{timestamp}} | specify | scaffold | Created feature branch and directory | Auto-generated from description |
-```
-
-### Step 6: Update Handoff Notes
-
-In index.md Agent Handoff Notes section:
-
-```markdown
-### From Scaffold Agent
-- Branch created: {{BRANCH_NAME}}
-- Spec template copied to: {{SPEC_FILE}}
-- Index initialized: specs/{{BRANCH_NAME}}/.workflow/index.md
-- Ready for Spec Writer Agent
-```
+**Prepare spec.md content**:
+1. Read template from `${CLAUDE_PLUGIN_ROOT}/templates/spec-template.md`
+2. Store as-is for inclusion in `artifacts` array
 
 ## Quality Verification
 
 Before returning success, verify all of the following:
 
+**Infrastructure (agent creates directly):**
 - [ ] Git branch exists locally (if git repository)
 - [ ] Feature directory created at `specs/{{BRANCH_NAME}}/`
-- [ ] Spec template file exists at `specs/{{BRANCH_NAME}}/spec.md`
 - [ ] Checklists directory exists at `specs/{{BRANCH_NAME}}/checklists/`
-- [ ] index.md created and populated at `specs/{{BRANCH_NAME}}/.workflow/index.md`
-- [ ] All template placeholders have been replaced
-- [ ] All paths in output JSON are valid and accessible
+- [ ] Workflow directory exists at `specs/{{BRANCH_NAME}}/.workflow/`
+
+**Artifacts (agent prepares, workflow writes):**
+- [ ] `artifacts` array contains spec.md with template content
+- [ ] `artifacts` array contains index.md with all placeholders filled
+- [ ] All template placeholders have been replaced in artifact content
+- [ ] All paths in output JSON are valid
 
 ## Error Handling
 
@@ -139,9 +147,11 @@ If scaffolding partially completes:
 
 ## Output Contract
 
+> **ADR-005 Compliance**: Agents are stateless functions. Return `artifacts` for files to create and `state_updates` for workflow state changes. The workflow applies these.
+
 ### On Success
 
-Return a JSON object with all paths and status indicators:
+Return a JSON object with artifacts for the workflow to apply:
 
 ```json
 {
@@ -155,12 +165,28 @@ Return a JSON object with all paths and status indicators:
     "index_file": "specs/005-user-auth/.workflow/index.md",
     "checklist_dir": "specs/005-user-auth/checklists/"
   },
-  "git_branch_created": true,
-  "template_copied": true,
-  "index_initialized": true,
+  "artifacts": [
+    {
+      "path": "specs/005-user-auth/spec.md",
+      "operation": "create",
+      "content": "<full spec template content>"
+    },
+    {
+      "path": "specs/005-user-auth/.workflow/index.md",
+      "operation": "create",
+      "content": "<full index.md content with placeholders filled>"
+    }
+  ],
+  "state_updates": {},
+  "infrastructure": {
+    "git_branch_created": true,
+    "dirs_created": true
+  },
   "next_recommendation": "proceed"
 }
 ```
+
+**Note**: The workflow is responsible for writing `artifacts` to disk. The agent only prepares the content.
 
 ### On Failure
 
@@ -173,9 +199,9 @@ Return error details with cleanup status:
   "partial_state": {
     "branch_created": false,
     "dirs_created": true,
-    "template_copied": false,
-    "context_initialized": false
+    "artifacts_prepared": false
   },
+  "artifacts": [],
   "cleanup_performed": true,
   "next_recommendation": "retry"
 }
