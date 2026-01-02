@@ -15,6 +15,7 @@ An ADR captures the context, decision, and consequences of an architectural choi
 | [003](./003-brownfield-first.md) | Brownfield-First Design | Accepted |
 | [004](./004-specify-plugin-extraction.md) | Specify Plugin Extraction | Accepted |
 | [005](./005-hexagonal-agent-architecture.md) | Hexagonal Multi-Agent Architecture | Proposed |
+| [006](./006-humaninloop-core-plugin.md) | humaninloop-core Plugin | Proposed |
 
 ## ADR Template
 
