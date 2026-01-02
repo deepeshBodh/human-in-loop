@@ -7,6 +7,9 @@
     "url": "https://humaninloop.dev"
   },
   "license": "MIT",
+  "dependencies": [
+    "humaninloop-core"
+  ],
   "keywords": [
     "planning",
     "implementation",

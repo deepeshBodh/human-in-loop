@@ -219,7 +219,7 @@ Spawn the codebase-discovery agent to analyze the existing codebase:
 
 ```
 Task(
-  subagent_type: "codebase-discovery",
+  subagent_type: "humaninloop-core:codebase-discovery",
   description: "Discover existing codebase",
   prompt: JSON.stringify({
     feature_id: "{feature_id}",
@@ -496,7 +496,7 @@ FUNCTION check_termination():
 1. **Spawn Plan Builder (Phase 0)**:
    ```
    Task(
-     subagent_type: "plan-builder",
+     subagent_type: "humaninloop:plan-builder",
      description: "Research unknowns",
      prompt: JSON.stringify({
        feature_id: "{feature_id}",
@@ -563,7 +563,7 @@ FUNCTION check_termination():
 1. **Spawn Plan Builder (Phase 1)**:
    ```
    Task(
-     subagent_type: "plan-builder",
+     subagent_type: "humaninloop:plan-builder",
      description: "Create data model",
      prompt: JSON.stringify({
        feature_id: "{feature_id}",
@@ -627,7 +627,7 @@ FUNCTION check_termination():
 1. **Spawn Plan Builder (Phase 2)**:
    ```
    Task(
-     subagent_type: "plan-builder",
+     subagent_type: "humaninloop:plan-builder",
      description: "Create API contracts",
      prompt: JSON.stringify({
        feature_id: "{feature_id}",

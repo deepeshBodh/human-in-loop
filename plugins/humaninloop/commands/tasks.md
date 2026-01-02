@@ -281,7 +281,7 @@ FUNCTION check_termination():
 1. **Spawn Task-Builder Agent (Phase 1)**:
    ```
    Task(
-     subagent_type: "task-builder",
+     subagent_type: "humaninloop:task-builder",
      description: "Map to stories",
      prompt: JSON.stringify({
        feature_id: "{feature_id}",
@@ -382,7 +382,7 @@ FUNCTION check_termination():
 1. **Spawn Task-Builder Agent (Phase 2)**:
    ```
    Task(
-     subagent_type: "task-builder",
+     subagent_type: "humaninloop:task-builder",
      description: "Generate tasks",
      prompt: JSON.stringify({
        feature_id: "{feature_id}",
