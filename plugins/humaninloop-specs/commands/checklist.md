@@ -107,7 +107,7 @@ The checklist-agent prepares:
 - Checklist content (returned as artifact)
 - State updates for index.md (gaps, traceability, etc.)
 
-### Step 3: Apply Artifacts and State Updates (ADR-005)
+### Step 3: Apply Artifacts and State Updates
 
 > **Hexagonal Architecture**: Agents are stateless functions that return `artifacts` and `state_updates`. This workflow is responsible for applying them.
 

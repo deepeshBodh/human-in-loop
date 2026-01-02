@@ -176,7 +176,7 @@ if gap.stale_count >= 3:
 
 ### Step 7: Return Results (classify_gaps mode)
 
-> **ADR-005 Compliance**: Agents are stateless functions. Return `state_updates` for index.md changes. The workflow applies these.
+> **Stateless Agent Pattern**: Agents are stateless functions. Return `state_updates` for index.md changes. The workflow applies these.
 
 ```json
 {
@@ -308,7 +308,7 @@ In final round (iteration 3):
 
 ### Phase 8: Return Results (apply_answers mode)
 
-> **ADR-005 Compliance**: Agents are stateless functions. Return `artifacts` for file updates and `state_updates` for index.md changes. The workflow applies these.
+> **Stateless Agent Pattern**: Agents are stateless functions. Return `artifacts` for file updates and `state_updates` for index.md changes. The workflow applies these.
 
 ```json
 {

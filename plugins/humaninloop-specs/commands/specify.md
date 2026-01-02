@@ -91,9 +91,9 @@ AskUserQuestion(
 
 ---
 
-## ADR-005: Artifact and State Update Processing
+## Artifact and State Update Processing
 
-> **Hexagonal Architecture**: Agents are stateless functions that return `artifacts` and `state_updates`. This workflow is responsible for applying them.
+> **Stateless Agent Pattern**: Agents are stateless functions that return `artifacts` and `state_updates`. This workflow is responsible for applying them.
 
 ### After EVERY Agent Call
 
@@ -228,7 +228,7 @@ Task(
 - `paths.index_file`: e.g., "specs/005-user-auth/.workflow/index.md"
 - `paths.feature_dir`: e.g., "specs/005-user-auth/"
 
-**Apply artifacts** (see ADR-005 section above):
+**Apply artifacts** (see Artifact and State Update Processing section above):
 - Write each artifact in `result.artifacts` to disk
 - The agent returns spec.md template and index.md content as artifacts
 
@@ -253,7 +253,7 @@ Task(
 - `requirement_count`
 - `clarifications`: Any spec-writing clarifications (Q-S#)
 
-**Apply artifacts and state_updates** (see ADR-005 section above):
+**Apply artifacts and state_updates** (see Artifact and State Update Processing section above):
 - Write each artifact in `result.artifacts` to disk (spec.md content, requirements checklist)
 - Apply `result.state_updates` to index.md (specification_progress, document_availability, etc.)
 
@@ -310,7 +310,7 @@ Task(
 - `items`: Generated checklist items
 - `signals`: Extracted domain keywords and focus areas
 
-**Apply artifacts and state_updates** (see ADR-005 section above):
+**Apply artifacts and state_updates** (see Artifact and State Update Processing section above):
 - Write each artifact in `result.artifacts` to disk (checklist file)
 - Apply `result.state_updates` to index.md (document_availability, checklist_config, etc.)
 
@@ -335,7 +335,7 @@ Task(
 - `clarification_count`: Number of clarifications (max 3)
 - `grouping_summary`: How gaps were grouped
 
-**Apply state_updates** (see ADR-005 section above):
+**Apply state_updates** (see Artifact and State Update Processing section above):
 - Apply `result.state_updates` to index.md (gap_priority_queue, priority_loop_state, pending_questions)
 
 **Then proceed to Phase B.**
@@ -397,7 +397,7 @@ Task(
 - `gaps_resolved`: Count of gaps resolved
 - `remaining_gaps`: Count of remaining unresolved gaps
 
-**Apply artifacts and state_updates** (see ADR-005 section above):
+**Apply artifacts and state_updates** (see Artifact and State Update Processing section above):
 - Write each artifact in `result.artifacts` to disk (updated spec.md with answers applied)
 - Apply `result.state_updates` to index.md (gap_priority_queue, gap_resolution_history, priority_loop_state, etc.)
 
@@ -662,7 +662,7 @@ The workflow supports resume from any point:
 
 ## Knowledge Sharing Protocol
 
-All agents share state via the **Unified Index Architecture** (ADR-005 compliant):
+All agents share state via the **Unified Index Architecture**:
 
 1. **Unified Index File** (`index.md`):
    - Feature Metadata & Document Availability
@@ -681,7 +681,7 @@ All agents share state via the **Unified Index Architecture** (ADR-005 compliant
 
 2. **Prompt Injection**: Pass extracted data between agents
 
-3. **State Flow (ADR-005)**:
+3. **State Flow**:
    - **Agents READ** files for context
    - **Agents RETURN** artifacts and state_updates
    - **Workflow WRITES** files and applies state updates

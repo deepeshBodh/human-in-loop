@@ -70,7 +70,7 @@ Generate a custom quality checklist for the current feature.
 
 ## Workflow Architecture
 
-This plugin follows the [hexagonal architecture](../../docs/decisions/005-hexagonal-agent-architecture.md):
+This plugin follows **hexagonal (clean) architecture** with three layers where dependencies point inward only:
 - **Skills** (innermost): Pure domain knowledge, no procedures
 - **Agents** (middle): Compose skills, execute procedures, return output
 - **Workflows** (outermost): Own state, orchestrate agents

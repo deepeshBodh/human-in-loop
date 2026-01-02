@@ -125,7 +125,7 @@ Instead of writing to index.md directly, return structured updates:
 
 ## Output Format
 
-> **ADR-005 Compliance**: Agents are stateless functions. Return `artifacts` for files to create and `state_updates` for index.md changes. The workflow applies these.
+> **Stateless Agent Pattern**: Agents are stateless functions. Return `artifacts` for files to create and `state_updates` for index.md changes. The workflow applies these.
 
 After completing all phases, return a JSON result object:
 

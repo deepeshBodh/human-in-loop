@@ -167,7 +167,7 @@ If scaffolding partially completes:
 
 ## Output Contract
 
-> **ADR-005 Compliance**: Agents are stateless functions. Return `artifacts` for files to create and `state_updates` for workflow state changes. The workflow applies these.
+> **Stateless Agent Pattern**: Agents are stateless functions. Return `artifacts` for files to create and `state_updates` for workflow state changes. The workflow applies these.
 
 ### On Success
 

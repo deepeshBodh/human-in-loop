@@ -11,7 +11,7 @@ Specification-specific guidance for handling the clarification lifecycle: genera
 
 ## Core Skill Composition
 
-> **ADR-006 Compliance**: This skill extends core skills rather than duplicating them.
+> **Skill Extension Pattern**: This skill extends core skills rather than duplicating them.
 
 | Core Skill | What We Use | Spec-Specific Extension |
 |------------|-------------|------------------------|

@@ -349,7 +349,7 @@ Store all updates in the `state_updates` object for the workflow to apply.
 
 ### Phase 8: Return Results
 
-> **ADR-005 Compliance**: Agents are stateless functions. Return `artifacts` for files to create and `state_updates` for index.md changes. The workflow applies these.
+> **Stateless Agent Pattern**: Agents are stateless functions. Return `artifacts` for files to create and `state_updates` for index.md changes. The workflow applies these.
 
 ```json
 {
@@ -594,7 +594,7 @@ Store all updates in the `state_updates` object for the workflow to apply.
 
 ### Phase U5: Return Results
 
-> **ADR-005 Compliance**: Agents are stateless functions. Return `artifacts` for file updates and `state_updates` for index.md changes. The workflow applies these.
+> **Stateless Agent Pattern**: Agents are stateless functions. Return `artifacts` for file updates and `state_updates` for index.md changes. The workflow applies these.
 
 ```json
 {
