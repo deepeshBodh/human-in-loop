@@ -1,13 +1,25 @@
 ---
 name: clarification-patterns
-description: Shared knowledge for gap classification and clarification handling. Provides patterns for grouping gaps into questions, applying user answers, and managing the Priority Loop. Used by spec-clarify agent for both gap classification mode and answer application mode.
+description: Spec-specific clarification handling patterns. Extends prioritization-patterns from humaninloop-core for gap grouping and staleness detection. Adds specification clarification generation, answer application, and Priority Loop management.
 ---
 
 # Clarification Patterns Skill
 
 ## Purpose
 
-Comprehensive guidance for handling the clarification lifecycle: from identifying gaps, grouping them into focused questions, to applying user answers and maintaining traceability. This skill serves as a shared reference for any agent working with gaps and clarifications.
+Specification-specific guidance for handling the clarification lifecycle: generating clarification questions from gaps, applying user answers to specs, and managing the Priority Loop. This skill **extends** prioritization-patterns from humaninloop-core.
+
+## Core Skill Composition
+
+> **ADR-006 Compliance**: This skill extends core skills rather than duplicating them.
+
+| Core Skill | What We Use | Spec-Specific Extension |
+|------------|-------------|------------------------|
+| prioritization-patterns/GROUPING.md | Grouping algorithm, domain extraction | FR/CHK traceability context |
+| prioritization-patterns/STALENESS.md | Detection algorithm, thresholds | [KNOWN GAP] marker handling |
+| prioritization-patterns/SEVERITY.md | Critical/Important/Minor classification | User story priority mapping |
+
+When the agent declares `skills: clarification-patterns, prioritization-patterns`, both skill sets are available.
 
 ## Quick Reference
 

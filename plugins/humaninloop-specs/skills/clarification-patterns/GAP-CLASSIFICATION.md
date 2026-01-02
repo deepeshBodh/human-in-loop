@@ -2,9 +2,15 @@
 
 Rules and algorithms for grouping gaps into focused clarification questions.
 
+> **Core Skill Composition**: This skill extends prioritization-patterns from humaninloop-core.
+> Grouping algorithms and staleness detection are defined in core; this file adds spec-specific
+> clarification generation patterns.
+
 ---
 
 ## Gap Filtering
+
+*Applies prioritization-patterns severity classification.*
 
 **Only process Critical and Important gaps** - Minor gaps can be deferred.
 
@@ -18,45 +24,52 @@ If `gaps_to_process` is empty, classification can skip - no clarifications neede
 
 ## Grouping Rules
 
-Group gaps by these criteria (in priority order):
+*See prioritization-patterns/GROUPING.md for the full grouping algorithm.*
 
-1. **Same FR reference** - Gaps affecting the same requirement
-2. **Same domain** - Gaps in same domain (auth, data, API, etc.)
-3. **Same section** - Gaps in same spec section
-4. **Related concepts** - Gaps about related topics (e.g., timeout + retry + error handling)
+Apply core grouping criteria in order:
+1. Same FR reference
+2. Same domain (auth, data, API)
+3. Same section
+4. Related concepts
 
----
-
-## Grouping Algorithm
-
-```
-for each gap in gaps_to_process:
-  domain = extract_domain(gap.fr_ref, gap.question)
-
-  if existing_group_matches(domain):
-    add_to_group(gap)
-  else:
-    create_new_group(domain, gap)
-
-# Merge small groups
-for group in groups where len(group) == 1:
-  if can_merge_with_related_group(group):
-    merge_groups()
-```
+**Spec-Specific Grouping Context:**
+- FR references map to spec sections
+- Domain extraction uses spec-defined domains
+- CHK IDs link to checklist items for traceability
 
 ---
 
 ## Prioritization
 
-**Maximum 3 clarifications per iteration.** If more groups exist, prioritize by:
+*See prioritization-patterns/SEVERITY.md for severity classification.*
 
+**Maximum 3 clarifications per iteration.** If more groups exist, prioritize by:
 1. Critical priority first
-2. Number of gaps in group (more = higher priority)
+2. Number of gaps in group
 3. Impact on user stories (P1 > P2 > P3)
 
 ---
 
-## Question Generation
+## Stale Detection
+
+*See prioritization-patterns/STALENESS.md for detection algorithm.*
+
+Apply staleness thresholds:
+- 2 iterations: Warning flag
+- 3+ iterations: Escalate to user
+
+**Spec-Specific Escalation:**
+```
+if gap.stale_count >= 3:
+  escalate_to_user("Gap {gap.id} unresolved after 3 iterations")
+  # Add to spec with [KNOWN GAP] marker instead of blocking
+```
+
+---
+
+## Question Generation (Spec-Specific)
+
+This section is unique to specification clarifications.
 
 ### Single Gap in Group
 
@@ -86,32 +99,18 @@ For {sub_question_2}: {options}
 **Priority**: {highest_priority_in_group}
 ```
 
-### Question ID Format
+### Clarification ID Format
 
-- `C{iteration}.{number}` - e.g., C1.1, C1.2, C1.3 for iteration 1
-- Continues: C2.1, C2.2 for iteration 2
-- Until loop completes
-
----
-
-## Stale Detection
-
-Track which gaps have appeared in previous iterations:
-
-```
-for each gap in gaps_to_process:
-  if gap.id in previous_iteration_gaps:
-    gap.stale_count++
-    if gap.stale_count >= 3:
-      mark_as_stale(gap)
-      escalate_to_user("Gap {gap.id} unresolved after 3 iterations")
-```
+| Format | Source | Example |
+|--------|--------|---------|
+| `Q-S{n}` | Spec writing phase | Q-S1, Q-S2 |
+| `C{iter}.{n}` | Gap classification (Priority Loop) | C1.1, C2.3 |
 
 ---
 
 ## Smart Grouping Examples
 
-### Example 1: Authentication Domain Grouping
+### Example: Authentication Domain
 
 **Input Gaps**:
 ```json
@@ -132,34 +131,12 @@ for each gap in gaps_to_process:
 **Priority**: Critical (affects P1 user stories)
 ```
 
-### Example 2: API Domain Grouping
-
-**Input Gaps**:
-```json
-[
-  {"chk_id": "CHK025", "fr_ref": "FR-010", "question": "Rate limiting not specified"},
-  {"chk_id": "CHK026", "fr_ref": "FR-011", "question": "Error response format undefined"},
-  {"chk_id": "CHK027", "fr_ref": "FR-010", "question": "Timeout behavior not specified"}
-]
-```
-
-**Output Clarification**:
-```markdown
-[NEEDS CLARIFICATION: C1.2]
-**Question**: Regarding API behavior, please clarify:
-- What are the rate limiting thresholds?
-- What is the standard error response format?
-- What is the request timeout and retry behavior?
-**Priority**: Important (affects API consistency)
-```
-
 ---
 
-## State Updates
+## State Updates (Spec-Specific)
 
-### Update Gap Priority Queue
+### Gap Priority Queue Format
 
-For each gap being converted to clarification:
 ```markdown
 | Priority | Gap ID | CHK Source | FR Reference | Question | Status |
 |----------|--------|------------|--------------|----------|--------|
@@ -167,7 +144,7 @@ For each gap being converted to clarification:
 | Important | G-002 | CHK022 | FR-007 | Session timeout? | clarifying |
 ```
 
-### Update Priority Loop State
+### Priority Loop State Format
 
 ```markdown
 | Field | Value |
@@ -177,7 +154,7 @@ For each gap being converted to clarification:
 | **Last Activity** | {timestamp} |
 ```
 
-### Update Traceability Matrix
+### Traceability Matrix Update
 
 ```markdown
 | FR ID | CHK IDs | Coverage Status | Notes |
