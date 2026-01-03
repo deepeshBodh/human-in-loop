@@ -8,29 +8,43 @@ This document outlines the vision and planned evolution of the HumanInLoop Marke
 
 The HumanInLoop Marketplace provides Claude Code plugins that enforce specification-driven development—ensuring architectural decisions are made by humans before AI writes code.
 
-## Current State (v0.3.0)
+## Current State (v0.5.0)
 
 The marketplace is in active development. The core specify → plan → tasks workflow is functional.
 
 ### Available Now
 
 **Commands:**
-- `/humaninloop:specify` - Create structured specifications using 2-agent architecture **(v0.3.0 - redesigned)**
-- `/humaninloop:plan` - Generate implementation plans
+- `/humaninloop:specify` - Create structured specifications using 2-agent architecture
+- `/humaninloop:plan` - Generate implementation plans with skill-augmented architecture **(v0.5.0 - refactored)**
 - `/humaninloop:tasks` - Generate implementation tasks
 - `/humaninloop:analyze` - Analyze codebase context
 - `/humaninloop:checklist` - Generate implementation checklists
 - `/humaninloop:implement` - Execute implementation with tracking
-- `/humaninloop:setup` - Initialize project constitution **(v0.4.0)**
+- `/humaninloop:setup` - Initialize project constitution
 - `/humaninloop-experiments:specify` - Experimental specifications (sandbox for new patterns)
 
-**Skills** (auto-invoked by Claude):
+**Skills** (auto-invoked by Claude) - 11 total, organized by category **(v0.5.0 - renamed per ADR-004)**:
+
+*Authoring (writing patterns):*
 - `authoring-requirements` - Write functional requirements using FR-XXX format with RFC 2119 keywords
 - `authoring-user-stories` - Write user stories with P1/P2/P3 priorities and Given/When/Then acceptance
-- `iterative-analysis` - Progressive brainstorming with recommendations and synthesis
-- `reviewing-specifications` - Review specs and find gaps **(v0.3.0 - added)**
 - `authoring-constitution` - Write enforceable constitution content with Enforcement/Testability/Rationale
-- `analyzing-project-context` - Infer project characteristics from codebase for constitution authoring
+
+*Analysis (analytical capabilities):*
+- `analysis-codebase` - Analyze existing codebases for tech stack, entities, and collision risks
+- `analysis-iterative` - Progressive brainstorming with recommendations and synthesis
+- `analysis-specifications` - Review specs and find gaps with product-focused questions
+
+*Patterns (domain knowledge):*
+- `patterns-api-contracts` - RESTful API design with endpoint mapping and OpenAPI specs
+- `patterns-entity-modeling` - DDD-style entity extraction with relationships and state machines
+- `patterns-technical-decisions` - Evaluate technology alternatives and document decisions
+
+*Validation (check modules with scripts):*
+- `validation-plan-artifacts` - Review planning artifacts for quality and completeness
+
+*Utilities:*
 - `syncing-claude-md` - Ensure CLAUDE.md mirrors constitution sections per sync mapping
 
 ---

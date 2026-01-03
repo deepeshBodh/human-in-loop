@@ -6,6 +6,56 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.5.0] - 2026-01-04
+
+**BREAKING CHANGE**: Skills renamed to follow ADR-004 naming convention.
+
+### humaninloop 0.5.0
+
+#### Breaking Changes
+- **Skills renamed** per ADR-004 category-based naming convention:
+  - `analyzing-codebase` → `analysis-codebase`
+  - `designing-api-contracts` → `patterns-api-contracts`
+  - `iterative-analysis` → `analysis-iterative`
+  - `making-technical-decisions` → `patterns-technical-decisions`
+  - `modeling-domain-entities` → `patterns-entity-modeling`
+  - `reviewing-plan-artifacts` → `validation-plan-artifacts`
+  - `reviewing-specifications` → `analysis-specifications`
+
+#### Skill Organization (ADR-004)
+Skills now follow category-based naming:
+- **authoring-*** : Writing patterns and templates (3 skills)
+- **analysis-*** : Analytical capabilities (3 skills)
+- **patterns-*** : Reusable domain knowledge (3 skills)
+- **validation-*** : Check modules with scripts (1 skill)
+- **syncing-*** : Synchronization utilities (1 skill)
+
+#### Added
+- **Validation scripts** for 4 additional skills (6/11 total now have scripts):
+  - `analysis-codebase/scripts/detect-stack.sh` - Framework/stack detection
+  - `patterns-api-contracts/scripts/validate-openapi.py` - OpenAPI validation
+  - `patterns-entity-modeling/scripts/validate-model.py` - Data model validation
+  - `validation-plan-artifacts/scripts/check-artifacts.py` - Artifact checks
+- **Progressive disclosure** for 4 additional skills (10/11 total now have reference files)
+- **Missing sections** added to `analysis-specifications` skill (Quality Checklist, Anti-Patterns)
+
+#### Changed
+- **Plan workflow refactored** to skill-augmented architecture
+  - Removed: plan-research, plan-domain-model, plan-contract, plan-validator agents
+  - Added: plan-architect agent with skill references
+  - Check modules migrated to validation skills with scripts
+
+#### Removed
+- `analyzing-project-context` skill (merged into `analysis-codebase`)
+- Plan workflow check-modules (replaced by validation skills)
+
+#### Migration Guide
+1. Update any custom references to skill names (see breaking changes above)
+2. Skill invocation via `skills:` field in agents automatically uses new names
+3. Scripts remain in same relative location: `skills/{name}/scripts/`
+
+---
+
 ## [0.4.0] - 2026-01-03
 
 **BREAKING CHANGE**: Constitution plugin merged into humaninloop.

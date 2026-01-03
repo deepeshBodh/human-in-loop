@@ -128,11 +128,8 @@ Generate implementation tasks from an existing plan.
 
 | Agent | Purpose |
 |-------|---------|
-| **Codebase Discovery Agent** | Analyzes existing code for brownfield considerations |
-| **Plan Research Agent** | Resolves technical unknowns and makes technology decisions |
-| **Plan Domain Model Agent** | Extracts entities and creates data model |
-| **Plan Contract Agent** | Designs API contracts and integration scenarios |
-| **Plan Validator Agent** | Validates artifacts against check modules |
+| **Plan Architect** | Senior architect who transforms specifications into implementation plans through research, domain modeling, and API contract design. Uses skills: `analysis-codebase`, `patterns-technical-decisions`, `patterns-entity-modeling`, `patterns-api-contracts` |
+| **Devil's Advocate** | Reviews plan artifacts for gaps and quality. Uses skill: `validation-plan-artifacts` |
 
 ### Tasks Workflow Agents
 
@@ -142,16 +139,9 @@ Generate implementation tasks from an existing plan.
 | **Task Generator Agent** | Generates `tasks.md` with format, phases, and brownfield markers |
 | **Task Validator Agent** | Validates artifacts against phase-specific check modules |
 
-### Validation Check Modules
+### Validation
 
-**Plan Workflow Checks:**
-
-| Module | Phase | Purpose |
-|--------|-------|---------|
-| `research-checks.md` | B0 | Validate research decisions and technology choices |
-| `model-checks.md` | B1 | Validate entity coverage, relationships, attributes |
-| `contract-checks.md` | B2 | Validate endpoint coverage, schemas, error handling |
-| `final-checks.md` | B3 | Cross-artifact consistency and constitution sweep |
+**Plan Workflow:** Uses `validation-plan-artifacts` skill with `check-artifacts.py` script for automated validation.
 
 **Tasks Workflow Checks:**
 

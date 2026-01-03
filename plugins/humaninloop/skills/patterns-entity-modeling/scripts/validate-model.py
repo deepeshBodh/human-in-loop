@@ -3,7 +3,7 @@
 Validation script for data-model.md files.
 
 Validates domain entity definitions for completeness and consistency
-according to the modeling-domain-entities skill requirements.
+according to the patterns-entity-modeling skill requirements.
 
 Usage:
     python validate-model.py <path-to-data-model.md>
