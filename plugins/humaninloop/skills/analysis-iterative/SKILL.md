@@ -1,5 +1,5 @@
 ---
-name: iterative-analysis
+name: analysis-iterative
 description: This skill should be used when the user says "brainstorm", "deep analysis", "let's think through", "analyze this with me", or "help me think through". Provides progressive deep analysis through one-by-one questioning with 2-3 options per question and clear recommendations. Challenges disagreement to strengthen thinking and concludes with a synthesis document.
 ---
 

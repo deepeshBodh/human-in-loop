@@ -1,5 +1,5 @@
 ---
-name: modeling-domain-entities
+name: patterns-entity-modeling
 description: DDD-style entity modeling from requirements including extraction, attributes, relationships, and state machines. Use when extracting entities, defining attributes, modeling relationships, or when you see "entity", "data model", "relationship", "cardinality", "domain model", or "state machine".
 ---
 

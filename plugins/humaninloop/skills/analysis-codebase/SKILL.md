@@ -1,5 +1,5 @@
 ---
-name: analyzing-codebase
+name: analysis-codebase
 description: Analyze existing codebases for tech stack, conventions, entities, and patterns. Use when scanning projects for context, brownfield analysis, or when you see "tech stack", "codebase analysis", "existing code", "collision risk", "brownfield", or "project context".
 ---
 

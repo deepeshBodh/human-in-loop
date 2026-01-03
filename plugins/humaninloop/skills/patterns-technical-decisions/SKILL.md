@@ -1,5 +1,5 @@
 ---
-name: making-technical-decisions
+name: patterns-technical-decisions
 description: Evaluate technology alternatives and document decisions in ADR format. Use when making technology choices, comparing options, documenting decisions, or when you see "technology choice", "alternatives", "trade-offs", "decision record", "rationale", "why we chose", or "NEEDS CLARIFICATION".
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: reviewing-plan-artifacts
+name: validation-plan-artifacts
 description: Review planning artifacts (research, data model, contracts) for quality and completeness. Use when reviewing plan phase outputs, finding gaps in design decisions, or when you see "review research", "review data model", "review contracts", "plan quality", or "phase review".
 ---
 

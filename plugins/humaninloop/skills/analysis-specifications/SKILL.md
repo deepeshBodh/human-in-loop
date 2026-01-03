@@ -1,5 +1,5 @@
 ---
-name: reviewing-specifications
+name: analysis-specifications
 description: Review specifications to find gaps and generate clarifying questions. Use when reviewing spec.md, finding missing requirements, identifying ambiguities, or when you see "review spec", "find gaps", "what's missing", or "clarify requirements". Focuses on product decisions, not implementation details.
 ---
 

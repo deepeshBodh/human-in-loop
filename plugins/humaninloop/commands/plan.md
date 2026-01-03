@@ -199,8 +199,8 @@ Create technical research document resolving all unknowns from the specification
 - Report: `specs/{feature-id}/.workflow/planner-report.md`
 
 **Use Skills**:
-- `analyzing-codebase` (if brownfield)
-- `making-technical-decisions`
+- `analysis-codebase` (if brownfield)
+- `patterns-technical-decisions`
 
 **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/planner-report-template.md`
 ```
@@ -250,7 +250,7 @@ Review the research document for gaps and quality.
 - Report: `specs/{feature-id}/.workflow/advocate-report.md`
 
 **Use Skills**:
-- `reviewing-plan-artifacts` (phase: research)
+- `validation-plan-artifacts` (phase: research)
 
 **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/advocate-report-template.md`
 ```
@@ -306,8 +306,8 @@ Create data model document extracting entities, relationships, and validation ru
 - Report: `specs/{feature-id}/.workflow/planner-report.md`
 
 **Use Skills**:
-- `analyzing-codebase` (if brownfield, for existing entities)
-- `modeling-domain-entities`
+- `analysis-codebase` (if brownfield, for existing entities)
+- `patterns-entity-modeling`
 
 **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/planner-report-template.md`
 ```
@@ -354,7 +354,7 @@ Review the data model for completeness and consistency with spec + research.
 - Report: `specs/{feature-id}/.workflow/advocate-report.md`
 
 **Use Skills**:
-- `reviewing-plan-artifacts` (phase: datamodel)
+- `validation-plan-artifacts` (phase: datamodel)
 
 **Check**:
 - Entity coverage (all nouns from requirements)
@@ -391,8 +391,8 @@ Create API contracts and integration guide.
 - Report: `specs/{feature-id}/.workflow/planner-report.md`
 
 **Use Skills**:
-- `analyzing-codebase` (if brownfield, for existing API patterns)
-- `designing-api-contracts`
+- `analysis-codebase` (if brownfield, for existing API patterns)
+- `patterns-api-contracts`
 
 **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/planner-report-template.md`
 ```
@@ -443,7 +443,7 @@ Review API contracts for completeness and consistency with all previous artifact
 - Report: `specs/{feature-id}/.workflow/advocate-report.md`
 
 **Use Skills**:
-- `reviewing-plan-artifacts` (phase: contracts)
+- `validation-plan-artifacts` (phase: contracts)
 
 **Check**:
 - Endpoint coverage (all user actions mapped)
