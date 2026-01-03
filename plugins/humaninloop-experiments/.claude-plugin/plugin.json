@@ -12,5 +12,9 @@
   "agents": [
     "./agents/requirements-analyst.md",
     "./agents/devils-advocate.md"
+  ],
+  "skills": [
+    "./skills/authoring-requirements/SKILL.md",
+    "./skills/authoring-user-stories/SKILL.md"
   ]
 }
