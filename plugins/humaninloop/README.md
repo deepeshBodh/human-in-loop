@@ -98,16 +98,17 @@ Generate implementation tasks from an existing plan.
 **Requires:** `plan.md` to exist (run plan workflow first)
 
 **Workflow:**
-1. **Phase T1**: Task planning - extract from design artifacts, map to user stories
-2. **Validation T1**: Verify story coverage, entity mapping, brownfield analysis
-3. **Phase T2**: Task generation - create tasks.md with proper format
-4. **Validation T2**: Verify format, coverage, dependencies, brownfield markers
+1. **Initialize**: Entry gate, create tasks-context.md
+2. **Mapping**: Task Architect creates task-mapping.md (story → cycle mapping)
+3. **Review**: Devil's Advocate reviews mapping for gaps
+4. **Tasks**: Task Architect creates tasks.md with TDD cycle structure
+5. **Review**: Devil's Advocate validates TDD structure and coverage
 
 **Features:**
-- **Brownfield markers**: `[EXTEND]`, `[MODIFY]`, `[CONFLICT]` for existing code
-- **Parallel flags**: `[P]` marks tasks that can run concurrently
-- **Story labels**: `[US#]` maps each task to its user story
-- **Phase structure**: Setup → Foundational → User Stories → Polish
+- **Vertical slicing**: Tasks grouped into independently testable cycles
+- **TDD discipline**: Each cycle follows test-first ordering
+- **Foundation + parallel**: Sequential foundation cycles, then parallel feature cycles
+- **Brownfield markers**: `[EXTEND]`, `[MODIFY]` for existing code
 
 ## Workflow Architecture
 
@@ -135,20 +136,17 @@ Generate implementation tasks from an existing plan.
 
 | Agent | Purpose |
 |-------|---------|
-| **Task Planner Agent** | Extracts from spec/plan/data-model/contracts, maps to user stories |
-| **Task Generator Agent** | Generates `tasks.md` with format, phases, and brownfield markers |
-| **Task Validator Agent** | Validates artifacts against phase-specific check modules |
+| **Task Architect** | Senior architect who transforms planning artifacts into implementation tasks through vertical slicing and TDD discipline. Uses skill: `patterns-vertical-tdd` |
+| **Devil's Advocate** | Reviews task artifacts for gaps, validates TDD structure. Uses skill: `validation-task-artifacts` |
 
 ### Validation
 
-**Plan Workflow:** Uses `validation-plan-artifacts` skill with `check-artifacts.py` script for automated validation.
+**Plan Workflow:** Uses `validation-plan-artifacts` skill for phase-specific review criteria.
 
-**Tasks Workflow Checks:**
-
-| Module | Phase | Purpose |
-|--------|-------|---------|
-| `mapping-checks.md` | T1 | Validate story coverage, entity/endpoint mapping, brownfield analysis |
-| `task-checks.md` | T2 | Validate task format, coverage, dependencies, parallel safety |
+**Tasks Workflow:** Uses `validation-task-artifacts` skill for:
+- Vertical slice validation (cycles deliver testable value)
+- TDD structure verification (test-first ordering)
+- Story → Cycle → Tasks traceability
 
 ## Output Structure
 
@@ -183,40 +181,45 @@ Generated specifications include:
 
 ## Task Format
 
-Generated tasks follow this format:
+Tasks are organized into **cycles** - vertical slices that deliver testable value with TDD discipline.
 
+**Cycle Structure:**
+
+```markdown
+### Cycle N: [Vertical slice description]
+
+> Stories: US-X, US-Y
+> Dependencies: C1, C2 (or "None")
+> Type: Foundation | Feature [P]
+
+- [ ] **TN.1**: Write failing test for [behavior] in tests/[path]
+- [ ] **TN.2**: Implement [component] to pass test in src/[path]
+- [ ] **TN.3**: Refactor and verify tests pass
+- [ ] **TN.4**: Demo [behavior], verify acceptance criteria
+
+**Checkpoint**: [Observable outcome when cycle is complete]
 ```
-- [ ] T### [Marker?] [P?] [US#] Description with file path
-```
 
-**Components:**
-- `T###` - Sequential task ID (T001, T002, ...)
-- `[EXTEND]` / `[MODIFY]` / `[CONFLICT]` - Brownfield markers (optional)
-- `[P]` - Parallel flag for concurrent execution (optional)
-- `[US#]` - User story label (required for story phases)
-- Description with specific file path (required)
+**Task ID Format:** `TN.X` where N = cycle number, X = task sequence (e.g., T1.1, T1.2, T2.1)
 
-**Brownfield Markers:**
+**Markers:**
 
-| Marker | Meaning | Behavior |
-|--------|---------|----------|
-| (none) | New file | Create file (greenfield default) |
-| `[EXTEND]` | Add to existing | Append new functionality |
-| `[MODIFY]` | Change existing | Update existing logic |
-| `[CONFLICT]` | Manual resolution | Stop for user review |
+| Marker | Meaning |
+|--------|---------|
+| `[P]` | Parallel-eligible (feature cycle can run alongside others) |
+| `[EXTEND]` | Extends existing file (brownfield) |
+| `[MODIFY]` | Modifies existing code (brownfield) |
 
-**Phase Structure:**
+**Cycle Types:**
 
-1. **Setup** - Project initialization, no story labels
-2. **Foundational** - Core infrastructure blocking all stories
-3. **User Story N** - Independent, testable story implementation
-4. **Polish** - Cross-cutting concerns, documentation
+1. **Foundation Cycles** - Sequential, establish shared infrastructure
+2. **Feature Cycles** - Parallel-eligible, deliver user value independently
 
 ## Configuration
 
 The plugin uses:
 - `${CLAUDE_PLUGIN_ROOT}/templates/` - Workflow templates
-- `${CLAUDE_PLUGIN_ROOT}/check-modules/` - Validation check modules
+- `${CLAUDE_PLUGIN_ROOT}/skills/` - Agent skills (validation, patterns, authoring)
 - `.humaninloop/memory/constitution.md` - Project principles (user project)
 
 ## License

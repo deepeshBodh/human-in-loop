@@ -8,23 +8,23 @@ This document outlines the vision and planned evolution of the HumanInLoop Marke
 
 The HumanInLoop Marketplace provides Claude Code plugins that enforce specification-driven development—ensuring architectural decisions are made by humans before AI writes code.
 
-## Current State (v0.5.0)
+## Current State (v0.6.0)
 
-The marketplace is in active development. The core specify → plan → tasks workflow is functional.
+The marketplace is in active development. The core specify → plan → tasks workflow is functional with architectural parity across all commands.
 
 ### Available Now
 
 **Commands:**
 - `/humaninloop:specify` - Create structured specifications using 2-agent architecture
-- `/humaninloop:plan` - Generate implementation plans with skill-augmented architecture **(v0.5.0 - refactored)**
-- `/humaninloop:tasks` - Generate implementation tasks
+- `/humaninloop:plan` - Generate implementation plans with skill-augmented architecture
+- `/humaninloop:tasks` - Generate implementation tasks with vertical TDD slicing **(v0.6.0 - refactored)**
 - `/humaninloop:analyze` - Analyze codebase context
 - `/humaninloop:checklist` - Generate implementation checklists
 - `/humaninloop:implement` - Execute implementation with tracking
 - `/humaninloop:setup` - Initialize project constitution
 - `/humaninloop-experiments:specify` - Experimental specifications (sandbox for new patterns)
 
-**Skills** (auto-invoked by Claude) - 11 total, organized by category **(v0.5.0 - renamed per ADR-004)**:
+**Skills** (auto-invoked by Claude) - 13 total, organized by category:
 
 *Authoring (writing patterns):*
 - `authoring-requirements` - Write functional requirements using FR-XXX format with RFC 2119 keywords
@@ -40,9 +40,11 @@ The marketplace is in active development. The core specify → plan → tasks wo
 - `patterns-api-contracts` - RESTful API design with endpoint mapping and OpenAPI specs
 - `patterns-entity-modeling` - DDD-style entity extraction with relationships and state machines
 - `patterns-technical-decisions` - Evaluate technology alternatives and document decisions
+- `patterns-vertical-tdd` - Vertical slicing with TDD discipline for task organization **(v0.6.0 - new)**
 
-*Validation (check modules with scripts):*
+*Validation (artifact review):*
 - `validation-plan-artifacts` - Review planning artifacts for quality and completeness
+- `validation-task-artifacts` - Review task artifacts for TDD structure and coverage **(v0.6.0 - new)**
 
 *Utilities:*
 - `syncing-claude-md` - Ensure CLAUDE.md mirrors constitution sections per sync mapping
