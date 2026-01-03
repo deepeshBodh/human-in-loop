@@ -75,6 +75,54 @@ Customize based on your project needs:
     └── constitution.md    # Your project constitution
 ```
 
+## Skills (Auto-Invoked)
+
+The constitution plugin includes three skills that Claude automatically invokes when relevant:
+
+### authoring-constitution
+
+Helps write enforceable, testable constitution content. Triggered when you mention "constitution", "governance", "principles", "enforcement", or "quality gates".
+
+**Key Features:**
+- Enforces three-part principle rule: Enforcement, Testability, Rationale
+- Uses RFC 2119 keywords (MUST, SHOULD, MAY)
+- Quantifies vague terms ("fast" → "< 3 seconds")
+
+### analyzing-project-context
+
+Infers project characteristics from codebase to inform constitution content. Triggered when setting up a constitution or analyzing project context.
+
+**Analyzes:**
+- Tech stack and dependencies
+- Existing linting/formatting conventions
+- Architecture patterns
+- CI/CD quality gates
+- Existing governance documents
+
+### syncing-claude-md
+
+Ensures CLAUDE.md mirrors constitution sections per explicit mapping. Triggered when synchronizing or validating alignment between constitution and CLAUDE.md.
+
+**Sync Mapping:**
+| Constitution Section | CLAUDE.md Section |
+|---------------------|-------------------|
+| Core Principles | Principles Summary |
+| Technology Stack | Technical Stack |
+| Quality Gates | Quality Gates |
+| Governance | Development Workflow |
+
+## Agents
+
+### principal-architect
+
+Senior technical leader agent that brings governance judgment. Used internally by the setup command to evaluate standards.
+
+**Evaluates:**
+- Is it enforceable? (mechanism to catch violations)
+- Is it testable? (can define pass/fail)
+- Is it justified? (clear rationale)
+- Is it necessary? (complexity justified)
+
 ## Integration with Other Plugins
 
 The constitution is used by:

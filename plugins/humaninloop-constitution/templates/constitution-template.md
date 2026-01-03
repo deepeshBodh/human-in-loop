@@ -1,50 +1,276 @@
+<!--
+SYNC IMPACT REPORT
+==================
+Version change: (none) → 1.0.0 (MAJOR: Initial constitution)
+
+Rationale for bump:
+- Initial ratification of project constitution
+- Establishes core principles for development governance
+
+Modified Sections: N/A (initial version)
+
+Added Sections:
+- Core Principles
+- Technology Stack
+- Quality Gates
+- Governance
+- CLAUDE.md Synchronization
+
+Removed Sections: None
+
+Templates Alignment:
+- ⚠️ CLAUDE.md: Requires sync after constitution creation
+- ⚠️ Other templates: Review for constitution compliance
+
+Follow-up TODOs:
+- Sync CLAUDE.md with constitution content
+- Review existing code for constitution compliance
+
+Previous Reports: None (initial version)
+-->
+
 # [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
+<!--
+INSTRUCTION: Define 5-10 core principles. Each principle MUST have:
+1. Enforcement - How compliance is verified
+2. Testability - Pass/fail criteria
+3. Rationale - Why this constraint exists
+
+Use RFC 2119 keywords: MUST, SHOULD, MAY, MUST NOT, SHOULD NOT
+-->
+
+### I. [PRINCIPLE_1_NAME]
+<!-- Example: Test-First Development (NON-NEGOTIABLE) -->
+
 [PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+<!--
+Example:
+All production code MUST be written following test-driven development practices:
+- Tests MUST be written before implementation code
+- Tests MUST fail before implementation begins (Red phase)
+- Implementation MUST only satisfy the failing tests (Green phase)
+-->
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
+**Enforcement**:
+- [How compliance is verified - CI check, code review, tooling]
+- [Specific commands or processes that enforce this]
+
+**Testability**:
+- Pass: [What passing looks like]
+- Fail: [What failure looks like]
+
+**Rationale**: [Why this constraint exists—what failure mode it prevents, what success it enables]
+
+---
+
+### II. [PRINCIPLE_2_NAME]
+<!-- Example: Code Quality & Maintainability -->
+
 [PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
+**Enforcement**:
+- [Verification method]
+
+**Testability**:
+- Pass: [Criteria]
+- Fail: [Criteria]
+
+**Rationale**: [Why this matters]
+
+---
+
+### III. [PRINCIPLE_3_NAME]
+<!-- Example: Architecture & Design -->
+
 [PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
+**Enforcement**:
+- [Verification method]
+
+**Testability**:
+- Pass: [Criteria]
+- Fail: [Criteria]
+
+**Rationale**: [Why this matters]
+
+---
+
+### IV. [PRINCIPLE_4_NAME]
+<!-- Example: Security by Default -->
+
 [PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
+**Enforcement**:
+- [Verification method]
+
+**Testability**:
+- Pass: [Criteria]
+- Fail: [Criteria]
+
+**Rationale**: [Why this matters]
+
+---
+
+### V. [PRINCIPLE_5_NAME]
+<!-- Example: Error Handling & Resilience -->
+
 [PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+**Enforcement**:
+- [Verification method]
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+**Testability**:
+- Pass: [Criteria]
+- Fail: [Criteria]
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+**Rationale**: [Why this matters]
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+---
+
+<!-- Add more principles as needed (VI, VII, VIII...) -->
+
+## Technology Stack
+
+<!--
+INSTRUCTION: Document mandated technology choices with rationale.
+This section MUST match exactly in CLAUDE.md.
+-->
+
+| Category | Choice | Rationale |
+|----------|--------|-----------|
+| Language | [LANGUAGE] [VERSION] | [Why this choice] |
+| Framework | [FRAMEWORK] | [Why this choice] |
+| Testing | [TEST_FRAMEWORK] | [Why this choice] |
+| Linting | [LINTER] | [Why this choice] |
+| Type Checking | [TYPE_CHECKER] | [Why this choice] |
+| CI/CD | [CI_PLATFORM] | [Why this choice] |
+
+## Quality Gates
+
+<!--
+INSTRUCTION: Define automated checks that block merge.
+This section MUST match exactly in CLAUDE.md.
+-->
+
+| Gate | Requirement | Measurement | Enforcement |
+|------|-------------|-------------|-------------|
+| Static Analysis | Zero errors | `[LINT_COMMAND]` | CI automated |
+| Type Checking | Zero errors | `[TYPE_CHECK_COMMAND]` | CI automated |
+| Test Suite | All tests pass | `[TEST_COMMAND]` | CI automated |
+| Test Coverage | ≥[COVERAGE_THRESHOLD]% | `[COVERAGE_COMMAND]` | CI automated |
+| Security Scan | No vulnerabilities | `[SECURITY_COMMAND]` | CI automated |
+| Code Review | ≥1 approval | PR status | Branch protection |
+
+## Project Structure
+
+<!--
+INSTRUCTION: Define the expected folder organization.
+Include if your project has specific structure requirements.
+-->
+
+```
+[PROJECT_ROOT]/
+├── [SOURCE_DIR]/
+│   ├── [LAYER_1]/        # [Purpose]
+│   ├── [LAYER_2]/        # [Purpose]
+│   └── [LAYER_3]/        # [Purpose]
+├── [TEST_DIR]/
+│   ├── unit/             # Unit tests
+│   └── integration/      # Integration tests
+└── [CONFIG_FILES]
+```
+
+### Layer Import Rules
+
+<!--
+INSTRUCTION: Define dependency rules if using layered architecture.
+-->
+
+| Layer | MAY Import | MUST NOT Import |
+|-------|------------|-----------------|
+| [LAYER_1] | [Allowed layers] | [Prohibited layers] |
+| [LAYER_2] | [Allowed layers] | [Prohibited layers] |
+| [LAYER_3] | [Allowed layers] | [Prohibited layers] |
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+### Amendment Process
+
+1. Propose change via PR to constitution file
+2. Document rationale for change in PR description
+3. Review impact on existing code and templates
+4. Obtain team consensus (minimum 1 approval)
+5. Update version per semantic versioning rules below
+6. Update CLAUDE.md to reflect changes (mandatory sync)
+
+### Version Policy
+
+- **MAJOR**: Principle removal or incompatible redefinition
+- **MINOR**: New principle added or significant expansion of existing principle
+- **PATCH**: Clarification, wording improvement, or non-semantic refinement
+
+### Exception Registry
+
+When a principle cannot be followed, approved exceptions MUST be recorded in `docs/constitution-exceptions.md` with:
+
+| Field | Description |
+|-------|-------------|
+| Exception ID | Unique identifier (EX-001, EX-002, etc.) |
+| Principle | Which principle is being deviated from |
+| Scope | File(s) or component(s) affected |
+| Justification | Why the exception is necessary |
+| Approved By | Reviewer who approved |
+| Approved Date | ISO date of approval (YYYY-MM-DD) |
+| Expiry | Date by which must be resolved, or "Permanent" with justification |
+| Tracking Issue | Link to issue for resolution (if applicable) |
+
+### Exception Process
+
+1. Document the specific constraint preventing compliance in PR description
+2. Propose the minimal deviation required with quantified scope
+3. Obtain explicit approval in code review
+4. Add entry to Exception Registry
+5. Add TODO comment in code with exception ID reference: `# EX-001: <reason>`
+
+### Compliance Review
+
+- All PRs MUST include constitution compliance verification
+- Quarterly audits SHOULD assess codebase alignment with principles
+- Violations MUST be tracked and addressed within current sprint
+
+## CLAUDE.md Synchronization
+
+The `CLAUDE.md` file at repository root MUST remain synchronized with this constitution. It serves as the primary instruction file for AI coding assistants and MUST contain accurate governance information.
+
+### Mandatory Sync Mapping
+
+| Constitution Section | CLAUDE.md Section | Sync Rule |
+|---------------------|-------------------|-----------|
+| Core Principles | Principles Summary | MUST list all principles with enforcement keywords |
+| Technology Stack | Technical Stack | MUST match exactly |
+| Quality Gates | Quality Gates | MUST match exactly |
+| Project Structure | Project Structure | MUST match if present |
+| Governance | Development Workflow | MUST include versioning and commit rules |
+
+### Synchronization Process
+
+When amending this constitution:
+
+1. Update constitution version and content
+2. Update CLAUDE.md to reflect all changes in the Mandatory Sync Mapping table
+3. Verify CLAUDE.md version matches constitution version
+4. Include both files in the same commit
+5. PR description MUST note "Constitution sync: CLAUDE.md updated"
+
+### Enforcement
+
+- Code review MUST verify CLAUDE.md is updated when constitution changes
+- CLAUDE.md MUST display the same version number as the constitution
+- Sync drift between files is a blocking issue for PRs that modify either file
+
+---
 
 **Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->

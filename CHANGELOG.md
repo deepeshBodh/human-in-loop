@@ -8,7 +8,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ## [0.2.7] - 2026-01-03
 
-New authoring skills for specification writing.
+New authoring skills for specification writing and constitution decoupled architecture.
 
 ### humaninloop 0.2.7
 
@@ -23,6 +23,35 @@ New authoring skills for specification writing.
 #### Documentation
 - Added ADR-004: Skill-Augmented Agents Architecture
 - Added ADR-005: Decoupled Agents Architecture
+
+### humaninloop-constitution 1.2.0
+
+#### Architecture
+- **Decoupled agent architecture** - Implemented per ADR-005
+  - Plugin.json now uses explicit agent file paths instead of directory reference
+  - Enables granular control over agent registration
+
+#### New Agents
+- **principal-architect** - Senior technical leader agent for governance judgment
+  - Evaluates whether standards are enforceable, testable, and justified
+  - Rejects vague aspirations in favor of actionable constraints
+  - Uses opus model for deeper reasoning
+
+### humaninloop-constitution 1.1.0
+
+#### New Skills
+- **authoring-constitution** - Write enforceable, testable constitution content
+  - Triggered by: "constitution", "governance", "principles", "enforcement", "quality gates"
+  - Enforces three-part principle rule: Enforcement, Testability, Rationale
+  - Includes RFC 2119 keyword guidance
+- **analyzing-project-context** - Infer project characteristics from codebase
+  - Triggered by: "project context", "tech stack", "conventions", "architecture patterns"
+  - Extracts tech stack, CI config, existing governance, and team signals
+  - Generates Project Context Report for constitution authoring
+- **syncing-claude-md** - Ensure CLAUDE.md mirrors constitution sections
+  - Triggered by: "CLAUDE.md sync", "agent instructions", "propagate constitution"
+  - Defines mandatory sync mapping between constitution and CLAUDE.md
+  - Includes sync validation checklist and gap detection
 
 ---
 

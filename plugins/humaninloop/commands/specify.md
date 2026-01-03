@@ -169,7 +169,7 @@ Task(
 
 ```
 Task(
-  subagent_type: "spec-writer-agent",
+  subagent_type: "spec-writer",
   description: "Write spec content",
   prompt: [Include feature_id, spec_path, index_path, specify_context_path, description]
 )

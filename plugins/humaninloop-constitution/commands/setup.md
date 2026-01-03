@@ -1,9 +1,9 @@
 ---
-description: Create or update the project constitution from interactive or provided principle inputs, ensuring all dependent templates stay in sync.
+description: Create or update the project constitution using the Principal Architect agent.
 handoffs:
   - label: Build Specification
     agent: humaninloop:specify
-    prompt: Implement the feature specification based on the updated constitution. I want to build...
+    prompt: Build a feature specification governed by the constitution. I want to build...
 ---
 
 ## User Input
@@ -12,98 +12,153 @@ handoffs:
 $ARGUMENTS
 ```
 
-You **MUST** consider the user input before proceeding (if not empty).
+## Workflow
 
-### Empty Input Check
+This supervisor follows a decoupled architecture: create scaffold → invoke agent → iterate if needed → finalize.
 
-If `$ARGUMENTS` is empty (blank string with no content), use AskUserQuestion to handle a known Claude Code bug where inputs containing `@` file references don't reach plugin commands:
+### Phase 1: Initialize
+
+1. **Ensure directory exists**
+   ```bash
+   mkdir -p .humaninloop/memory
+   ```
+
+2. **Generate scaffold filename with timestamp**
+   ```bash
+   SCAFFOLD_FILE=".humaninloop/memory/constitution-scaffold-$(date +%Y%m%d-%H%M%S).md"
+   ```
+
+3. **Check for existing constitution**
+   ```bash
+   cat .humaninloop/memory/constitution.md 2>/dev/null
+   ```
+   - If exists: `mode: amend`, capture content
+   - If not: `mode: create`
+
+4. **Detect project context**
+   - Check `package.json`, `pyproject.toml`, `pubspec.yaml`, `go.mod`, `Cargo.toml`, etc.
+   - Extract project name and tech stack
+   - Check if `CLAUDE.md` exists
+
+5. **Create scaffold artifact**
+
+   Write to `$SCAFFOLD_FILE` (e.g., `.humaninloop/memory/constitution-scaffold-20260103-154500.md`):
+
+   ```markdown
+   ---
+   type: constitution-setup
+   mode: [create|amend]
+   iteration: 1
+   created: [ISO date]
+   ---
+
+   # Constitution Setup Request
+
+   ## User Input
+
+   [User's request or "Set up project governance"]
+
+   ## Project Context
+
+   | Aspect | Value |
+   |--------|-------|
+   | Project Name | [detected] |
+   | Tech Stack | [detected] |
+   | CLAUDE.md Exists | [Yes/No] |
+
+   ## Context Files
+
+   - [List detected config files]
+   - [CLAUDE.md if exists]
+
+   ## Existing Constitution
+
+   [If amending: full content]
+   [If creating: "None - creating new constitution"]
+
+   ## Supervisor Instructions
+
+   Create a constitution for this project.
+
+   Write to: `.humaninloop/memory/constitution.md`
+
+   If CLAUDE.md exists, sync relevant sections using your syncing-claude-md skill.
+
+   Report back with structured prose:
+   - `## What I Created` - Constitution version, principle count, key governance areas
+   - `## CLAUDE.md Sync Status` - What was synced (or "N/A" if no CLAUDE.md)
+   - `## Clarifications Needed` - Questions requiring user input (if any)
+   - `## Assumptions Made` - Decisions made when requirements were ambiguous
+
+   ## Clarification Log
+
+   [Empty on first iteration]
+   ```
+
+### Phase 2: Invoke Agent
+
+Invoke with minimal prompt pointing to scaffold (use the generated `$SCAFFOLD_FILE` path):
 
 ```
-AskUserQuestion(
-  questions: [{
-    question: "⚠️ Known Issue: Input may have been lost\n\nClaude Code has a bug where inputs containing @ file references don't reach plugin commands.\n\nWould you like to re-enter your input?",
-    header: "Input",
-    options: [
-      {label: "Re-enter input", description: "I'll type my input in the terminal"},
-      {label: "Continue without input", description: "Proceed with no input provided"}
-    ],
-    multiSelect: false
-  }]
+Task(
+  subagent_type: "humaninloop-constitution:principal-architect",
+  prompt: "
+    Work on the constitution setup.
+
+    Read the scaffold at: $SCAFFOLD_FILE
+
+    The scaffold contains all context, instructions, and where to write output.
+  ",
+  description: "Create project constitution"
 )
 ```
 
-- If user selects "Re-enter input" → wait for user to type their input in the terminal, then use that as the effective `$ARGUMENTS`
-- If user selects "Continue without input" → proceed with empty input (existing behavior)
+### Phase 3: Parse & Route
 
-## Outline
+Parse agent's structured prose output:
 
-You are updating the project constitution at `.humaninloop/memory/constitution.md`. This file is a TEMPLATE containing placeholder tokens in square brackets (e.g. `[PROJECT_NAME]`, `[PRINCIPLE_1_NAME]`). Your job is to (a) collect/derive concrete values, (b) fill the template precisely, and (c) propagate any amendments across dependent artifacts.
+**If `## Clarifications Needed` has questions:**
+1. Present questions to user
+2. Collect answers
+3. Append to `$SCAFFOLD_FILE`'s `## Clarification Log`:
+   ```markdown
+   ### Round N - Agent Questions
+   [Questions from agent output]
 
-Follow this execution flow:
+   ### Round N - User Answers
+   [User's responses]
+   ```
+4. Update `$SCAFFOLD_FILE`'s `## Supervisor Instructions`:
+   ```markdown
+   User answered your questions (see Clarification Log).
+   Finalize the constitution incorporating their answers.
 
-1. Check if the constitution directory exists at `.humaninloop/memory/`. If not, create it.
+   Write to: `.humaninloop/memory/constitution.md`
+   [Same output format instructions]
+   ```
+5. Increment `iteration` in `$SCAFFOLD_FILE` frontmatter
+6. **Loop back to Phase 2**
 
-2. Check if constitution template exists at `.humaninloop/memory/constitution.md`. If not, copy from plugin template:
-   - Source: `${CLAUDE_PLUGIN_ROOT}/templates/constitution-template.md`
-   - Destination: `.humaninloop/memory/constitution.md`
+**If no clarifications (or max iterations reached):**
+- Proceed to Phase 4
 
-3. Load the existing constitution template at `.humaninloop/memory/constitution.md`.
-   - Identify every placeholder token of the form `[ALL_CAPS_IDENTIFIER]`.
-   **IMPORTANT**: The user might require less or more principles than the ones used in the template. If a number is specified, respect that - follow the general template. You will update the doc accordingly.
+### Phase 4: Finalize
 
-4. Collect/derive values for placeholders:
-   - If user input (conversation) supplies a value, use it.
-   - Otherwise infer from existing repo context (README, docs, prior constitution versions if embedded).
-   - For governance dates: `RATIFICATION_DATE` is the original adoption date (if unknown ask or mark TODO), `LAST_AMENDED_DATE` is today if changes are made, otherwise keep previous.
-   - `CONSTITUTION_VERSION` must increment according to semantic versioning rules:
-     - MAJOR: Backward incompatible governance/principle removals or redefinitions.
-     - MINOR: New principle/section added or materially expanded guidance.
-     - PATCH: Clarifications, wording, typo fixes, non-semantic refinements.
-   - If version bump type ambiguous, propose reasoning before finalizing.
+1. **Report to user**
+   - Summarize what was created (from `## What I Created`)
+   - Note any assumptions made (from `## Assumptions Made`)
+   - Report CLAUDE.md sync status (from `## CLAUDE.md Sync Status`)
 
-5. Draft the updated constitution content:
-   - Replace every placeholder with concrete text (no bracketed tokens left except intentionally retained template slots that the project has chosen not to define yet—explicitly justify any left).
-   - Preserve heading hierarchy and comments can be removed once replaced unless they still add clarifying guidance.
-   - Ensure each Principle section: succinct name line, paragraph (or bullet list) capturing non‑negotiable rules, explicit rationale if not obvious.
-   - Ensure Governance section lists amendment procedure, versioning policy, and compliance review expectations.
+2. **Suggest commit**
+   - If new: `docs: create constitution v1.0.0`
+   - If amended: `docs: update constitution to v[X.Y.Z]`
 
-6. Consistency propagation checklist (convert prior checklist into active validations):
-   - Read `.humaninloop/templates/plan-template.md` (if exists) and ensure any "Constitution Check" or rules align with updated principles.
-   - Read `.humaninloop/templates/spec-template.md` (if exists) for scope/requirements alignment—update if constitution adds/removes mandatory sections or constraints.
-   - Read `.humaninloop/templates/tasks-template.md` (if exists) and ensure task categorization reflects new or removed principle-driven task types (e.g., observability, versioning, testing discipline).
-   - Read `.humaninloop/commands/*.md` (if exists) to verify no outdated references or agent-specific hardcoding conflicts with constitution principles.
-   - Read any runtime guidance docs (e.g., `README.md`, `docs/quickstart.md`, or agent-specific guidance files if present). Update references to principles changed.
+---
 
-7. Produce a Sync Impact Report (prepend as an HTML comment at top of the constitution file after update):
-   - Version change: old → new
-   - List of modified principles (old title → new title if renamed)
-   - Added sections
-   - Removed sections
-   - Templates requiring updates (✅ updated / ⚠ pending) with file paths
-   - Follow-up TODOs if any placeholders intentionally deferred.
+## Supervisor Behaviors
 
-8. Validation before final output:
-   - No remaining unexplained bracket tokens.
-   - Version line matches report.
-   - Dates ISO format YYYY-MM-DD.
-   - Principles are declarative, testable, and free of vague language ("should" → replace with MUST/SHOULD rationale where appropriate).
-
-9. Write the completed constitution back to `.humaninloop/memory/constitution.md` (overwrite).
-
-10. Output a final summary to the user with:
-   - New version and bump rationale.
-   - Any files flagged for manual follow-up.
-   - Suggested commit message (e.g., `docs: amend constitution to vX.Y.Z (principle additions + governance update)`).
-
-Formatting & Style Requirements:
-
-- Use Markdown headings exactly as in the template (do not demote/promote levels).
-- Wrap long rationale lines to keep readability (<100 chars ideally) but do not hard enforce with awkward breaks.
-- Keep a single blank line between sections.
-- Avoid trailing whitespace.
-
-If the user supplies partial updates (e.g., only one principle revision), still perform validation and version decision steps.
-
-If critical info missing (e.g., ratification date truly unknown), insert `TODO(<FIELD_NAME>): explanation` and include in the Sync Impact Report under deferred items.
-
-Do not create a new template; always operate on the existing `.humaninloop/memory/constitution.md` file.
+- **Owns the loop**: Decides when to iterate vs. finalize
+- **Modifies scaffold**: Updates `$SCAFFOLD_FILE` instructions and appends to clarification log between iterations
+- **Presents clarifications**: Chooses how to display agent questions to user
+- **Injects context**: Can add sections to `$SCAFFOLD_FILE` if needed mid-loop
+- **Max iterations**: Consider limiting to 3 rounds to prevent infinite loops

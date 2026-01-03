@@ -330,7 +330,40 @@ grep -ri "speckit" plugins/ .claude/ --include="*.md" --include="*.json"
 # docs/speckit-artefacts/*
 ```
 
-### 13. Release Notes Format Validation
+### 13. Internal Documentation Reference Detection
+Shipped plugin code should NOT reference internal documentation that users won't have access to. Scan for references to internal-only resources:
+
+**Flag and FAIL if found in shipped plugin code** (`plugins/`, `.claude/agents/`):
+- [ ] ADR references: `ADR-\d+`, `ADR-XXX`, or links to `docs/decisions/`
+- [ ] Spec references: Links to `specs/` directory (except in context of user's own specs)
+- [ ] Internal docs: `docs/decisions/`, `docs/speckit-artefacts/`
+- [ ] Development-only files: References to files only in the repo, not shipped
+
+**Allowed locations for internal references**:
+- CLAUDE.md (project instructions, not shipped)
+- README.md at marketplace root (explains the repo structure)
+- CHANGELOG.md (historical context)
+- docs/ folder (documentation, not shipped with plugins)
+- This release-manager agent itself
+
+**Search patterns**:
+```bash
+# ADR references in plugin code (FAIL)
+grep -rE "ADR-[0-9]+" plugins/ --include="*.md"
+grep -r "docs/decisions" plugins/ --include="*.md"
+
+# Internal doc references (FAIL)
+grep -r "docs/speckit-artefacts" plugins/ --include="*.md"
+grep -rE "specs/(completed|in-progress|planned)" plugins/ --include="*.md"
+```
+
+**Why this matters**: Users install plugins via the marketplace. They don't clone the full repo, so references like "per ADR-005" or "see docs/decisions/" will be confusing and unhelpful.
+
+**Fix pattern**: Replace internal references with self-contained explanations:
+- BAD: `This follows ADR-005 decoupled architecture`
+- GOOD: `This follows a decoupled architecture: create scaffold → invoke agent → finalize`
+
+### 14. Release Notes Format Validation
 When preparing release, verify planned release notes follow RELEASES.md format:
 
 **Required sections**:
@@ -353,30 +386,31 @@ When invoked, follow this systematic approach:
 2. **Load Specifications**: Read `docs/claude-plugin-documentation.md` and `docs/agent-skills-documentation.md`
 3. **Version Check**: Validate version consistency across all manifest files
 4. **Skill YAML Validation**: Check all SKILL.md files for single-line descriptions (CRITICAL)
-5. **Speckit Reference Detection**: Search for legacy references that must be removed
+5. **Speckit Reference Detection**: Search for legacy `.specify/` and `speckit` references
+6. **Internal Doc Reference Detection**: Search for ADR-XXX, docs/decisions/, and other internal-only references in shipped code
 
 ### Phase 2: Structural Validation
-6. **Structural Scan**: Map the plugin's file structure including agents/, skills/, check-modules/, hooks/
-7. **Agent Validation**: Verify agent frontmatter, name matching, and skill references
-8. **Command Validation**: Verify command frontmatter and argument handling
-9. **Script Validation**: Check executability, shebangs, and path usage
-10. **Hooks Validation**: If hooks present, validate JSON structure and event names
+7. **Structural Scan**: Map the plugin's file structure including agents/, skills/, check-modules/, hooks/
+8. **Agent Validation**: Verify agent frontmatter, name matching, and skill references
+9. **Command Validation**: Verify command frontmatter and argument handling
+10. **Script Validation**: Check executability, shebangs, and path usage
+11. **Hooks Validation**: If hooks present, validate JSON structure and event names
 
 ### Phase 3: Consistency Checks
-11. **Check Module Validation**: Validate check-module format, IDs, and tiers
-12. **Marketplace Manifest**: Validate marketplace.json structure and plugin references
-13. **Cross-Artifact Consistency**: Verify README ↔ plugin.json ↔ commands ↔ agents alignment
-14. **Dependency Check**: Verify plugin dependencies are properly declared and documented
+12. **Check Module Validation**: Validate check-module format, IDs, and tiers
+13. **Marketplace Manifest**: Validate marketplace.json structure and plugin references
+14. **Cross-Artifact Consistency**: Verify README ↔ plugin.json ↔ commands ↔ agents alignment
+15. **Dependency Check**: Verify plugin dependencies are properly declared and documented
 
 ### Phase 4: Compatibility & Documentation
-15. **Claude Code Compatibility**: Verify workarounds for known bugs (empty input, YAML parsing)
-16. **CHANGELOG Validation**: Verify Keep a Changelog format compliance
-17. **Release Notes Format**: Validate planned release notes follow RELEASES.md format
-18. **Reference Integrity**: Validate all internal and external file references
-19. **Documentation Review**: Audit README, command docs, and cross-references
+16. **Claude Code Compatibility**: Verify workarounds for known bugs (empty input, YAML parsing)
+17. **CHANGELOG Validation**: Verify Keep a Changelog format compliance
+18. **Release Notes Format**: Validate planned release notes follow RELEASES.md format
+19. **Reference Integrity**: Validate all internal and external file references
+20. **Documentation Review**: Audit README, command docs, and cross-references
 
 ### Phase 5: Report Generation
-20. **Generate Report**: Produce comprehensive release readiness report with all findings
+21. **Generate Report**: Produce comprehensive release readiness report with all findings
 
 ## Output Format
 
@@ -483,6 +517,14 @@ Your release readiness report should include:
 | .claude/ | 0 / [count] | ✅/❌ |
 | docs/speckit-artefacts/ | [count] (expected) | ✅ |
 
+## Internal Documentation Reference Detection
+| Reference Type | Location | Status |
+|----------------|----------|--------|
+| ADR references (ADR-XXX) | plugins/ | ✅/❌ |
+| docs/decisions/ links | plugins/ | ✅/❌ |
+| docs/speckit-artefacts/ links | plugins/ | ✅/❌ |
+| specs/ directory links | plugins/ | ✅/❌ |
+
 ## Reference Integrity
 - **Valid References**: [count]
 - **Broken References**: [list with locations]
@@ -504,6 +546,7 @@ Your release readiness report should include:
 - [ ] Version numbers consistent across all manifests
 - [ ] All skill descriptions use single-line YAML format
 - [ ] No speckit references in active code (plugins/, .claude/)
+- [ ] No internal doc references in shipped code (no ADR-XXX, docs/decisions/, etc.)
 
 ### Important (Should pass)
 - [ ] CHANGELOG.md updated for this release (Keep a Changelog format)
