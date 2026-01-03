@@ -10,7 +10,7 @@
   "keywords": ["experiments", "decoupled-agents", "artifact-chain", "ADR-005"],
   "commands": "./commands/",
   "agents": [
-    "./agents/experiment-runner.md"
-  ],
-  "skills": "./skills/"
+    "./agents/requirements-analyst.md",
+    "./agents/devils-advocate.md"
+  ]
 }

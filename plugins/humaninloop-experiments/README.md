@@ -1,50 +1,80 @@
 # HumanInLoop Experiments Plugin
 
-Experimental plugins following the ADR-005 decoupled agents architecture. This plugin serves as a sandbox for testing new agent patterns, artifact chains, and workflow designs before promoting them to production plugins.
+Experimental plugins following the ADR-005 decoupled agents architecture. This plugin serves as a sandbox for testing new agent patterns before promoting them to production plugins.
 
 ## Architecture (ADR-005)
 
 This plugin implements the **Decoupled Agents Architecture**:
 
 1. **Agents are pure domain experts** - They have domain knowledge, not workflow knowledge
-2. **Supervisors communicate via natural language** - No rigid schemas or protocols
-3. **Artifacts are self-describing** - Agents read their input from artifacts, not supervisor prompts
-4. **Artifact chain** - Each agent's output becomes the next agent's input
+2. **Supervisors communicate via files** - Scaffold artifacts contain all context
+3. **Artifacts are self-describing** - Agents read input from artifacts, not supervisor prompts
+4. **Supervisor owns the loop** - All routing and iteration decisions live in the command
+
+## Current Experiment: Decoupled Specify
+
+A two-agent specification workflow replacing the complex 6-agent specify command.
 
 ```
-ARTIFACT CHAIN
+SUPERVISOR (commands/specify.md)
+    │
+    ├── Creates scaffold + spec file
+    ├── Invokes agents with minimal prompts
+    ├── Parses structured prose outputs
+    ├── Updates scaffold between iterations
+    └── Owns all routing decisions
 
-scaffold.md --> result.md --> analysis.md
-     |              |             |
-     v              v             v
-experiment-   experiment-   experiment-
-  runner       analyzer      reporter
+AGENTS (independent, no workflow knowledge)
+    │
+    ├── Requirements Analyst → Writes spec.md
+    └── Devil's Advocate → Reviews spec.md, finds gaps
+```
+
+### Agent Archetypes
+
+| Agent | Archetype | Role |
+|-------|-----------|------|
+| Requirements Analyst | Senior BA | Transforms vague requests into precise specs |
+| Devil's Advocate | Adversarial Reviewer | Stress-tests specs, finds gaps, asks hard questions |
+
+### Communication Pattern
+
+Agents communicate via files, not direct handoffs:
+
+```
+specs/{feature-id}/
+├── spec.md                          # The deliverable
+└── .workflow/
+    ├── scaffold.md                  # Context + instructions
+    ├── analyst-report.md            # Requirements Analyst output
+    └── advocate-report.md           # Devil's Advocate output
 ```
 
 ## Installation
 
 ```bash
-claude-code plugins add humaninloop-experiments
+/plugin install humaninloop-experiments
 ```
 
 ## Usage
 
-### Run an Experiment
+### Create a Specification
 
 ```
-/humaninloop-experiments:run <experiment description>
+/humaninloop-experiments:specify <feature description>
 ```
 
 The command will:
-1. Create a scaffold artifact in `.humaninloop/experiments/`
-2. Invoke the experiment-runner agent
-3. Iterate on clarifications if needed
-4. Generate experiment results
+1. Create scaffold and directory structure
+2. Invoke Requirements Analyst to write initial spec
+3. Invoke Devil's Advocate to review and find gaps
+4. Present clarifications to user
+5. Loop until spec is ready (or user accepts)
 
 ### Example
 
 ```
-/humaninloop-experiments:run Test the new artifact chain pattern for spec writing
+/humaninloop-experiments:specify User authentication with email/password and OAuth
 ```
 
 ## Plugin Structure
@@ -54,75 +84,102 @@ humaninloop-experiments/
 ├── .claude-plugin/
 │   └── plugin.json
 ├── agents/
-│   └── experiment-runner.md      # Domain expert for running experiments
+│   ├── requirements-analyst.md    # Domain expert for spec writing
+│   └── devils-advocate.md         # Adversarial reviewer
 ├── commands/
-│   └── run.md                    # Supervisor command (owns the loop)
-├── skills/
-│   └── experiment-design/        # Skill for designing experiments
-│       └── SKILL.md
-├── templates/
-│   └── experiment-scaffold.md    # Template for experiment scaffolds
+│   └── specify.md                 # Supervisor command (owns the loop)
 └── README.md
 ```
 
 ## Decoupled Agent Pattern
 
-### Supervisor (commands/run.md)
+### Supervisor (commands/specify.md)
 
 The supervisor:
-- Creates the scaffold artifact
-- Spawns the agent with a simple prompt
-- Parses structured prose output
-- Updates workflow state
+- Creates the scaffold artifact with all context
+- Spawns agents with minimal prompts pointing to scaffold
+- Parses structured prose output from report files
+- Updates scaffold between iterations
+- Uses judgment for termination (not hard-coded rules)
 - Owns the iteration loop
 
-### Agent (agents/experiment-runner.md)
+### Agents
 
-The agent:
+Each agent:
 - Reads context from the scaffold artifact
-- Applies domain expertise (experiment design)
-- Writes results to output artifact
-- Reports back with structured prose
+- Applies domain expertise
+- Writes deliverable (spec.md) or report (analyst-report.md, advocate-report.md)
+- Reports back with structured prose sections
 - Has NO workflow knowledge
 
 ### Communication Flow
 
 ```
-Supervisor --> Agent:
-  "Work on the experiment at .humaninloop/experiments/exp-001/
-   Read scaffold.md for context."
+Supervisor --> Requirements Analyst:
+  "Create a feature specification.
+   Read your instructions from: specs/001-auth/.workflow/scaffold.md"
 
-Agent --> Supervisor:
-  ## What I Created
-  [Summary of experiment results]
+Analyst --> (writes spec.md, analyst-report.md)
 
-  ## Clarifications Needed
-  [Questions requiring user input]
+Supervisor --> Devil's Advocate:
+  "Review the feature specification and find gaps.
+   Read your instructions from: specs/001-auth/.workflow/scaffold.md"
 
-  ## Assumptions Made
-  [Decisions made when ambiguous]
+Advocate --> (writes advocate-report.md with verdict)
+
+Supervisor: Parse verdict, route accordingly
 ```
 
-## Creating New Experiments
+### Structured Prose Output
 
-Use this plugin to prototype:
+**Requirements Analyst reports:**
+```markdown
+## What I Created
+- User Stories: 5
+- Functional Requirements: 12
+- Acceptance Criteria: 18
 
-- New agent patterns
-- Novel artifact chain designs
-- Alternative supervisor strategies
-- Skill combinations
-- Cross-plugin workflows
+## Assumptions Made
+- Assumed OAuth means Google and GitHub only
+- Assumed password requirements follow OWASP guidelines
+```
 
-When an experiment proves successful, promote it to a production plugin.
+**Devil's Advocate reports:**
+```markdown
+## Gaps Found
+| ID | Type | Description | Severity |
+|----|------|-------------|----------|
+| G1 | Missing | No password reset flow defined | Critical |
+| G2 | Ambiguous | "Session timeout" not quantified | Important |
+
+## Clarifications Needed
+1. How should password reset work? (Email link / Security questions / Admin reset)
+2. What should the session timeout be? (15 min / 1 hour / 24 hours)
+
+## Verdict
+needs-clarification
+```
+
+## Key Differences from Production Specify
+
+| Aspect | Production (humaninloop) | Experiment |
+|--------|-------------------------|------------|
+| Agents | 6 specialized agents | 2 agents (Analyst + Advocate) |
+| Coupling | Agents aware of workflow phases | Agents have zero workflow knowledge |
+| Communication | Mixed (prompt injection + files) | Pure file-based via scaffold |
+| Termination | Hard-coded conditions | Supervisor judgment |
+| Validation | Separate checklist agents | Devil's Advocate self-contained |
 
 ## Output Location
 
 ```
-.humaninloop/
-└── experiments/
-    └── exp-<timestamp>/
-        ├── scaffold.md    # Initial experiment setup
-        └── result.md      # Experiment outcomes
+specs/
+└── {feature-id}/
+    ├── spec.md                    # Final specification
+    └── .workflow/
+        ├── scaffold.md            # Workflow state and context
+        ├── analyst-report.md      # Analyst's structured output
+        └── advocate-report.md     # Advocate's review and verdict
 ```
 
 ## License
