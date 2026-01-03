@@ -14,6 +14,7 @@ An ADR captures the context, decision, and consequences of an architectural choi
 | [002](./002-claude-code-native.md) | Claude Code Native Integration | Accepted |
 | [003](./003-brownfield-first.md) | Brownfield-First Design | Accepted |
 | [004](./004-skill-augmented-agents.md) | Skill-Augmented Agents Architecture | Proposed |
+| [005](./005-decoupled-agents-architecture.md) | Decoupled Agents Architecture | Proposed |
 
 ## ADR Template
 

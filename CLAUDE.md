@@ -103,18 +103,21 @@ human-in-loop-marketplace/
 ├── .claude-plugin/
 │   └── marketplace.json           # Marketplace manifest
 ├── plugins/
-│   ├── humaninloop/               # Main workflow plugin (specify → plan)
+│   ├── humaninloop/               # Main workflow plugin (specify → plan → tasks → implement)
 │   │   ├── .claude-plugin/
 │   │   │   └── plugin.json
 │   │   ├── agents/                # Multi-agent workflow agents
-│   │   ├── commands/              # /humaninloop:specify, /humaninloop:plan
+│   │   ├── commands/              # /humaninloop:specify, /humaninloop:plan, etc.
+│   │   ├── skills/                # Auto-invoked agent skills
 │   │   ├── check-modules/         # Validation check modules
 │   │   ├── scripts/               # Shell utilities
 │   │   └── templates/             # Workflow templates
 │   └── humaninloop-constitution/  # Constitution setup plugin
 │       ├── .claude-plugin/
 │       │   └── plugin.json
+│       ├── agents/                # Principal architect agent
 │       ├── commands/              # /humaninloop-constitution:setup
+│       ├── skills/                # Constitution authoring skills
 │       └── templates/
 ├── specs/
 │   ├── completed/                 # Shipped feature specs
@@ -122,6 +125,7 @@ human-in-loop-marketplace/
 │   └── planned/                   # Future features (living roadmap)
 ├── docs/
 │   ├── decisions/                 # Architecture Decision Records
+│   ├── internal/                  # Internal strategy docs (not for external use)
 │   ├── agent-skills-documentation.md
 │   ├── claude-plugin-documentation.md
 │   └── speckit-artefacts/         # READ-ONLY reference (original speckit)
@@ -135,10 +139,10 @@ human-in-loop-marketplace/
 
 ## Available Plugins
 
-| Plugin | Description | Commands |
-|--------|-------------|----------|
-| `humaninloop` | Specification-driven development workflow | `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:analyze`, `/humaninloop:checklist`, `/humaninloop:implement` |
-| `humaninloop-constitution` | Project constitution setup | `/humaninloop-constitution:setup` |
+| Plugin | Description | Commands | Skills |
+|--------|-------------|----------|--------|
+| `humaninloop` | Specification-driven development workflow | `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:analyze`, `/humaninloop:checklist`, `/humaninloop:implement` | `authoring-requirements`, `authoring-user-stories`, `iterative-analysis` |
+| `humaninloop-constitution` | Project constitution setup with enforceable governance | `/humaninloop-constitution:setup` | `authoring-constitution`, `analyzing-project-context`, `syncing-claude-md` |
 
 ## Common Commands
 
