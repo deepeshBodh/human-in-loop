@@ -18,8 +18,7 @@ The marketplace is in active development. The core specify → plan → tasks wo
 - `/humaninloop:specify` - Create structured specifications using 2-agent architecture
 - `/humaninloop:plan` - Generate implementation plans with skill-augmented architecture
 - `/humaninloop:tasks` - Generate implementation tasks with vertical TDD slicing **(v0.6.0 - refactored)**
-- `/humaninloop:analyze` - Analyze codebase context
-- `/humaninloop:checklist` - Generate implementation checklists
+- `/humaninloop:audit` - Comprehensive artifact analysis with review mode
 - `/humaninloop:implement` - Execute implementation with tracking
 - `/humaninloop:setup` - Initialize project constitution
 - `/humaninloop-experiments:specify` - Experimental specifications (sandbox for new patterns)

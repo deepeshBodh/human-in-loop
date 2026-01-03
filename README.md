@@ -30,7 +30,7 @@ Official Claude Code plugin marketplace for [HumanInLoop](https://humaninloop.de
 
 | Plugin | Description | Commands |
 |--------|-------------|----------|
-| [humaninloop](./plugins/humaninloop) | Specification-driven development workflow: setup → specify → plan → tasks → implement | `/humaninloop:setup`, `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:analyze`, `/humaninloop:checklist`, `/humaninloop:implement` |
+| [humaninloop](./plugins/humaninloop) | Specification-driven development workflow: setup → specify → plan → tasks → implement | `/humaninloop:setup`, `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:audit`, `/humaninloop:implement` |
 | [humaninloop-experiments](./plugins/humaninloop-experiments) | Experimental sandbox for new agent patterns | `/humaninloop-experiments:specify` |
 
 ### humaninloop
@@ -38,7 +38,7 @@ Official Claude Code plugin marketplace for [HumanInLoop](https://humaninloop.de
 Multi-agent specification-driven development workflow with integrated quality validation and project constitution management.
 
 **Agents:** 11 specialized agents for constitution setup, spec writing, validation, planning, and task generation
-**Commands:** `/humaninloop:setup`, `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:analyze`, `/humaninloop:checklist`, `/humaninloop:implement`
+**Commands:** `/humaninloop:setup`, `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:audit`, `/humaninloop:implement`
 **Skills:** 7 model-invoked skills for authoring and analysis
 
 #### Skills
