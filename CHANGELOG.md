@@ -6,6 +6,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.7.1] - 2026-01-04
+
+Repository rename and cleanup release.
+
+### Repository Changes
+- **Renamed repository** from `human-in-loop-marketplace` to `human-in-loop`
+- **Marketplace display name** updated to `humaninloop-plugins`
+- Updated all documentation with new repository references
+
+### Removed
+- **humaninloop-experiments plugin** - Removed entirely (functionality was consolidated into main humaninloop plugin in earlier releases)
+
+### Documentation Fixes
+- Fixed README.md: corrected agent count (5) and skill count (13)
+- Fixed ROADMAP.md: removed stale `/humaninloop-experiments:specify` command reference
+- Fixed CONTRIBUTING.md: updated plugin template instructions
+- Fixed RELEASES.md: updated version example
+
+---
+
 ## [0.7.0] - 2026-01-04
 
 **BREAKING CHANGE**: Consolidate checklist and analyze commands into unified audit command.
@@ -480,6 +500,7 @@ Initial marketplace scaffold.
 
 ---
 
+[0.7.1]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.1
 [0.7.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.0
 [0.6.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.6.0
 [0.5.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.5.0
