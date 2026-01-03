@@ -1,6 +1,6 @@
 {
   "name": "humaninloop",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Specification-driven development workflow: specify → plan → tasks → implement",
   "author": {
     "name": "HumanInLoop",
@@ -24,8 +24,6 @@
     "./agents/plan-architect.md",
     "./agents/principal-architect.md",
     "./agents/requirements-analyst.md",
-    "./agents/task-generator.md",
-    "./agents/task-planner.md",
-    "./agents/task-validator.md"
+    "./agents/task-architect.md"
   ]
 }

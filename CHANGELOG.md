@@ -6,6 +6,77 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.6.0] - 2026-01-04
+
+**BREAKING CHANGE**: Tasks workflow refactored to 2-agent pattern with vertical TDD slicing.
+
+### humaninloop 0.6.0
+
+#### Breaking Changes
+- **Tasks workflow redesigned** - Replaced 3-agent pattern with streamlined 2-agent supervisor pattern
+  - Old agents (removed): `task-planner`, `task-generator`, `task-validator`
+  - New agent: `task-architect` - Senior architect for task mapping and generation
+  - `devils-advocate` now handles task artifact validation
+- **Check-modules removed** - All check-modules migrated to validation skills
+  - Removed: `mapping-checks.md`, `task-checks.md`
+  - Replaced by: `validation-task-artifacts` skill
+- **Task format changed** - Tasks now organized into vertical TDD cycles
+  - Old format: Horizontal task lists
+  - New format: Cycles with test-first ordering and checkpoints
+
+#### New Agent
+- **task-architect** - Senior architect who transforms planning artifacts into implementation tasks through vertical slicing and TDD discipline
+  - Uses `patterns-vertical-tdd` skill for cycle structure
+  - Writes task-mapping.md and tasks.md artifacts
+
+#### New Skills
+- **patterns-vertical-tdd** - Guide for identifying vertical slices and structuring TDD cycles
+  - Defines cycle structure (Foundation vs Feature cycles)
+  - Enforces test-first ordering within each cycle
+  - Includes slice identification heuristics and examples
+- **validation-task-artifacts** - Review criteria for task artifacts
+  - Phase-specific checklists (mapping, tasks)
+  - Issue templates and severity classification
+  - Replaces mapping-checks and task-checks modules
+
+#### Changed
+- **tasks.md workflow** - Now uses 4 phases: Initialize → Mapping → Tasks → Completion
+- **tasks-context-template.md** - Simplified to mirror plan-context structure
+- **tasks-template.md** - Updated to cycle-based TDD format with [P] parallel markers
+- **devils-advocate** - Added `validation-task-artifacts` skill for task reviews
+
+#### Task Format (New)
+
+Tasks are now organized into **cycles** - vertical slices that deliver testable value:
+
+```markdown
+### Cycle N: [Vertical slice description]
+
+> Stories: US-X, US-Y
+> Dependencies: C1, C2 (or "None")
+> Type: Foundation | Feature [P]
+
+- [ ] **TN.1**: Write failing test for [behavior]
+- [ ] **TN.2**: Implement [component] to pass test
+- [ ] **TN.3**: Refactor and verify tests pass
+- [ ] **TN.4**: Demo [behavior], verify acceptance criteria
+
+**Checkpoint**: [Observable outcome]
+```
+
+- **Foundation cycles**: Sequential, establish shared infrastructure
+- **Feature cycles**: Parallel-eligible (marked with `[P]`), deliver user value independently
+- **Task IDs**: `TN.X` format (N = cycle number, X = task sequence)
+- **Brownfield markers**: `[EXTEND]`, `[MODIFY]` for existing code
+
+#### Migration Guide
+1. Existing specs remain compatible; only tasks.md output changes
+2. If resuming interrupted tasks workflow, recommend starting fresh
+3. New tasks will use cycle-based TDD structure
+4. Check-modules are gone; validation now via skills
+
+---
+
 ## [0.5.0] - 2026-01-04
 
 **BREAKING CHANGE**: Skills renamed to follow ADR-004 naming convention.
@@ -382,6 +453,9 @@ Initial marketplace scaffold.
 
 ---
 
+[0.6.0]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.6.0
+[0.5.0]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.5.0
+[0.4.0]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.4.0
 [0.3.0]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.3.0
 [0.2.9]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.9
 [0.2.8]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.8
