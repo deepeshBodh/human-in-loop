@@ -40,219 +40,42 @@ The following sections MUST be synchronized:
 | Project Structure | Project Structure | MUST match if present in constitution |
 | Layer Import Rules | Architecture | MUST replicate dependency rules |
 
-## Sync Rule Definitions
+## Sync Rules
 
-### MUST list all with enforcement
+Two primary sync rules govern how content transfers:
 
-Principles appear in CLAUDE.md as a summarized list including enforcement keywords:
+**MUST list all with enforcement**: Principles are summarized but preserve enforcement keywords, metrics, and thresholds. Rationale is omitted.
 
-**Constitution (detailed)**:
-```markdown
-### I. Test-First Development (NON-NEGOTIABLE)
+**MUST match exactly**: Tables are copied directly with no summarization.
 
-All production code MUST be written following test-driven development...
-
-**Enforcement**:
-- CI MUST verify test-before-implementation order
-- Coverage MUST meet 80% minimum
-
-**Testability**:
-- Pass: All tests pass, coverage ≥80%
-- Fail: Tests missing or coverage below threshold
-
-**Rationale**: Tests written after implementation...
-```
-
-**CLAUDE.md (summarized)**:
-```markdown
-## Principles
-
-1. **Test-First Development** (NON-NEGOTIABLE): TDD mandatory. CI enforces test-before-implementation. Coverage ≥80%.
-2. **Code Quality**: Zero lint warnings. Functions ≤40 lines. Cyclomatic complexity ≤10.
-3. ...
-```
-
-### MUST match exactly
-
-Tables are copied directly with no summarization:
-
-**Constitution**:
-```markdown
-## Technology Stack
-
-| Category | Choice | Rationale |
-|----------|--------|-----------|
-| Language | Python 3.12 | Type hints, performance |
-| Framework | FastAPI | Async-first, Pydantic |
-```
-
-**CLAUDE.md**:
-```markdown
-## Technical Stack
-
-| Category | Choice | Rationale |
-|----------|--------|-----------|
-| Language | Python 3.12 | Type hints, performance |
-| Framework | FastAPI | Async-first, Pydantic |
-```
+See [SECTION-TEMPLATES.md](SECTION-TEMPLATES.md) for detailed templates and examples for each sync rule.
 
 ## Synchronization Process
 
-### Step 1: Read Both Files
+The sync process follows six steps:
 
-```bash
-# Read current constitution
-cat .humaninloop/memory/constitution.md
+1. **Read Both Files**: Load constitution and CLAUDE.md
+2. **Extract Mapped Sections**: Locate corresponding sections per mapping
+3. **Identify Gaps**: Create gap report showing drift
+4. **Generate Updates**: Prepare specific changes needed
+5. **Apply Updates**: Update CLAUDE.md with synchronized content
+6. **Validate Alignment**: Verify all mapped sections match
 
-# Read current CLAUDE.md
-cat CLAUDE.md
-```
+See [SYNC-PATTERNS.md](SYNC-PATTERNS.md) for detailed process steps, validation checklists, and conflict resolution.
 
-### Step 2: Extract Mapped Sections
+## CLAUDE.md Structure
 
-For each section in the sync mapping:
-1. Locate section in constitution
-2. Locate corresponding section in CLAUDE.md
-3. Compare content per sync rule
+CLAUDE.md should include these sections for proper sync:
 
-### Step 3: Identify Gaps
+- **Project Overview**: Brief description
+- **Principles**: Synchronized from constitution Core Principles
+- **Technical Stack**: Exact match from constitution Technology Stack
+- **Quality Gates**: Exact match from constitution Quality Gates
+- **Development Workflow**: From constitution Governance
+- **Project Structure**: If present in constitution
+- **Version Footer**: Version and last synced date
 
-Create a gap report:
-
-```markdown
-## Sync Gap Report
-
-| Constitution Section | CLAUDE.md Section | Status | Gap |
-|---------------------|-------------------|--------|-----|
-| Core Principles (7) | Principles Summary | ⚠️ Drift | Missing Principle VII |
-| Technology Stack | Technical Stack | ✅ Aligned | - |
-| Quality Gates | Quality Gates | ⚠️ Drift | Coverage changed to 70% |
-| Governance | Development Workflow | ✅ Aligned | - |
-```
-
-### Step 4: Generate Updates
-
-For each gap, generate the CLAUDE.md update:
-
-```markdown
-## Required CLAUDE.md Updates
-
-### Update 1: Add Missing Principle
-**Location**: Principles Summary section
-**Action**: Add item 7
-
-```markdown
-7. **Dependency Management**: Dependencies MUST be evaluated before adoption. Flutter Favorites preferred. Quarterly updates required.
-```
-
-### Update 2: Fix Coverage Threshold
-**Location**: Quality Gates table, row 4
-**Action**: Change coverage from 70% to 80%
-```
-
-### Step 5: Apply Updates
-
-Update CLAUDE.md with synchronized content. Ensure:
-- Version in CLAUDE.md matches constitution version
-- All mapped sections are updated
-- No orphaned references to old content
-
-### Step 6: Validate Alignment
-
-After updates, re-run comparison to verify:
-- [ ] All mapped sections present in CLAUDE.md
-- [ ] Content matches per sync rules
-- [ ] Version numbers match
-- [ ] No contradictions between files
-
-## CLAUDE.md Structure Template
-
-CLAUDE.md should follow this structure for proper sync:
-
-```markdown
-# CLAUDE.md
-
-This file provides guidance to Claude Code when working with this codebase.
-
-## Project Overview
-
-[Brief project description]
-
-## Principles
-
-[Synchronized from Constitution Core Principles]
-
-1. **[Principle I Name]**: [Summary with enforcement]
-2. **[Principle II Name]**: [Summary with enforcement]
-...
-
-## Technical Stack
-
-[Synchronized from Constitution Technology Stack - exact match]
-
-| Category | Choice | Rationale |
-|----------|--------|-----------|
-| ... | ... | ... |
-
-## Quality Gates
-
-[Synchronized from Constitution Quality Gates - exact match]
-
-| Gate | Requirement | Measurement | Enforcement |
-|------|-------------|-------------|-------------|
-| ... | ... | ... | ... |
-
-## Development Workflow
-
-[Synchronized from Constitution Governance]
-
-### Branch Strategy
-[From governance or conventions]
-
-### Commit Conventions
-[Conventional commits or project standard]
-
-### Code Review Requirements
-[From governance]
-
-## Project Structure
-
-[Synchronized if present in constitution]
-
-```
-project/
-├── src/
-│   ├── domain/
-│   └── ...
-```
-
----
-
-**Version**: X.Y.Z (synced with constitution)
-**Last Synced**: YYYY-MM-DD
-```
-
-## Sync Validation Checklist
-
-Before completing synchronization:
-
-**Completeness**:
-- [ ] All Core Principles listed with enforcement
-- [ ] Technology Stack table matches exactly
-- [ ] Quality Gates table matches exactly
-- [ ] Governance rules reflected in Development Workflow
-- [ ] Project Structure matches if present
-
-**Accuracy**:
-- [ ] Version numbers match (constitution = CLAUDE.md)
-- [ ] No contradictions between files
-- [ ] Enforcement keywords preserved
-- [ ] Thresholds and metrics accurate
-
-**Format**:
-- [ ] Tables properly formatted
-- [ ] Principles numbered consistently
-- [ ] Section headers match mapping
+See [SECTION-TEMPLATES.md](SECTION-TEMPLATES.md) for the complete structure template.
 
 ## Sync Triggers
 
@@ -265,6 +88,18 @@ CLAUDE.md synchronization MUST occur when:
 5. **Tech stack changed**: MUST update Technical Stack table
 6. **Governance changed**: MUST update Development Workflow
 
+## Quick Validation
+
+Before completing synchronization, verify:
+
+- [ ] All Core Principles listed with enforcement
+- [ ] Technology Stack table matches exactly
+- [ ] Quality Gates table matches exactly
+- [ ] Version numbers match (constitution = CLAUDE.md)
+- [ ] No contradictions between files
+
+See [SYNC-PATTERNS.md](SYNC-PATTERNS.md) for the complete validation checklist.
+
 ## Commit Convention
 
 When syncing, use this commit format:
@@ -273,41 +108,18 @@ When syncing, use this commit format:
 docs: sync CLAUDE.md with constitution vX.Y.Z
 
 - Updated Principles Summary (added Principle VII)
-- Updated Quality Gates (coverage 70% → 80%)
+- Updated Quality Gates (coverage 70% -> 80%)
 - Version aligned to X.Y.Z
 ```
 
-## Anti-Patterns to Avoid
+## Anti-Patterns
 
-| Anti-Pattern | Problem | Fix |
-|--------------|---------|-----|
-| **Full duplication** | CLAUDE.md becomes constitution copy | Use selective sync with summarization |
-| **Stale sync** | CLAUDE.md lags behind constitution | Always sync on constitution amendment |
-| **Missing version** | No version tracking in CLAUDE.md | Add version footer that matches constitution |
-| **Partial sync** | Some sections synced, others not | Use checklist to verify all mapped sections |
-| **Summary drift** | Summarization loses enforcement | Preserve enforcement keywords in summary |
-| **Orphaned content** | Removed constitution content stays in CLAUDE.md | Check for removals during sync |
+| Anti-Pattern | Problem |
+|--------------|---------|
+| Full duplication | CLAUDE.md becomes constitution copy |
+| Stale sync | CLAUDE.md lags behind constitution |
+| Missing version | No version tracking in CLAUDE.md |
+| Partial sync | Some sections synced, others not |
+| Summary drift | Summarization loses enforcement |
 
-## Automation Opportunities
-
-Consider automating sync validation:
-
-```bash
-# Script: validate-claude-md-sync.sh
-
-#!/bin/bash
-# Compare constitution version with CLAUDE.md version
-CONST_VERSION=$(grep "^\*\*Version\*\*:" .humaninloop/memory/constitution.md | head -1)
-CLAUDE_VERSION=$(grep "^\*\*Version\*\*:" CLAUDE.md | head -1)
-
-if [ "$CONST_VERSION" != "$CLAUDE_VERSION" ]; then
-  echo "ERROR: Version mismatch"
-  echo "Constitution: $CONST_VERSION"
-  echo "CLAUDE.md: $CLAUDE_VERSION"
-  exit 1
-fi
-
-echo "✅ Versions aligned"
-```
-
-This can be added to CI to catch sync drift.
+See [SYNC-PATTERNS.md](SYNC-PATTERNS.md) for detailed anti-patterns and fixes.

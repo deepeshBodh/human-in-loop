@@ -55,16 +55,12 @@ When modeling in brownfield projects:
 
 Every entity typically needs:
 
-```markdown
-### Standard Fields
-
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | id | Identifier | Yes | Primary key |
 | createdAt | Timestamp | Yes | Creation time |
 | updatedAt | Timestamp | Yes | Last modification |
 | deletedAt | Timestamp | No | Soft delete marker |
-```
 
 ### Attribute Format
 
@@ -111,40 +107,9 @@ Mark sensitive fields:
 
 ## Relationship Modeling
 
-### Relationship Types
+Relationships connect entities with defined cardinality: One-to-One (1:1), One-to-Many (1:N), or Many-to-Many (N:M).
 
-| Type | Cardinality | Example |
-|------|-------------|---------|
-| **One-to-One** | 1:1 | User ←→ Profile |
-| **One-to-Many** | 1:N | User ←→ Tasks |
-| **Many-to-Many** | N:M | Users ←→ Projects |
-
-### Relationship Format
-
-```markdown
-## Relationships
-
-### User → Tasks (1:N)
-
-| Aspect | Value |
-|--------|-------|
-| **Type** | One-to-Many |
-| **From** | User (one) |
-| **To** | Task (many) |
-| **Foreign Key** | task.userId |
-| **Required** | Task requires User |
-| **On Delete** | Cascade (delete tasks) |
-
-### Users ↔ Projects (N:M)
-
-| Aspect | Value |
-|--------|-------|
-| **Type** | Many-to-Many |
-| **From** | User |
-| **To** | Project |
-| **Join Entity** | ProjectMember |
-| **Additional Fields** | role, joinedAt |
-```
+See [RELATIONSHIP-PATTERNS.md](RELATIONSHIP-PATTERNS.md) for detailed patterns, join entity examples, and documentation formats.
 
 ### Relationship Diagram (Text)
 
@@ -161,6 +126,10 @@ Task ──N:1──▶ Project (belongs to)
 
 ## State Machine Modeling
 
+Entities with status fields need state transition documentation.
+
+See [STATE-MACHINES.md](STATE-MACHINES.md) for patterns, diagram formats, and common workflows.
+
 ### When to Model State
 
 Model state machines when:
@@ -169,39 +138,11 @@ Model state machines when:
 - Specific actions change entity state
 - Certain actions only valid in certain states
 
-### State Machine Format
+## Validation Rules
 
-```markdown
-## State Machine: Task Status
+Constraints and validation rules ensure data integrity.
 
-### States
-
-| State | Description | Entry Condition |
-|-------|-------------|-----------------|
-| `draft` | Initial state | Created by user |
-| `active` | Work in progress | User starts task |
-| `completed` | Work finished | User marks done |
-| `archived` | No longer active | User archives |
-
-### Transitions
-
-| From | To | Trigger | Guard | Side Effects |
-|------|-----|---------|-------|--------------|
-| draft | active | user.startTask() | - | Set startedAt |
-| active | completed | user.completeTask() | - | Set completedAt |
-| active | draft | user.unpublish() | User is owner | Clear startedAt |
-| completed | archived | user.archive() | - | - |
-| * | archived | admin.archive() | Is admin | Log action |
-
-### Diagram
-
-```
-[draft] ──start──▶ [active] ──complete──▶ [completed]
-   │                  │                        │
-   │                  ▼                        │
-   └──────────▶ [archived] ◀───archive─────────┘
-```
-```
+See [VALIDATION-RULES.md](VALIDATION-RULES.md) for constraint patterns, format validations, and business rule documentation.
 
 ## data-model.md Structure
 
@@ -284,76 +225,6 @@ Model state machines when:
 | User | FR-001, FR-002, US#1 |
 | Session | FR-003, US#2 |
 ```
-
-## Validation Script
-
-A Python validation script is provided to check data-model.md files for completeness and consistency.
-
-### Location
-
-```
-scripts/validate-model.py
-```
-
-### Usage
-
-```bash
-python scripts/validate-model.py path/to/data-model.md
-```
-
-### Checks Performed
-
-| Check | Description |
-|-------|-------------|
-| **entity_format** | Entities follow `## Entity: Name` format with PascalCase names |
-| **required_attributes** | Each entity has an attributes table with data |
-| **relationships** | Relationship keywords or sections present (belongs to, has many, N:1, etc.) |
-| **state_machines** | Entities with status/state Enum fields have transitions documented |
-| **validation_rules** | Validation constraints documented (required, unique, type constraints) |
-| **audit_fields** | New entities have createdAt/updatedAt fields |
-| **id_fields** | New entities have identifier field (id, UUID) |
-
-### Example Output
-
-```json
-{
-  "file": "data-model.md",
-  "entities_found": ["User", "Task", "Project"],
-  "checks": [
-    {"check": "entity_format", "passed": true, "issues": []},
-    {"check": "required_attributes", "passed": true, "issues": []},
-    {"check": "relationships", "passed": false, "issues": ["Task: No relationships defined"]},
-    {"check": "state_machines", "passed": true, "issues": []},
-    {"check": "validation_rules", "passed": true, "issues": []},
-    {"check": "audit_fields", "passed": false, "issues": ["Project: Missing audit fields (createdAt/updatedAt)"]},
-    {"check": "id_fields", "passed": true, "issues": []}
-  ],
-  "summary": {"total": 7, "passed": 5, "failed": 2}
-}
-```
-
-### Exit Codes
-
-- `0` - All checks passed
-- `1` - One or more checks failed
-
-### Integration Pattern
-
-Run validation after generating or modifying data-model.md:
-
-```bash
-# Validate and show results
-python scripts/validate-model.py .hil/data-model.md
-
-# Use in CI/automation
-if python scripts/validate-model.py .hil/data-model.md > /dev/null 2>&1; then
-    echo "Data model valid"
-else
-    echo "Data model has issues"
-fi
-```
-
----
 
 ## Quality Checklist
 

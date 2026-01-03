@@ -11,7 +11,7 @@ Design RESTful API contracts that map user actions to endpoints with complete sc
 
 ## Endpoint Mapping
 
-### User Action → Endpoint Mapping
+### User Action to Endpoint Mapping
 
 | User Action | HTTP Method | Endpoint Pattern |
 |-------------|-------------|------------------|
@@ -34,21 +34,17 @@ Design RESTful API contracts that map user actions to endpoints with complete sc
 | Remove resource | DELETE | Yes |
 | Trigger action | POST | Usually No |
 
-### Resource Naming
-
-```markdown
-## Naming Conventions
+### Resource Naming Conventions
 
 - Use plural nouns: `/users`, not `/user`
 - Use kebab-case for multi-word: `/user-profiles`
 - Use path params for IDs: `/users/{userId}`
 - Use query params for filtering: `/users?role=admin`
 - Use nested paths for relationships: `/users/{userId}/tasks`
-```
 
-## Endpoint Format
+## Endpoint Documentation Format
 
-### Standard Endpoint Documentation
+Document each endpoint with description, source requirements, request/response schemas, and error cases:
 
 ```markdown
 ## POST /api/auth/login
@@ -58,37 +54,16 @@ Design RESTful API contracts that map user actions to endpoints with complete sc
 **Source Requirements**: FR-001, US#1
 
 ### Request
-
-```json
-{
-  "email": "user@example.com",
-  "password": "securePassword123"
-}
-```
+{JSON request body example}
 
 ### Response (200 OK)
-
-```json
-{
-  "user": {
-    "id": "uuid",
-    "email": "user@example.com",
-    "name": "John Doe"
-  },
-  "accessToken": "eyJhbGc...",
-  "refreshToken": "eyJhbGc...",
-  "expiresIn": 900
-}
-```
+{JSON response body example}
 
 ### Error Responses
-
 | Status | Code | Description |
 |--------|------|-------------|
 | 400 | INVALID_INPUT | Missing or malformed fields |
 | 401 | INVALID_CREDENTIALS | Wrong email or password |
-| 403 | ACCOUNT_DISABLED | Account is disabled |
-| 429 | RATE_LIMITED | Too many attempts |
 ```
 
 ## Schema Definition
@@ -106,44 +81,13 @@ LoginRequest:
       type: string
       format: email
       description: User's email address
-      example: user@example.com
     password:
       type: string
       minLength: 8
       description: User's password
-      example: securePassword123
 ```
 
-### Response Schema Format
-
-```yaml
-UserResponse:
-  type: object
-  required:
-    - id
-    - email
-  properties:
-    id:
-      type: string
-      format: uuid
-      description: Unique identifier
-    email:
-      type: string
-      format: email
-      description: User's email
-    name:
-      type: string
-      nullable: true
-      description: Display name
-    createdAt:
-      type: string
-      format: date-time
-      description: Creation timestamp
-```
-
-### Schema from Data Model
-
-Translate data model entities to schemas:
+### Type Mapping from Data Model
 
 | Data Model Type | OpenAPI Type | Format |
 |-----------------|--------------|--------|
@@ -160,137 +104,77 @@ Translate data model entities to schemas:
 
 ## Error Response Design
 
-### Standard Error Format
+Use standard error format with machine-readable codes and human-readable messages.
 
-```yaml
-ErrorResponse:
-  type: object
-  required:
-    - code
-    - message
-  properties:
-    code:
-      type: string
-      description: Machine-readable error code
-      example: INVALID_CREDENTIALS
-    message:
-      type: string
-      description: Human-readable message
-      example: Invalid email or password
-    details:
-      type: object
-      additionalProperties: true
-      description: Additional error context
+See [ERROR-PATTERNS.md](ERROR-PATTERNS.md) for complete HTTP status codes, error code conventions, and response formats.
+
+### Quick Reference
+
+| Status | When to Use |
+|--------|-------------|
+| 400 | Invalid input format |
+| 401 | Missing/invalid auth |
+| 403 | No permission |
+| 404 | Resource missing |
+| 409 | State conflict |
+| 422 | Business rule violation |
+| 429 | Rate limit exceeded |
+| 500 | Server error |
+
+## List Endpoints
+
+For endpoints returning collections, implement pagination, filtering, and sorting.
+
+See [PAGINATION-PATTERNS.md](PAGINATION-PATTERNS.md) for offset vs cursor pagination, filtering operators, and sorting patterns.
+
+### Quick Reference
+
 ```
-
-### HTTP Status Codes
-
-| Status | When to Use | Example Codes |
-|--------|-------------|---------------|
-| 400 Bad Request | Invalid input format | INVALID_INPUT, VALIDATION_ERROR |
-| 401 Unauthorized | Missing/invalid auth | UNAUTHORIZED, TOKEN_EXPIRED |
-| 403 Forbidden | No permission | FORBIDDEN, ACCESS_DENIED |
-| 404 Not Found | Resource missing | NOT_FOUND, USER_NOT_FOUND |
-| 409 Conflict | State conflict | CONFLICT, ALREADY_EXISTS |
-| 422 Unprocessable | Business rule violation | UNPROCESSABLE, RULE_VIOLATION |
-| 429 Too Many | Rate limit | RATE_LIMITED |
-| 500 Server Error | Unexpected error | INTERNAL_ERROR |
-
-### Endpoint-Specific Errors
-
-```markdown
-## Error Responses: POST /api/users
-
-| Status | Code | Condition |
-|--------|------|-----------|
-| 400 | INVALID_EMAIL | Email format invalid |
-| 400 | INVALID_PASSWORD | Password too weak |
-| 409 | EMAIL_EXISTS | Email already registered |
-| 422 | TERMS_NOT_ACCEPTED | Terms acceptance required |
-| 429 | RATE_LIMITED | Too many registration attempts |
+GET /api/users?page=1&limit=20&role=admin&sort=-createdAt
 ```
 
 ## Brownfield Considerations
 
-### Matching Existing Patterns
+When existing API patterns are detected, align new endpoints:
 
-When existing API patterns are detected:
+| Aspect | Check For |
+|--------|-----------|
+| Base path | `/api/v1`, `/api`, etc. |
+| Auth pattern | Bearer, API key, session |
+| Error format | Existing error structure |
+| Pagination | page/limit, cursor, offset |
 
-```markdown
-## Brownfield API Alignment
-
-### Detected Patterns
-
-| Aspect | Existing Pattern | Apply? |
-|--------|------------------|--------|
-| Base path | `/api/v1` | Yes |
-| Auth | Bearer token | Yes |
-| Error format | `{error: {code, message}}` | Yes |
-| Pagination | `?page=1&limit=20` | Yes |
-
-### Endpoint Collision Handling
-
-| Proposed | Existing | Action |
-|----------|----------|--------|
-| GET /api/users | GET /api/users | REUSE existing |
-| POST /api/auth/login | POST /api/login | RENAME to match |
-| POST /api/sessions | (none) | NEW endpoint |
-```
+Handle endpoint collisions:
+- REUSE existing endpoints when possible
+- RENAME to match existing patterns
+- NEW only when no existing endpoint fits
 
 ## OpenAPI Structure
+
+See [OPENAPI-TEMPLATE.yaml](OPENAPI-TEMPLATE.yaml) for a complete, copy-ready template with all sections.
+
+### Minimal Structure
 
 ```yaml
 openapi: 3.0.3
 info:
   title: {Feature Name} API
   version: 1.0.0
-  description: API contracts for {feature_id}
 
 servers:
   - url: /api
-    description: API base path
 
 paths:
-  /auth/login:
-    post:
-      summary: Authenticate user
-      operationId: login
-      tags:
-        - Authentication
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
-      responses:
-        '200':
-          description: Successful login
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LoginResponse'
-        '401':
-          description: Invalid credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+  /resource:
+    get: ...
+    post: ...
 
 components:
-  schemas:
-    LoginRequest:
-      # ... schema definition
-    LoginResponse:
-      # ... schema definition
-    ErrorResponse:
-      # ... error schema
-
+  schemas: ...
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
-      bearerFormat: JWT
 
 security:
   - bearerAuth: []
@@ -300,61 +184,24 @@ security:
 
 Track endpoint to requirement mapping:
 
-```markdown
-## Endpoint Traceability
-
 | Endpoint | Method | FR | US | Description |
 |----------|--------|-----|-----|-------------|
 | /auth/login | POST | FR-001 | US#1 | User login |
-| /auth/logout | POST | FR-002 | US#2 | User logout |
-| /auth/refresh | POST | FR-003 | US#3 | Token refresh |
 | /users/me | GET | FR-004 | US#4 | Get current user |
-```
 
-## Validation Script
+## Validation
 
-Validate OpenAPI specifications for syntax, REST conventions, and completeness:
+Validate OpenAPI specifications using the validation script:
 
 ```bash
 python scripts/validate-openapi.py path/to/openapi.yaml
 ```
 
-**Requirements:** PyYAML (`pip install pyyaml`) for YAML files, or use JSON format.
-
-**Output:**
-```json
-{
-  "file": "contracts/api.yaml",
-  "valid_openapi": true,
-  "openapi_version": "3.0.3",
-  "paths_count": 5,
-  "schemas_count": 8,
-  "checks": [...],
-  "summary": {"total": 10, "passed": 9, "failed": 1}
-}
-```
-
-The script checks:
-- **openapi_version**: Valid OpenAPI 3.x syntax
-- **info_section**: Required title and version present
-- **plural_nouns**: REST convention for resource names
-- **kebab_case**: No camelCase or snake_case in paths
-- **error_responses**: 4xx/5xx responses defined
-- **request_bodies**: POST/PUT/PATCH have request bodies
-- **operation_ids**: Unique operationId for each endpoint
-- **security_schemes**: securitySchemes defined if security used
-- **schema_examples**: Example values in schemas
-- **descriptions**: Summary/description for operations
-
-**Usage pattern:**
-1. Design API contracts using this skill
-2. Generate OpenAPI spec (YAML or JSON)
-3. Run validation script to check quality
-4. Fix any issues before presenting to user
+Checks: OpenAPI syntax, REST conventions, error responses, request bodies, operation IDs, security schemes, examples, and descriptions.
 
 ## Quality Checklist
 
-Before finalizing API contracts, verify:
+Before finalizing API contracts:
 
 - [ ] Every user action has an endpoint
 - [ ] All endpoints have request schema (if applicable)
@@ -366,12 +213,13 @@ Before finalizing API contracts, verify:
 - [ ] OpenAPI spec is valid
 - [ ] Traceability to requirements complete
 
-## Anti-Patterns to Avoid
+## Anti-Patterns
 
-- **Verb in URL**: Use `/users` not `/getUsers`
-- **Action without POST**: Use `POST /users/{id}/archive` not `GET /users/{id}/archive`
-- **Missing errors**: Every endpoint needs error responses
-- **Inconsistent naming**: Don't mix `/userProfiles` and `/user-settings`
-- **Undocumented auth**: Every protected endpoint needs security defined
-- **Generic errors**: Use specific error codes, not just 400/500
-- **No examples**: Include realistic example values
+| Avoid | Instead |
+|-------|---------|
+| Verb in URL (`/getUsers`) | Noun resource (`/users`) |
+| GET for actions | POST for actions (`POST /users/{id}/archive`) |
+| Missing error responses | Define all error cases |
+| Inconsistent naming | Pick one style (kebab-case recommended) |
+| Generic errors (just 400/500) | Specific error codes |
+| No examples | Include realistic examples |
