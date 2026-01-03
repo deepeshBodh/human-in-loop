@@ -13,12 +13,11 @@ Official Claude Code plugin marketplace for [HumanInLoop](https://humaninloop.de
 ### Install Plugins
 
 ```bash
-# Install constitution plugin first (required by humaninloop)
-/plugin install humaninloop-constitution
-/humaninloop-constitution:setup
-
-# Install main workflow plugin
+# Install humaninloop plugin
 /plugin install humaninloop
+
+# Set up your project constitution (first-time setup)
+/humaninloop:setup
 ```
 
 ### Browse Installed Plugins
@@ -31,17 +30,16 @@ Official Claude Code plugin marketplace for [HumanInLoop](https://humaninloop.de
 
 | Plugin | Description | Commands |
 |--------|-------------|----------|
-| [humaninloop](./plugins/humaninloop) | Specification-driven development workflow: specify → plan → tasks → implement | `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:analyze`, `/humaninloop:checklist`, `/humaninloop:implement` |
-| [humaninloop-constitution](./plugins/humaninloop-constitution) | Project constitution setup for HumanInLoop workflows | `/humaninloop-constitution:setup` |
+| [humaninloop](./plugins/humaninloop) | Specification-driven development workflow: setup → specify → plan → tasks → implement | `/humaninloop:setup`, `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:analyze`, `/humaninloop:checklist`, `/humaninloop:implement` |
+| [humaninloop-experiments](./plugins/humaninloop-experiments) | Experimental sandbox for new agent patterns | `/humaninloop-experiments:specify` |
 
 ### humaninloop
 
-Multi-agent specification-driven development workflow with integrated quality validation.
+Multi-agent specification-driven development workflow with integrated quality validation and project constitution management.
 
-**Agents:** 14 specialized agents for spec writing, validation, planning, task generation, and research
-**Commands:** `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:analyze`, `/humaninloop:checklist`, `/humaninloop:implement`
-**Skills:** 3 model-invoked skills for authoring and analysis
-**Requires:** `humaninloop-constitution` plugin
+**Agents:** 11 specialized agents for constitution setup, spec writing, validation, planning, and task generation
+**Commands:** `/humaninloop:setup`, `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:analyze`, `/humaninloop:checklist`, `/humaninloop:implement`
+**Skills:** 7 model-invoked skills for authoring and analysis
 
 #### Skills
 
@@ -50,12 +48,9 @@ Multi-agent specification-driven development workflow with integrated quality va
 | `iterative-analysis` | "brainstorm", "deep analysis", "let's think through" | Progressive questioning with 2-3 options per question and synthesis |
 | `authoring-requirements` | "functional requirements", "FR-", "RFC 2119", "MUST SHOULD MAY" | Write FR-XXX format requirements with validation |
 | `authoring-user-stories` | "user story", "Given When Then", "P1", "P2", "P3" | Write prioritized user stories with acceptance scenarios |
-
-### humaninloop-constitution
-
-Project constitution setup defining core principles, governance rules, and development standards.
-
-**Commands:** `/humaninloop-constitution:setup`
+| `authoring-constitution` | "constitution", "principles", "governance" | Write enforceable project constitution with three-part principles |
+| `analyzing-project-context` | "project context", "tech stack detection" | Infer project characteristics from codebase |
+| `syncing-claude-md` | "sync CLAUDE.md", "constitution sync" | Synchronize CLAUDE.md with constitution sections |
 
 ## Contributing
 
@@ -77,15 +72,16 @@ human-in-loop-marketplace/
 │   └── marketplace.json           # Marketplace manifest
 ├── plugins/
 │   ├── humaninloop/               # Main workflow plugin
-│   │   ├── agents/                # 14 multi-agent workflow agents
-│   │   ├── commands/              # specify, plan, tasks, analyze, checklist, implement
-│   │   ├── skills/                # 3 model-invoked authoring skills
+│   │   ├── agents/                # 11 multi-agent workflow agents
+│   │   ├── commands/              # setup, specify, plan, tasks, analyze, checklist, implement
+│   │   ├── skills/                # 7 model-invoked authoring skills
 │   │   ├── check-modules/         # Validation check modules
 │   │   ├── scripts/               # Shell utilities
 │   │   └── templates/             # Workflow templates
-│   └── humaninloop-constitution/  # Constitution setup plugin
-│       ├── commands/              # setup command
-│       └── templates/             # Constitution template
+│   └── humaninloop-experiments/   # Experimental sandbox plugin
+│       ├── agents/
+│       ├── commands/
+│       └── skills/
 ├── specs/                         # Feature specifications
 │   ├── completed/                 # Shipped features
 │   ├── in-progress/               # Currently implementing

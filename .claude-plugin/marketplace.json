@@ -1,6 +1,6 @@
 {
   "name": "humaninloop-marketplace",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Multi-agent workflow plugins for specification-driven development",
   "owner": {
     "name": "HumanInLoop",
@@ -11,12 +11,7 @@
     {
       "name": "humaninloop",
       "source": "./plugins/humaninloop",
-      "description": "Specification-driven development workflow: specify → plan → tasks → implement"
-    },
-    {
-      "name": "humaninloop-constitution",
-      "source": "./plugins/humaninloop-constitution",
-      "description": "Project constitution setup for HumanInLoop workflows"
+      "description": "Specification-driven development workflow: setup → specify → plan → tasks → implement"
     },
     {
       "name": "humaninloop-experiments",

@@ -1,6 +1,6 @@
 ---
 name: release-manager
-description: Use this agent when preparing a plugin for release, conducting pre-release audits, or validating that all plugin components meet release-ready standards. This includes documentation updates, source code validation against official plugin specifications, and ensuring file references are properly scoped.\n\nExamples:\n\n<example>\nContext: User has finished developing a new feature for the humaninloop plugin and wants to prepare for release.\nuser: "I've completed the new /humaninloop:analyze command. Let's get this ready for release."\nassistant: "I'll use the release-manager agent to conduct a comprehensive pre-release audit of the humaninloop plugin."\n<Task tool call to release-manager agent>\n</example>\n\n<example>\nContext: User wants to verify a plugin meets all quality standards before publishing.\nuser: "Can you check if the humaninloop-constitution plugin is ready to ship?"\nassistant: "I'll launch the release-manager agent to validate the plugin against all release criteria."\n<Task tool call to release-manager agent>\n</example>\n\n<example>\nContext: User is about to create a new version tag and wants final validation.\nuser: "We're about to tag v1.2.0 - do a final check on the plugins."\nassistant: "Let me use the release-manager agent to perform a final pre-release validation across all plugins."\n<Task tool call to release-manager agent>\n</example>\n\n<example>\nContext: User notices documentation might be outdated after recent changes.\nuser: "I made some changes to the plugin commands. Make sure everything is in sync."\nassistant: "I'll invoke the release-manager agent to audit documentation consistency and identify any sync issues."\n<Task tool call to release-manager agent>\n</example>
+description: Use this agent when preparing a plugin for release, conducting pre-release audits, or validating that all plugin components meet release-ready standards. This includes documentation updates, source code validation against official plugin specifications, and ensuring file references are properly scoped.\n\nExamples:\n\n<example>\nContext: User has finished developing a new feature for the humaninloop plugin and wants to prepare for release.\nuser: "I've completed the new /humaninloop:analyze command. Let's get this ready for release."\nassistant: "I'll use the release-manager agent to conduct a comprehensive pre-release audit of the humaninloop plugin."\n<Task tool call to release-manager agent>\n</example>\n\n<example>\nContext: User wants to verify a plugin meets all quality standards before publishing.\nuser: "Can you check if the humaninloop plugin is ready to ship?"\nassistant: "I'll launch the release-manager agent to validate the plugin against all release criteria."\n<Task tool call to release-manager agent>\n</example>\n\n<example>\nContext: User is about to create a new version tag and wants final validation.\nuser: "We're about to tag v1.2.0 - do a final check on the plugins."\nassistant: "Let me use the release-manager agent to perform a final pre-release validation across all plugins."\n<Task tool call to release-manager agent>\n</example>\n\n<example>\nContext: User notices documentation might be outdated after recent changes.\nuser: "I made some changes to the plugin commands. Make sure everything is in sync."\nassistant: "I'll invoke the release-manager agent to audit documentation consistency and identify any sync issues."\n<Task tool call to release-manager agent>\n</example>
 model: opus
 color: cyan
 ---
@@ -197,7 +197,7 @@ Verify versions are consistent across all manifest files:
 | Location | Field | Must Match |
 |----------|-------|------------|
 | `plugins/humaninloop/.claude-plugin/plugin.json` | `version` | CHANGELOG latest entry for this plugin |
-| `plugins/humaninloop-constitution/.claude-plugin/plugin.json` | `version` | CHANGELOG latest entry for this plugin |
+| `plugins/humaninloop-experiments/.claude-plugin/plugin.json` | `version` | CHANGELOG latest entry for this plugin |
 | `.claude-plugin/marketplace.json` | `version` | Release tag being created |
 | `CHANGELOG.md` | Latest `## [X.Y.Z]` | Git tag being created |
 | `ROADMAP.md` | `## Current State (vX.Y.Z)` | marketplace.json version |
@@ -227,17 +227,16 @@ Beyond version number, validate that ROADMAP.md "Available Now" section reflects
 - [ ] Removed/deprecated items in CHANGELOG → must be removed from ROADMAP.md
 
 ### 7. Plugin Dependency Validation
-For plugins with dependencies (e.g., `humaninloop` depends on `humaninloop-constitution`):
+For plugins with internal dependencies:
 
-- [ ] README.md documents the dependency and installation order
-- [ ] Commands that require the dependency have graceful error handling if missing
-- [ ] Dependency paths are correct (e.g., `.humaninloop/memory/constitution.md`)
+- [ ] Commands that require the constitution have graceful error handling if missing
+- [ ] Constitution path is correct (`.humaninloop/memory/constitution.md`)
 - [ ] No circular dependencies exist between plugins
 
 **humaninloop-specific checks**:
-- [ ] README states `humaninloop-constitution` must be installed first
-- [ ] Commands reference constitution at `.humaninloop/memory/constitution.md`
-- [ ] Scaffold agent creates constitution path if running setup
+- [ ] `/humaninloop:setup` creates constitution at `.humaninloop/memory/constitution.md`
+- [ ] `/humaninloop:specify` checks for constitution and shows helpful error if missing
+- [ ] All commands reference constitution at `.humaninloop/memory/constitution.md`
 
 ### 8. Claude Code Compatibility Checks
 Validate workarounds for known Claude Code bugs are in place:
@@ -436,7 +435,7 @@ Your release readiness report should include:
 | Location | Expected | Actual | Status |
 |----------|----------|--------|--------|
 | humaninloop plugin.json | X.Y.Z | ... | ✅/❌ |
-| humaninloop-constitution plugin.json | X.Y.Z | ... | ✅/❌ |
+| humaninloop-experiments plugin.json | X.Y.Z | ... | ✅/❌ |
 | marketplace.json | X.Y.Z | ... | ✅/❌ |
 | CHANGELOG.md latest | X.Y.Z | ... | ✅/❌ |
 | ROADMAP.md Current State | X.Y.Z | ... | ✅/❌ |
@@ -577,7 +576,7 @@ Apply these standards during validation:
 
 - **New plugins**: Apply stricter validation; all components should be pristine
 - **Plugin updates**: Focus on changed areas but still validate full structure
-- **Dependencies**: If a plugin depends on another (like humaninloop depends on humaninloop-constitution), verify the dependency is properly declared
+- **Dependencies**: Verify constitution is created by `/humaninloop:setup` before other commands require it
 - **Speckit references**: Flag any remaining references to speckit that should have been migrated (per CLAUDE.md guidelines)
 - **Skills with scripts**: Verify scripts in `skills/*/scripts/` are executable and use proper shebangs
 - **Check modules**: Validate tier assignments are appropriate for the check severity
@@ -594,10 +593,10 @@ This release manager is configured for the HumanInLoop Marketplace. Key facts:
 - **6 check modules**: research-checks, model-checks, contract-checks, final-checks, mapping-checks, task-checks
 - **11 templates**: Various workflow and context templates
 
-### humaninloop-constitution Plugin (v1.0.0)
-- **1 command**: setup
-- **1 template**: constitution-template.md
-- **Status**: STABLE (first v1.0.0)
+### humaninloop-experiments Plugin (v0.1.1)
+- **1 command**: specify
+- **Agents**: requirements-analyst, devils-advocate
+- **Status**: EXPERIMENTAL (sandbox for new patterns)
 
 ### Known Historical Issues
 - **v0.2.6**: Fixed skill YAML parsing (multi-line → single-line descriptions)

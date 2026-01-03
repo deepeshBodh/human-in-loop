@@ -21,7 +21,7 @@ The marketplace is in active development. The core specify → plan → tasks wo
 - `/humaninloop:analyze` - Analyze codebase context
 - `/humaninloop:checklist` - Generate implementation checklists
 - `/humaninloop:implement` - Execute implementation with tracking
-- `/humaninloop-constitution:setup` - Initialize project constitution **(v1.2.0)**
+- `/humaninloop:setup` - Initialize project constitution **(v0.4.0)**
 - `/humaninloop-experiments:specify` - Experimental specifications (sandbox for new patterns)
 
 **Skills** (auto-invoked by Claude):

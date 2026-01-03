@@ -10,7 +10,7 @@ Copy an existing plugin as a starting point:
 
 ```bash
 # For simpler plugins (commands only)
-cp -r plugins/humaninloop-constitution plugins/your-plugin-name
+cp -r plugins/humaninloop-experiments plugins/your-plugin-name
 
 # For complex multi-agent plugins
 cp -r plugins/humaninloop plugins/your-plugin-name
@@ -143,7 +143,7 @@ Use the plugin name as scope when applicable:
 
 ## Contributing to Core Plugins
 
-For contributions to the `humaninloop` or `humaninloop-constitution` plugins:
+For contributions to the `humaninloop` or `humaninloop-experiments` plugins:
 
 ### Feature Contributions
 

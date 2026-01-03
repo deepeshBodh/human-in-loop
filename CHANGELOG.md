@@ -6,6 +6,31 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.4.0] - 2026-01-03
+
+**BREAKING CHANGE**: Constitution plugin merged into humaninloop.
+
+### humaninloop 0.4.0
+
+#### Breaking Changes
+- **humaninloop-constitution merged into humaninloop** - All constitution functionality now part of main plugin
+  - `/humaninloop-constitution:setup` is now `/humaninloop:setup`
+  - No separate plugin installation required
+
+#### Plugin Consolidation
+- **New command**: `/humaninloop:setup` - Initialize project constitution (previously `/humaninloop-constitution:setup`)
+- **New agent**: `principal-architect` - Senior technical leader for governance judgment
+- **New skills**: `authoring-constitution`, `analyzing-project-context`, `syncing-claude-md`
+- **New templates**: `constitution-template.md`, `constitution-scaffold-template.md`
+
+#### Migration Guide
+1. If you had `humaninloop-constitution` installed separately, uninstall it
+2. Update to `humaninloop` 0.4.0
+3. Use `/humaninloop:setup` instead of `/humaninloop-constitution:setup`
+4. Existing constitutions at `.humaninloop/memory/constitution.md` remain valid
+
+---
+
 ## [0.3.0] - 2026-01-03
 
 **BREAKING CHANGE**: Major architecture overhaul of the specify workflow.
@@ -17,7 +42,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
   - Old architecture (removed): Scaffold Agent → Spec Writer → Checklist Context Analyzer → Checklist Writer → Gap Classifier → Spec Clarify
   - New architecture: Requirements Analyst ↔ Devil's Advocate (supervised loop)
 - **Workflow artifacts changed** - New structure uses `scaffold.md`, `analyst-report.md`, `advocate-report.md` instead of `index.md`, `specify-context.md`, and checklist files
-- **Constitution still required** - Pre-flight check remains; run `/humaninloop-constitution:setup` first
+- **Constitution still required** - Pre-flight check remains; run `/humaninloop:setup` first
 
 #### New Agents
 - **requirements-analyst** - Senior analyst who transforms vague feature requests into precise specifications with user stories, functional requirements, and acceptance criteria

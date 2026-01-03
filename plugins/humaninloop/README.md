@@ -1,12 +1,13 @@
 # HumanInLoop Plugin
 
-Specification-driven development workflow: **specify → plan → tasks → implement**
+Specification-driven development workflow: **setup → specify → plan → tasks → implement**
 
 ## Overview
 
-The HumanInLoop plugin provides a comprehensive multi-agent workflow for specification-driven development. It automates the entire feature development lifecycle from specification to implementation.
+The HumanInLoop plugin provides a comprehensive multi-agent workflow for specification-driven development. It automates the entire feature development lifecycle from constitution setup to implementation.
 
 **Core Workflows:**
+- **Setup** - Create project constitution with enforceable governance principles
 - **Specify** - Create feature specifications with integrated quality validation
 - **Plan** - Generate implementation plans with research, data models, and API contracts
 - **Tasks** - Generate actionable implementation tasks with dependency tracking and brownfield markers
@@ -19,16 +20,40 @@ Add the plugin to your Claude Code project:
 claude-code plugins add humaninloop
 ```
 
-## Prerequisites
+## Getting Started
 
-This plugin requires a project constitution to be set up first:
+First, set up your project constitution:
 
 ```bash
-claude-code plugins add humaninloop-constitution
-/humaninloop-constitution:setup
+/humaninloop:setup
 ```
 
+Then proceed with the specification workflow for your first feature.
+
 ## Commands
+
+### `/humaninloop:setup`
+
+Create or amend your project constitution with enforceable governance principles.
+
+```
+/humaninloop:setup
+```
+
+**Workflow:**
+1. Detect project context (tech stack, conventions, architecture)
+2. Principal Architect drafts constitution with principles
+3. User answers clarifying questions
+4. Constitution finalized with enforcement mechanisms
+5. CLAUDE.md synchronized with constitution
+
+**Output:** `.humaninloop/memory/constitution.md`
+
+**Features:**
+- Three-Part Principle Rule (Enforcement, Testability, Rationale)
+- RFC 2119 keywords (MUST, SHOULD, MAY)
+- Automatic CLAUDE.md synchronization
+- Support for amending existing constitutions
 
 ### `/humaninloop:specify <description>`
 
@@ -85,6 +110,12 @@ Generate implementation tasks from an existing plan.
 - **Phase structure**: Setup → Foundational → User Stories → Polish
 
 ## Workflow Architecture
+
+### Setup Workflow Agent
+
+| Agent | Purpose |
+|-------|---------|
+| **Principal Architect** | Senior technical leader who creates enforceable project constitutions with governance judgment |
 
 ### Specify Workflow Agents
 
@@ -197,10 +228,6 @@ The plugin uses:
 - `${CLAUDE_PLUGIN_ROOT}/templates/` - Workflow templates
 - `${CLAUDE_PLUGIN_ROOT}/check-modules/` - Validation check modules
 - `.humaninloop/memory/constitution.md` - Project principles (user project)
-
-## Related Plugins
-
-- **humaninloop-constitution** - Project constitution setup (required)
 
 ## License
 

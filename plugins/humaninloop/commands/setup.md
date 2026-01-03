@@ -97,7 +97,7 @@ Invoke with minimal prompt pointing to scaffold (use the generated `$SCAFFOLD_FI
 
 ```
 Task(
-  subagent_type: "humaninloop-constitution:principal-architect",
+  subagent_type: "humaninloop:principal-architect",
   prompt: "
     Work on the constitution setup.
 

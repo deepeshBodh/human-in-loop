@@ -52,7 +52,7 @@ The HumanInLoop specify workflow requires a project constitution to be configure
 The constitution defines project principles that guide specification quality validation.
 
 To set up your constitution, run:
-/humaninloop-constitution:setup
+/humaninloop:setup
 
 This will walk you through defining your project's core principles.
 
