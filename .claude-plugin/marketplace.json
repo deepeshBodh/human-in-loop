@@ -1,5 +1,5 @@
 {
-  "name": "humaninloop-marketplace",
+  "name": "humaninloop-plugins",
   "version": "0.7.0",
   "description": "Multi-agent workflow plugins for specification-driven development",
   "owner": {
@@ -12,11 +12,6 @@
       "name": "humaninloop",
       "source": "./plugins/humaninloop",
       "description": "Specification-driven development workflow: setup → specify → plan → tasks → implement"
-    },
-    {
-      "name": "humaninloop-experiments",
-      "source": "./plugins/humaninloop-experiments",
-      "description": "Experimental sandbox for testing new agent patterns with decoupled architecture"
     }
   ]
 }

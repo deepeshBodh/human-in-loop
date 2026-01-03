@@ -7,7 +7,7 @@ Official Claude Code plugin marketplace for [HumanInLoop](https://humaninloop.de
 ### Add the Marketplace
 
 ```bash
-/plugin marketplace add deepeshBodh/human-in-loop-marketplace
+/plugin marketplace add deepeshBodh/human-in-loop
 ```
 
 ### Install Plugins
@@ -31,26 +31,26 @@ Official Claude Code plugin marketplace for [HumanInLoop](https://humaninloop.de
 | Plugin | Description | Commands |
 |--------|-------------|----------|
 | [humaninloop](./plugins/humaninloop) | Specification-driven development workflow: setup → specify → plan → tasks → implement | `/humaninloop:setup`, `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:audit`, `/humaninloop:implement` |
-| [humaninloop-experiments](./plugins/humaninloop-experiments) | Experimental sandbox for new agent patterns | `/humaninloop-experiments:specify` |
 
 ### humaninloop
 
 Multi-agent specification-driven development workflow with integrated quality validation and project constitution management.
 
-**Agents:** 11 specialized agents for constitution setup, spec writing, validation, planning, and task generation
+**Agents:** 5 specialized agents for spec writing, validation, planning, and task generation
 **Commands:** `/humaninloop:setup`, `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:audit`, `/humaninloop:implement`
-**Skills:** 7 model-invoked skills for authoring and analysis
+**Skills:** 13 model-invoked skills for authoring, analysis, patterns, and validation
 
-#### Skills
+#### Skills (13 total)
 
-| Skill | Trigger Phrases | Description |
-|-------|-----------------|-------------|
-| `iterative-analysis` | "brainstorm", "deep analysis", "let's think through" | Progressive questioning with 2-3 options per question and synthesis |
-| `authoring-requirements` | "functional requirements", "FR-", "RFC 2119", "MUST SHOULD MAY" | Write FR-XXX format requirements with validation |
-| `authoring-user-stories` | "user story", "Given When Then", "P1", "P2", "P3" | Write prioritized user stories with acceptance scenarios |
-| `authoring-constitution` | "constitution", "principles", "governance" | Write enforceable project constitution with three-part principles |
-| `analyzing-project-context` | "project context", "tech stack detection" | Infer project characteristics from codebase |
-| `syncing-claude-md` | "sync CLAUDE.md", "constitution sync" | Synchronize CLAUDE.md with constitution sections |
+See [plugin README](./plugins/humaninloop/README.md) for the full list. Key skills include:
+
+| Category | Skills |
+|----------|--------|
+| Authoring | `authoring-requirements`, `authoring-user-stories`, `authoring-constitution` |
+| Analysis | `analysis-codebase`, `analysis-iterative`, `analysis-specifications` |
+| Patterns | `patterns-api-contracts`, `patterns-entity-modeling`, `patterns-technical-decisions`, `patterns-vertical-tdd` |
+| Validation | `validation-plan-artifacts`, `validation-task-artifacts` |
+| Utilities | `syncing-claude-md` |
 
 ## Contributing
 
@@ -67,21 +67,16 @@ Want to add your plugin to the marketplace? See [CONTRIBUTING.md](./CONTRIBUTING
 ## Repository Structure
 
 ```
-human-in-loop-marketplace/
+human-in-loop/
 ├── .claude-plugin/
 │   └── marketplace.json           # Marketplace manifest
 ├── plugins/
 │   ├── humaninloop/               # Main workflow plugin
-│   │   ├── agents/                # 11 multi-agent workflow agents
-│   │   ├── commands/              # setup, specify, plan, tasks, analyze, checklist, implement
-│   │   ├── skills/                # 7 model-invoked authoring skills
-│   │   ├── check-modules/         # Validation check modules
+│   │   ├── agents/                # 5 specialized workflow agents
+│   │   ├── commands/              # setup, specify, plan, tasks, audit, implement
+│   │   ├── skills/                # 13 model-invoked skills
 │   │   ├── scripts/               # Shell utilities
 │   │   └── templates/             # Workflow templates
-│   └── humaninloop-experiments/   # Experimental sandbox plugin
-│       ├── agents/
-│       ├── commands/
-│       └── skills/
 ├── specs/                         # Feature specifications
 │   ├── completed/                 # Shipped features
 │   ├── in-progress/               # Currently implementing

@@ -21,7 +21,6 @@ The marketplace is in active development. The core specify → plan → tasks wo
 - `/humaninloop:audit` - Comprehensive artifact analysis with review mode
 - `/humaninloop:implement` - Execute implementation with tracking
 - `/humaninloop:setup` - Initialize project constitution
-- `/humaninloop-experiments:specify` - Experimental specifications (sandbox for new patterns)
 
 **Skills** (auto-invoked by Claude) - 13 total, organized by category:
 
@@ -91,7 +90,7 @@ Features for larger teams and compliance requirements.
 
 See [planned specs](./specs/planned/) for detailed feature specifications.
 
-To request a feature, [open an issue](https://github.com/deepeshBodh/human-in-loop-marketplace/issues/new).
+To request a feature, [open an issue](https://github.com/deepeshBodh/human-in-loop/issues/new).
 
 ---
 

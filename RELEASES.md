@@ -20,10 +20,9 @@ Each plugin maintains its **own version** in `plugin.json`. A marketplace releas
 - One plugin at a major version while another is at a minor version
 - This is intentional—plugins evolve independently
 
-Example from v0.4.0:
+Example:
 ```
-humaninloop: 0.4.0
-humaninloop-experiments: 0.1.1
+humaninloop: 0.7.0
 ```
 
 ## Release Frequency
@@ -91,7 +90,7 @@ Group by plugin, then by change type within each plugin.
    ## Installation
 
    \`\`\`bash
-   /plugin marketplace add deepeshBodh/human-in-loop-marketplace
+   /plugin marketplace add deepeshBodh/human-in-loop
    /plugin install humaninloop
    \`\`\`
    EOF

@@ -25,7 +25,7 @@ The `docs/speckit-artefacts/` folder contains a snapshot of the original **speck
 4. **Development workflow**:
    - **speckit** (original inspiration)
    - → **human-in-loop-experiments** (experimental adaptation)
-   - → **human-in-loop-marketplace** (clean production version)
+   - → **humaninloop** (clean production version)
 
 5. **Need-based migration**: Migration from speckit concepts is ongoing and selective - only what serves humaninloop's needs is adopted and restructured for the multi-agent plugin architecture.
 
@@ -99,7 +99,7 @@ See [RELEASES.md](RELEASES.md) for release process. Update [CHANGELOG.md](CHANGE
 ## Marketplace Structure
 
 ```
-human-in-loop-marketplace/
+human-in-loop/
 ├── .claude-plugin/
 │   └── marketplace.json           # Marketplace manifest
 ├── plugins/
@@ -112,12 +112,6 @@ human-in-loop-marketplace/
 │   │   ├── check-modules/         # Validation check modules
 │   │   ├── scripts/               # Shell utilities
 │   │   └── templates/             # Workflow templates
-│   └── humaninloop-experiments/   # Experimental sandbox plugin
-│       ├── .claude-plugin/
-│       │   └── plugin.json
-│       ├── agents/
-│       ├── commands/
-│       └── skills/
 ├── specs/
 │   ├── completed/                 # Shipped feature specs
 │   ├── in-progress/               # Currently implementing
@@ -141,13 +135,12 @@ human-in-loop-marketplace/
 | Plugin | Description | Commands | Skills |
 |--------|-------------|----------|--------|
 | `humaninloop` | Specification-driven development workflow | `/humaninloop:setup`, `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:audit`, `/humaninloop:implement` | `authoring-requirements`, `authoring-user-stories`, `authoring-constitution`, `analysis-codebase`, `syncing-claude-md`, `analysis-iterative` |
-| `humaninloop-experiments` | Experimental sandbox for new agent patterns | `/humaninloop-experiments:specify` | `authoring-requirements`, `authoring-user-stories`, `reviewing-specifications` |
 
 ## Common Commands
 
 ```bash
 # Add this marketplace to Claude Code
-/plugin marketplace add deepeshBodh/human-in-loop-marketplace
+/plugin marketplace add deepeshBodh/human-in-loop
 
 # Install humaninloop plugin
 /plugin install humaninloop
@@ -161,7 +154,8 @@ human-in-loop-marketplace/
 
 ## Adding New Plugins
 
-1. Copy `plugins/humaninloop-experiments/` as a template for simpler plugins
-2. Update plugin.json, commands, and README with your plugin's info
-3. Add entry to `.claude-plugin/marketplace.json`
-4. Submit PR
+1. Create a new plugin directory under `plugins/`
+2. Add a `.claude-plugin/plugin.json` manifest
+3. Add commands, agents, and skills as needed
+4. Add entry to `.claude-plugin/marketplace.json`
+5. Submit PR

@@ -6,13 +6,9 @@ Thank you for your interest in contributing a plugin to the HumanInLoop marketpl
 
 ### 1. Create Your Plugin
 
-Copy an existing plugin as a starting point:
+Use the humaninloop plugin as a starting point:
 
 ```bash
-# For simpler plugins (commands only)
-cp -r plugins/humaninloop-experiments plugins/your-plugin-name
-
-# For complex multi-agent plugins
 cp -r plugins/humaninloop plugins/your-plugin-name
 ```
 
@@ -141,9 +137,9 @@ Use the plugin name as scope when applicable:
 - `fix(constitution): correct agent reference`
 - `docs: update README`
 
-## Contributing to Core Plugins
+## Contributing to the humaninloop Plugin
 
-For contributions to the `humaninloop` or `humaninloop-experiments` plugins:
+For contributions to the `humaninloop` plugin:
 
 ### Feature Contributions
 
