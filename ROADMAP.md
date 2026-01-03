@@ -24,6 +24,8 @@ The marketplace is in active development. The core specify → plan → tasks wo
 - `/humaninloop-constitution:setup` - Initialize project constitution **(stable 1.0.0)**
 
 **Skills** (auto-invoked by Claude):
+- `authoring-requirements` - Write functional requirements using FR-XXX format with RFC 2119 keywords
+- `authoring-user-stories` - Write user stories with P1/P2/P3 priorities and Given/When/Then acceptance
 - `iterative-analysis` - Progressive brainstorming with recommendations and synthesis
 
 ---
