@@ -9,6 +9,8 @@
   "license": "MIT",
   "keywords": ["constitution", "principles", "governance", "enforcement", "CLAUDE.md", "quality-gates"],
   "commands": "./commands/",
-  "agents": "./agents/",
+  "agents": [
+    "./agents/principal-architect.md"
+  ],
   "skills": "./skills/"
 }

@@ -21,12 +21,15 @@ The marketplace is in active development. The core specify → plan → tasks wo
 - `/humaninloop:analyze` - Analyze codebase context
 - `/humaninloop:checklist` - Generate implementation checklists
 - `/humaninloop:implement` - Execute implementation with tracking
-- `/humaninloop-constitution:setup` - Initialize project constitution **(stable 1.0.0)**
+- `/humaninloop-constitution:setup` - Initialize project constitution **(v1.2.0)**
 
 **Skills** (auto-invoked by Claude):
 - `authoring-requirements` - Write functional requirements using FR-XXX format with RFC 2119 keywords
 - `authoring-user-stories` - Write user stories with P1/P2/P3 priorities and Given/When/Then acceptance
 - `iterative-analysis` - Progressive brainstorming with recommendations and synthesis
+- `authoring-constitution` - Write enforceable constitution content with Enforcement/Testability/Rationale
+- `analyzing-project-context` - Infer project characteristics from codebase for constitution authoring
+- `syncing-claude-md` - Ensure CLAUDE.md mirrors constitution sections per sync mapping
 
 ---
 
