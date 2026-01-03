@@ -140,7 +140,7 @@ human-in-loop-marketplace/
 
 | Plugin | Description | Commands | Skills |
 |--------|-------------|----------|--------|
-| `humaninloop` | Specification-driven development workflow | `/humaninloop:setup`, `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:analyze`, `/humaninloop:checklist`, `/humaninloop:implement` | `authoring-requirements`, `authoring-user-stories`, `authoring-constitution`, `analyzing-project-context`, `syncing-claude-md`, `iterative-analysis` |
+| `humaninloop` | Specification-driven development workflow | `/humaninloop:setup`, `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:audit`, `/humaninloop:implement` | `authoring-requirements`, `authoring-user-stories`, `authoring-constitution`, `analysis-codebase`, `syncing-claude-md`, `analysis-iterative` |
 | `humaninloop-experiments` | Experimental sandbox for new agent patterns | `/humaninloop-experiments:specify` | `authoring-requirements`, `authoring-user-stories`, `reviewing-specifications` |
 
 ## Common Commands

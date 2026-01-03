@@ -160,7 +160,7 @@ specs/<###-feature-name>/
 ├── task-mapping.md            # Story-to-component mappings
 ├── tasks.md                   # Actionable task list
 ├── contracts/                 # API specifications (OpenAPI)
-├── checklists/                # Manual quality checklists (via /humaninloop:checklist)
+├── checklists/                # Audit outputs (via /humaninloop:audit)
 └── .workflow/
     ├── context.md             # Specify workflow context
     ├── analyst-report.md      # Requirements Analyst output
@@ -214,6 +214,45 @@ Tasks are organized into **cycles** - vertical slices that deliver testable valu
 
 1. **Foundation Cycles** - Sequential, establish shared infrastructure
 2. **Feature Cycles** - Parallel-eligible, deliver user value independently
+
+### `/humaninloop:audit`
+
+Comprehensive artifact analysis with two output modes.
+
+```
+/humaninloop:audit              # Full diagnostic mode (default)
+/humaninloop:audit --review     # Reviewer-facing summary
+/humaninloop:audit --security   # Domain-filtered analysis
+```
+
+**Modes:**
+
+| Mode | Flag | Purpose |
+|------|------|---------|
+| Full | (default) | Deep diagnostics for authors/maintainers |
+| Review | `--review` | Scannable summary for peer reviewers |
+
+**Domain Filters:** `--security`, `--ux`, `--api`, `--performance`
+
+**Features:**
+- Phase-agnostic: works on whatever artifacts exist
+- Leverages existing validation skills
+- Coverage summary with flagged gaps
+- Constitution alignment checks
+- Cross-artifact consistency analysis
+
+**Output (Review Mode):**
+- Coverage table with status indicators
+- Flagged issues (top 10)
+- Metrics summary
+- Recommendation (ready/caution/not ready)
+
+**Output (Full Mode):**
+- Complete findings table
+- Requirement-to-task coverage mapping
+- Constitution alignment issues
+- Unmapped items
+- Remediation suggestions
 
 ## Configuration
 
