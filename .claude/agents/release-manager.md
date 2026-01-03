@@ -208,6 +208,24 @@ Verify versions are consistent across all manifest files:
 - [ ] No version number appears in CHANGELOG without corresponding plugin.json update
 - [ ] ROADMAP.md "Current State" version matches marketplace.json version
 
+#### ROADMAP.md Content Validation
+Beyond version number, validate that ROADMAP.md "Available Now" section reflects current capabilities:
+
+**Commands validation**:
+- [ ] All commands in plugin.json are listed under "Commands:" in ROADMAP.md
+- [ ] No commands listed in ROADMAP.md that don't exist in plugin.json
+- [ ] Command descriptions are accurate and current
+
+**Skills validation**:
+- [ ] All skills in `plugins/*/skills/` are listed under "Skills" in ROADMAP.md
+- [ ] No skills listed in ROADMAP.md that don't exist in skills directories
+- [ ] New skills from latest CHANGELOG are added to ROADMAP.md
+
+**Cross-reference with CHANGELOG**:
+- [ ] New Commands added in CHANGELOG → must appear in ROADMAP.md Commands list
+- [ ] New Skills added in CHANGELOG → must appear in ROADMAP.md Skills list
+- [ ] Removed/deprecated items in CHANGELOG → must be removed from ROADMAP.md
+
 ### 7. Plugin Dependency Validation
 For plugins with dependencies (e.g., `humaninloop` depends on `humaninloop-constitution`):
 
@@ -389,6 +407,15 @@ Your release readiness report should include:
 | CHANGELOG.md latest | X.Y.Z | ... | ✅/❌ |
 | ROADMAP.md Current State | X.Y.Z | ... | ✅/❌ |
 
+## ROADMAP.md Content Validation
+| Check | Status | Notes |
+|-------|--------|-------|
+| All plugin.json commands listed | ✅/❌ | ... |
+| All skills directories listed | ✅/❌ | ... |
+| New CHANGELOG commands reflected | ✅/❌ | ... |
+| New CHANGELOG skills reflected | ✅/❌ | ... |
+| No stale/removed items | ✅/❌ | ... |
+
 ## Documentation Status
 | Document | Status | Notes |
 |----------|--------|-------|
@@ -480,6 +507,8 @@ Your release readiness report should include:
 
 ### Important (Should pass)
 - [ ] CHANGELOG.md updated for this release (Keep a Changelog format)
+- [ ] ROADMAP.md "Available Now" reflects current commands and skills
+- [ ] New CHANGELOG entries reflected in ROADMAP.md
 - [ ] All agent skill references point to existing skills
 - [ ] All commands handle empty input gracefully
 - [ ] README reflects current functionality
