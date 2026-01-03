@@ -30,7 +30,7 @@ updated: {{updated}}
 | File | Path |
 |------|------|
 | Spec | {{spec_path}} |
-| Scaffold | {{scaffold_path}} |
+| Context | {{context_path}} |
 | Analyst Report | {{analyst_report_path}} |
 | Advocate Report | {{advocate_report_path}} |
 

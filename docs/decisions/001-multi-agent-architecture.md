@@ -17,7 +17,7 @@ Current agents in the humaninloop plugin:
 - **Specification stage:** `spec-writer`, `spec-clarify`
 - **Planning stage:** `plan-research`, `plan-contract`, `plan-domain-model`, `plan-validator`, `codebase-discovery`
 - **Task stage:** `task-planner`, `task-generator`, `task-validator`, `gap-classifier`
-- **Implementation stage:** `scaffold-agent`, `checklist-writer`, `checklist-context-analyzer`
+- **Implementation stage:** `checklist-writer`, `checklist-context-analyzer`
 
 ## Rationale
 

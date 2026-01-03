@@ -42,10 +42,10 @@ AskUserQuestion(
 ```
 SUPERVISOR (this command)
     │
-    ├── Creates scaffold + directories
+    ├── Creates context + directories
     ├── Invokes agents with minimal prompts
     ├── Parses structured prose outputs
-    ├── Updates scaffold between iterations
+    ├── Updates context between iterations
     └── Owns all routing decisions
 
 AGENTS (independent, no workflow knowledge)
@@ -54,13 +54,13 @@ AGENTS (independent, no workflow knowledge)
     └── Devil's Advocate → Reviews spec.md, finds gaps
 ```
 
-**Communication Pattern**: Scaffold + Spec File + Separate Reports
+**Communication Pattern**: Context + Spec File + Separate Reports
 
 ```
 specs/{feature-id}/
 ├── spec.md                          # The deliverable
 └── .workflow/
-    ├── scaffold.md                  # Context + instructions
+    ├── context.md                   # Context + instructions
     ├── analyst-report.md            # Requirements Analyst output
     └── advocate-report.md           # Devil's Advocate output
 ```
@@ -80,12 +80,12 @@ specs/{feature-id}/
 
 Before starting, check for interrupted workflows:
 
-1. **Search for existing scaffolds** with `status` not `completed`:
+1. **Search for existing context files** with `status` not `completed`:
    ```bash
-   find specs -name "scaffold.md" -path "*/.workflow/*" 2>/dev/null
+   find specs -name "context.md" -path "*/.workflow/*" 2>/dev/null
    ```
 
-2. **If found**: Read scaffold frontmatter, check `status` field
+2. **If found**: Read context frontmatter, check `status` field
 
 3. **If status is not completed**:
    ```
@@ -102,7 +102,7 @@ Before starting, check for interrupted workflows:
    )
    ```
 
-4. **If resume**: Read scaffold, jump to appropriate phase based on status
+4. **If resume**: Read context, jump to appropriate phase based on status
 5. **If fresh**: Delete existing feature directory and proceed
 
 ---
@@ -122,11 +122,11 @@ Create a feature ID from the user input:
 mkdir -p specs/{feature-id}/.workflow
 ```
 
-### 1.3 Create Scaffold
+### 1.3 Create Context
 
-Use the template at `${CLAUDE_PLUGIN_ROOT}/templates/scaffold-template.md`.
+Use the template at `${CLAUDE_PLUGIN_ROOT}/templates/context-template.md`.
 
-Write to `specs/{feature-id}/.workflow/scaffold.md` with these values:
+Write to `specs/{feature-id}/.workflow/context.md` with these values:
 
 | Placeholder | Value |
 |-------------|-------|
@@ -141,7 +141,7 @@ Write to `specs/{feature-id}/.workflow/scaffold.md` with these values:
 | `{{constitution_path}}` | Path if exists, or "not configured" |
 | `{{constitution_principles}}` | Extracted key principles, or "No constitution configured. Use general best practices." |
 | `{{spec_path}}` | `specs/{feature-id}/spec.md` |
-| `{{scaffold_path}}` | `specs/{feature-id}/.workflow/scaffold.md` |
+| `{{context_path}}` | `specs/{feature-id}/.workflow/context.md` |
 | `{{analyst_report_path}}` | `specs/{feature-id}/.workflow/analyst-report.md` |
 | `{{advocate_report_path}}` | `specs/{feature-id}/.workflow/advocate-report.md` |
 | `{{supervisor_instructions}}` | See Phase 2 for initial analyst instructions |
@@ -167,7 +167,7 @@ Write to `specs/{feature-id}/spec.md` with initial values:
 
 ### 2.1 Set Supervisor Instructions for Analyst
 
-Update `{{supervisor_instructions}}` in scaffold:
+Update `{{supervisor_instructions}}` in context:
 
 ```markdown
 Create a feature specification based on the user input above.
@@ -182,9 +182,9 @@ Create a feature specification based on the user input above.
 **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/analyst-report-template.md`
 ```
 
-### 2.2 Update Scaffold Status
+### 2.2 Update Context Status
 
-Update scaffold frontmatter:
+Update context frontmatter:
 ```yaml
 status: awaiting-analyst
 updated: {ISO date}
@@ -195,7 +195,7 @@ updated: {ISO date}
 ```
 Task(
   subagent_type: "humaninloop-experiments:requirements-analyst",
-  prompt: "Read your instructions from: specs/{feature-id}/.workflow/scaffold.md",
+  prompt: "Read your instructions from: specs/{feature-id}/.workflow/context.md",
   description: "Write feature specification"
 )
 ```
@@ -214,7 +214,7 @@ If missing, report error and stop.
 
 ### 3.1 Set Supervisor Instructions for Advocate
 
-Update `{{supervisor_instructions}}` in scaffold:
+Update `{{supervisor_instructions}}` in context:
 
 ```markdown
 Review the specification and find gaps.
@@ -229,9 +229,9 @@ Review the specification and find gaps.
 **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/advocate-report-template.md`
 ```
 
-### 3.2 Update Scaffold Status
+### 3.2 Update Context Status
 
-Update scaffold frontmatter:
+Update context frontmatter:
 ```yaml
 status: awaiting-advocate
 updated: {ISO date}
@@ -242,7 +242,7 @@ updated: {ISO date}
 ```
 Task(
   subagent_type: "humaninloop-experiments:devils-advocate",
-  prompt: "Read your instructions from: specs/{feature-id}/.workflow/scaffold.md",
+  prompt: "Read your instructions from: specs/{feature-id}/.workflow/context.md",
   description: "Review spec for gaps"
 )
 ```
@@ -260,7 +260,7 @@ Read `specs/{feature-id}/.workflow/advocate-report.md` and extract:
 
 ### If Verdict is `ready`
 
-1. Update scaffold status to `completed`
+1. Update context status to `completed`
 2. Generate completion report (see Phase 5)
 3. Exit workflow
 
@@ -282,7 +282,7 @@ Read `specs/{feature-id}/.workflow/advocate-report.md` and extract:
    )
    ```
 
-2. **Update scaffold with user answers**:
+2. **Update context with user answers**:
    Append to `## Clarification Log`:
    ```markdown
    ### Iteration {N}
@@ -313,7 +313,7 @@ Read `specs/{feature-id}/.workflow/advocate-report.md` and extract:
    **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/analyst-report-template.md`
    ```
 
-4. **Increment iteration** in scaffold frontmatter
+4. **Increment iteration** in context frontmatter
 
 5. **Loop back to Phase 2**
 
@@ -351,7 +351,7 @@ AskUserQuestion(
 
 ### 5.1 Update Final Status
 
-Update scaffold frontmatter:
+Update context frontmatter:
 ```yaml
 status: completed
 updated: {ISO date}
@@ -424,5 +424,5 @@ Resume logic based on `status` field:
 - Do NOT modify git config or push to remote
 - Maximum practical iterations: ~5 (use judgment, not hard limit)
 - Always use Task tool to invoke agents
-- Agents have NO workflow knowledge—all context via scaffold
+- Agents have NO workflow knowledge—all context via context file
 - Supervisor owns ALL routing and state decisions

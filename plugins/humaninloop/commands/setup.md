@@ -10,7 +10,7 @@ $ARGUMENTS
 
 ## Workflow
 
-This supervisor follows a decoupled architecture: create scaffold → invoke agent → iterate if needed → finalize.
+This supervisor follows a decoupled architecture: create context → invoke agent → iterate if needed → finalize.
 
 ### Phase 1: Initialize
 
@@ -19,9 +19,9 @@ This supervisor follows a decoupled architecture: create scaffold → invoke age
    mkdir -p .humaninloop/memory
    ```
 
-2. **Generate scaffold filename with timestamp**
+2. **Generate context filename with timestamp**
    ```bash
-   SCAFFOLD_FILE=".humaninloop/memory/constitution-scaffold-$(date +%Y%m%d-%H%M%S).md"
+   CONTEXT_FILE=".humaninloop/memory/constitution-context-$(date +%Y%m%d-%H%M%S).md"
    ```
 
 3. **Check for existing constitution**
@@ -36,9 +36,9 @@ This supervisor follows a decoupled architecture: create scaffold → invoke age
    - Extract project name and tech stack
    - Check if `CLAUDE.md` exists
 
-5. **Create scaffold artifact**
+5. **Create context artifact**
 
-   Write to `$SCAFFOLD_FILE` (e.g., `.humaninloop/memory/constitution-scaffold-20260103-154500.md`):
+   Write to `$CONTEXT_FILE` (e.g., `.humaninloop/memory/constitution-context-20260103-154500.md`):
 
    ```markdown
    ---
@@ -93,7 +93,7 @@ This supervisor follows a decoupled architecture: create scaffold → invoke age
 
 ### Phase 2: Invoke Agent
 
-Invoke with minimal prompt pointing to scaffold (use the generated `$SCAFFOLD_FILE` path):
+Invoke with minimal prompt pointing to context (use the generated `$CONTEXT_FILE` path):
 
 ```
 Task(
@@ -101,9 +101,9 @@ Task(
   prompt: "
     Work on the constitution setup.
 
-    Read the scaffold at: $SCAFFOLD_FILE
+    Read the context at: $CONTEXT_FILE
 
-    The scaffold contains all context, instructions, and where to write output.
+    The context file contains all context, instructions, and where to write output.
   ",
   description: "Create project constitution"
 )
@@ -116,7 +116,7 @@ Parse agent's structured prose output:
 **If `## Clarifications Needed` has questions:**
 1. Present questions to user
 2. Collect answers
-3. Append to `$SCAFFOLD_FILE`'s `## Clarification Log`:
+3. Append to `$CONTEXT_FILE`'s `## Clarification Log`:
    ```markdown
    ### Round N - Agent Questions
    [Questions from agent output]
@@ -124,7 +124,7 @@ Parse agent's structured prose output:
    ### Round N - User Answers
    [User's responses]
    ```
-4. Update `$SCAFFOLD_FILE`'s `## Supervisor Instructions`:
+4. Update `$CONTEXT_FILE`'s `## Supervisor Instructions`:
    ```markdown
    User answered your questions (see Clarification Log).
    Finalize the constitution incorporating their answers.
@@ -132,7 +132,7 @@ Parse agent's structured prose output:
    Write to: `.humaninloop/memory/constitution.md`
    [Same output format instructions]
    ```
-5. Increment `iteration` in `$SCAFFOLD_FILE` frontmatter
+5. Increment `iteration` in `$CONTEXT_FILE` frontmatter
 6. **Loop back to Phase 2**
 
 **If no clarifications (or max iterations reached):**
@@ -154,7 +154,7 @@ Parse agent's structured prose output:
 ## Supervisor Behaviors
 
 - **Owns the loop**: Decides when to iterate vs. finalize
-- **Modifies scaffold**: Updates `$SCAFFOLD_FILE` instructions and appends to clarification log between iterations
+- **Modifies context**: Updates `$CONTEXT_FILE` instructions and appends to clarification log between iterations
 - **Presents clarifications**: Chooses how to display agent questions to user
-- **Injects context**: Can add sections to `$SCAFFOLD_FILE` if needed mid-loop
+- **Injects context**: Can add sections to `$CONTEXT_FILE` if needed mid-loop
 - **Max iterations**: Consider limiting to 3 rounds to prevent infinite loops

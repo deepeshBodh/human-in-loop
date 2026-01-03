@@ -164,7 +164,7 @@ specs/<###-feature-name>/
 ├── contracts/                 # API specifications (OpenAPI)
 ├── checklists/                # Manual quality checklists (via /humaninloop:checklist)
 └── .workflow/
-    ├── scaffold.md            # Specify workflow context
+    ├── context.md             # Specify workflow context
     ├── analyst-report.md      # Requirements Analyst output
     ├── advocate-report.md     # Devil's Advocate output
     ├── plan-context.md        # Plan workflow state

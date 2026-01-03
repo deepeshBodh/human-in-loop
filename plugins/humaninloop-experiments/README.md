@@ -7,7 +7,7 @@ Experimental sandbox for testing new agent patterns with decoupled architecture.
 This plugin implements the **Decoupled Agents Architecture**:
 
 1. **Agents are pure domain experts** - They have domain knowledge, not workflow knowledge
-2. **Supervisors communicate via files** - Scaffold artifacts contain all context
+2. **Supervisors communicate via files** - Context artifacts contain all context
 3. **Artifacts are self-describing** - Agents read input from artifacts, not supervisor prompts
 4. **Supervisor owns the loop** - All routing and iteration decisions live in the command
 
@@ -18,10 +18,10 @@ A two-agent specification workflow replacing the complex 6-agent specify command
 ```
 SUPERVISOR (commands/specify.md)
     │
-    ├── Creates scaffold + spec file
+    ├── Creates context + spec file
     ├── Invokes agents with minimal prompts
     ├── Parses structured prose outputs
-    ├── Updates scaffold between iterations
+    ├── Updates context between iterations
     └── Owns all routing decisions
 
 AGENTS (independent, no workflow knowledge)
@@ -45,7 +45,7 @@ Agents communicate via files, not direct handoffs:
 specs/{feature-id}/
 ├── spec.md                          # The deliverable
 └── .workflow/
-    ├── scaffold.md                  # Context + instructions
+    ├── context.md                  # Context + instructions
     ├── analyst-report.md            # Requirements Analyst output
     └── advocate-report.md           # Devil's Advocate output
 ```
@@ -67,7 +67,7 @@ specs/{feature-id}/
 ```
 
 The command will:
-1. Create scaffold and directory structure
+1. Create context and directory structure
 2. Invoke Requirements Analyst to write initial spec
 3. Invoke Devil's Advocate to review and find gaps
 4. Present clarifications to user
@@ -98,17 +98,17 @@ humaninloop-experiments/
 ### Supervisor (commands/specify.md)
 
 The supervisor:
-- Creates the scaffold artifact with all context
-- Spawns agents with minimal prompts pointing to scaffold
+- Creates the context artifact with all context
+- Spawns agents with minimal prompts pointing to context
 - Parses structured prose output from report files
-- Updates scaffold between iterations
+- Updates context between iterations
 - Uses judgment for termination (not hard-coded rules)
 - Owns the iteration loop
 
 ### Agents
 
 Each agent:
-- Reads context from the scaffold artifact
+- Reads context from the context artifact
 - Applies domain expertise
 - Writes deliverable (spec.md) or report (analyst-report.md, advocate-report.md)
 - Reports back with structured prose sections
@@ -119,13 +119,13 @@ Each agent:
 ```
 Supervisor --> Requirements Analyst:
   "Create a feature specification.
-   Read your instructions from: specs/001-auth/.workflow/scaffold.md"
+   Read your instructions from: specs/001-auth/.workflow/context.md"
 
 Analyst --> (writes spec.md, analyst-report.md)
 
 Supervisor --> Devil's Advocate:
   "Review the feature specification and find gaps.
-   Read your instructions from: specs/001-auth/.workflow/scaffold.md"
+   Read your instructions from: specs/001-auth/.workflow/context.md"
 
 Advocate --> (writes advocate-report.md with verdict)
 
@@ -168,7 +168,7 @@ needs-clarification
 |--------|-------------------------|------------|
 | Agents | 6 specialized agents | 2 agents (Analyst + Advocate) |
 | Coupling | Agents aware of workflow phases | Agents have zero workflow knowledge |
-| Communication | Mixed (prompt injection + files) | Pure file-based via scaffold |
+| Communication | Mixed (prompt injection + files) | Pure file-based via context |
 | Termination | Hard-coded conditions | Supervisor judgment |
 | Validation | Separate checklist agents | Devil's Advocate self-contained |
 
@@ -179,7 +179,7 @@ specs/
 └── {feature-id}/
     ├── spec.md                    # Final specification
     └── .workflow/
-        ├── scaffold.md            # Workflow state and context
+        ├── context.md            # Workflow state and context
         ├── analyst-report.md      # Analyst's structured output
         └── advocate-report.md     # Advocate's review and verdict
 ```

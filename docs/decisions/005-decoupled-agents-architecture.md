@@ -37,7 +37,7 @@ Adopt a **Decoupled Agents Architecture** with these principles:
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           ARTIFACT CHAIN                                     │
 │                                                                             │
-│   scaffold.md ──→ spec.md ──→ research.md ──→ plan.md ──→ tasks.md         │
+│   context.md ──→ spec.md ──→ research.md ──→ plan.md ──→ tasks.md         │
 │        │              │            │             │            │             │
 │        ▼              ▼            ▼             ▼            ▼             │
 │   spec-writer   plan-research  plan-domain  plan-contract  task-gen        │
@@ -68,7 +68,7 @@ Supervisors spawn agents with simple, natural language prompts:
 ```
 Work on the feature at specs/007-push-notifications/
 
-Read the scaffold.md in that directory for feature context and requirements.
+Read the context.md in that directory for feature context and requirements.
 Write the specification to spec.md in the same directory.
 ```
 
@@ -79,16 +79,16 @@ The supervisor does NOT:
 
 #### Agent Input (Self-Describing Artifacts)
 
-Agents read their context from artifacts, not supervisor prompts. The scaffold is the handoff artifact:
+Agents read their context from artifacts, not supervisor prompts. The context file is the handoff artifact:
 
-**`specs/007-push-notifications/scaffold.md`**
+**`specs/007-push-notifications/context.md`**
 
 ```markdown
 ---
 feature_id: "007-push-notifications"
 title: "Push Notifications for Task Reminders"
 created: 2026-01-03
-status: scaffolded
+status: initialized
 ---
 
 # Feature Request
@@ -159,12 +159,12 @@ Agents retain **domain knowledge** but shed **workflow knowledge**:
 
 ### Artifact Chain
 
-Each agent's output becomes the next agent's input. No separate scaffolds needed after the first:
+Each agent's output becomes the next agent's input. No separate context files needed after the first:
 
 | Agent | Reads | Writes |
 |-------|-------|--------|
-| scaffold-agent | User description | `scaffold.md` |
-| spec-writer | `scaffold.md` | `spec.md` |
+| context-agent | User description | `context.md` |
+| spec-writer | `context.md` | `spec.md` |
 | plan-research | `spec.md` | `research.md` |
 | plan-domain | `spec.md` + `research.md` | `data-model.md` |
 | plan-contract | `data-model.md` | `contracts/` |
@@ -184,7 +184,7 @@ The artifacts are self-describing—each contains enough context for the next ag
 ### Why Self-Describing Artifacts
 
 - **Single source of truth** - Feature context lives in the artifact, not duplicated in prompts
-- **Testable** - Create a scaffold.md, invoke agent, verify output—no workflow needed
+- **Testable** - Create a context file, invoke agent, verify output—no workflow needed
 - **Reusable** - Anyone can invoke an agent by pointing it at an artifact
 
 ### Why Structured Prose Output
@@ -231,10 +231,10 @@ Workflow knowledge is orchestration:
 
 | Phase | Action |
 |-------|--------|
-| 1 | Define scaffold.md format for specify workflow |
+| 1 | Define context file format for specify workflow |
 | 2 | Refactor `spec-writer.md`: remove Phase 4 (workflow updates), update output to structured prose |
 | 3 | Update `specify.md`: parse prose output, handle all state updates |
-| 4 | Test spec-writer in isolation with mock scaffold |
+| 4 | Test spec-writer in isolation with mock context file |
 | 5 | Test full specify workflow end-to-end |
 | 6 | Refactor remaining agents (plan-*, task-*) following same pattern |
 
@@ -273,8 +273,8 @@ Return JSON:
 ```markdown
 ## Input
 
-Read the scaffold artifact from the directory you're pointed to.
-The scaffold contains:
+Read the context artifact from the directory you're pointed to.
+The context file contains:
 - Feature description and context
 - Context files to read for project standards
 - Where to write your output
@@ -311,7 +311,7 @@ You are workflow-agnostic. The supervisor handles all state updates.
 ## A2: Write Specification
 
 1. Spawn spec-writer agent:
-   "Work on the feature at {feature_dir}/. Read scaffold.md for context."
+   "Work on the feature at {feature_dir}/. Read context.md for context."
 
 2. Receive prose report from agent
 

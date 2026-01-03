@@ -1,6 +1,6 @@
-# Constitution Scaffold Template
+# Constitution Context Template
 
-This template provides the **structure** for the constitution setup scaffold artifact. The supervisor populates and modifies this at runtime.
+This template provides the **structure** for the constitution setup context artifact. The supervisor populates and modifies this at runtime.
 
 ---
 
@@ -82,7 +82,7 @@ Format:
 ## Usage Notes
 
 1. **Supervisor owns this artifact** - creates, modifies, and deletes it
-2. **Agent reads only** - treats scaffold as source of truth for context and instructions
+2. **Agent reads only** - treats context as source of truth for context and instructions
 3. **Flexible structure** - supervisor can add custom sections as needed
 4. **Iteration tracking** - `iteration` in frontmatter helps track conversation rounds
-5. **Delete after completion** - scaffold is ephemeral, removed when workflow finishes
+5. **Delete after completion** - context is ephemeral, removed when workflow finishes

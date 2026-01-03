@@ -42,10 +42,10 @@ AskUserQuestion(
 ```
 SUPERVISOR (this command)
     │
-    ├── Creates scaffold + directories
+    ├── Creates context + directories
     ├── Invokes agents with minimal prompts
     ├── Parses structured prose outputs
-    ├── Updates scaffold between phases
+    ├── Updates context between phases
     └── Owns all routing decisions
 
 AGENTS (independent, no workflow knowledge)
@@ -54,7 +54,7 @@ AGENTS (independent, no workflow knowledge)
     └── Devil's Advocate → Reviews artifacts, finds gaps
 ```
 
-**Communication Pattern**: Scaffold + Artifacts + Separate Reports
+**Communication Pattern**: Context + Artifacts + Separate Reports
 
 ```
 specs/{feature-id}/
@@ -66,8 +66,8 @@ specs/{feature-id}/
 ├── quickstart.md                    # Phase 3 output
 ├── plan.md                          # Summary (completion)
 └── .workflow/
-    ├── scaffold.md                  # Context + instructions (specify)
-    ├── plan-scaffold.md             # Context + instructions (plan)
+    ├── context.md                   # Context + instructions (specify)
+    ├── plan-context.md              # Context + instructions (plan)
     ├── planner-report.md            # Plan Architect output
     └── advocate-report.md           # Devil's Advocate output
 ```
@@ -94,7 +94,7 @@ Before starting, verify the specification workflow is complete:
 2. **Check for spec.md**: Read `specs/{feature-id}/spec.md`
    - If NOT found: Block and tell user to run `/humaninloop:specify` first
 
-3. **Check specify workflow status**: Read `specs/{feature-id}/.workflow/scaffold.md`
+3. **Check specify workflow status**: Read `specs/{feature-id}/.workflow/context.md`
    - If `status` != `completed`:
      ```
      AskUserQuestion(
@@ -118,9 +118,9 @@ Before starting, verify the specification workflow is complete:
 
 Before starting, check for interrupted planning workflows:
 
-1. **Check for existing plan-scaffold.md**:
+1. **Check for existing plan-context.md**:
    ```bash
-   test -f specs/{feature-id}/.workflow/plan-scaffold.md
+   test -f specs/{feature-id}/.workflow/plan-context.md
    ```
 
 2. **If found**: Read frontmatter, check `status` and `phase` fields
@@ -140,18 +140,18 @@ Before starting, check for interrupted planning workflows:
    )
    ```
 
-4. **If resume**: Read scaffold, jump to appropriate phase based on status
+4. **If resume**: Read context, jump to appropriate phase based on status
 5. **If fresh**: Delete plan artifacts (research.md, data-model.md, contracts/) and proceed
 
 ---
 
 ## Phase 1: Initialize
 
-### 1.1 Create Plan Scaffold
+### 1.1 Create Plan Context
 
-Use the template at `${CLAUDE_PLUGIN_ROOT}/templates/plan-scaffold-template.md`.
+Use the template at `${CLAUDE_PLUGIN_ROOT}/templates/plan-context-template.md`.
 
-Write to `specs/{feature-id}/.workflow/plan-scaffold.md` with these values:
+Write to `specs/{feature-id}/.workflow/plan-context.md` with these values:
 
 | Placeholder | Value |
 |-------------|-------|
@@ -183,7 +183,7 @@ Write to `specs/{feature-id}/.workflow/plan-scaffold.md` with these values:
 
 ### 2.1 Set Supervisor Instructions for Planner
 
-Update `{{supervisor_instructions}}` in plan-scaffold.md:
+Update `{{supervisor_instructions}}` in plan-context.md:
 
 ```markdown
 **Phase**: Research
@@ -205,9 +205,9 @@ Create technical research document resolving all unknowns from the specification
 **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/planner-report-template.md`
 ```
 
-### 2.2 Update Scaffold Status
+### 2.2 Update Context Status
 
-Update plan-scaffold.md frontmatter:
+Update plan-context.md frontmatter:
 ```yaml
 phase: research
 status: awaiting-planner
@@ -219,7 +219,7 @@ updated: {ISO date}
 ```
 Task(
   subagent_type: "humaninloop:plan-architect",
-  prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-scaffold.md",
+  prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-context.md",
   description: "Create research document"
 )
 ```
@@ -234,7 +234,7 @@ If missing, report error and stop.
 
 ### 2.5 Advocate Review
 
-Update scaffold for advocate:
+Update context for advocate:
 
 ```markdown
 **Phase**: Research Review
@@ -264,7 +264,7 @@ Invoke advocate:
 ```
 Task(
   subagent_type: "humaninloop:devils-advocate",
-  prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-scaffold.md",
+  prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-context.md",
   description: "Review research document"
 )
 ```
@@ -279,7 +279,7 @@ Read advocate report and extract verdict.
 
 **If verdict is `needs-revision` or `critical-gaps`**:
 - Present clarifications to user (see Clarification Loop)
-- Update scaffold with answers
+- Update context with answers
 - Increment iteration
 - Loop back to 2.3
 
@@ -289,7 +289,7 @@ Read advocate report and extract verdict.
 
 ### 3.1 Set Supervisor Instructions for Planner
 
-Update `{{supervisor_instructions}}` in plan-scaffold.md:
+Update `{{supervisor_instructions}}` in plan-context.md:
 
 ```markdown
 **Phase**: Data Model
@@ -312,7 +312,7 @@ Create data model document extracting entities, relationships, and validation ru
 **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/planner-report-template.md`
 ```
 
-### 3.2 Update Scaffold Status
+### 3.2 Update Context Status
 
 ```yaml
 phase: datamodel
@@ -326,7 +326,7 @@ updated: {ISO date}
 ```
 Task(
   subagent_type: "humaninloop:plan-architect",
-  prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-scaffold.md",
+  prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-context.md",
   description: "Create data model"
 )
 ```
@@ -337,7 +337,7 @@ Confirm: `specs/{feature-id}/data-model.md`
 
 ### 3.5 Advocate Review (Cumulative)
 
-Update scaffold for advocate:
+Update context for advocate:
 
 ```markdown
 **Phase**: Data Model Review
@@ -372,7 +372,7 @@ Invoke advocate and route based on verdict (same as Phase 2).
 
 ### 4.1 Set Supervisor Instructions for Planner
 
-Update `{{supervisor_instructions}}` in plan-scaffold.md:
+Update `{{supervisor_instructions}}` in plan-context.md:
 
 ```markdown
 **Phase**: Contracts
@@ -397,7 +397,7 @@ Create API contracts and integration guide.
 **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/planner-report-template.md`
 ```
 
-### 4.2 Update Scaffold Status
+### 4.2 Update Context Status
 
 ```yaml
 phase: contracts
@@ -411,7 +411,7 @@ updated: {ISO date}
 ```
 Task(
   subagent_type: "humaninloop:plan-architect",
-  prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-scaffold.md",
+  prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-context.md",
   description: "Create API contracts"
 )
 ```
@@ -424,7 +424,7 @@ Confirm:
 
 ### 4.5 Advocate Review (Cumulative)
 
-Update scaffold for advocate:
+Update context for advocate:
 
 ```markdown
 **Phase**: Contracts Review
@@ -478,7 +478,7 @@ When advocate verdict is `needs-revision` or `critical-gaps`:
    )
    ```
 
-2. **Update scaffold with user answers**:
+2. **Update context with user answers**:
    Append to `## Clarification Log`:
    ```markdown
    ### Phase: {phase} - Iteration {N}
@@ -508,7 +508,7 @@ When advocate verdict is `needs-revision` or `critical-gaps`:
    - Report: `specs/{feature-id}/.workflow/planner-report.md`
    ```
 
-4. **Increment iteration** in scaffold frontmatter
+4. **Increment iteration** in context frontmatter
 
 5. **Loop back to Planner invocation**
 
@@ -603,7 +603,7 @@ Run `/humaninloop:tasks` to generate implementation tasks from this plan.
 
 ### 5.2 Update Final Status
 
-Update plan-scaffold.md frontmatter:
+Update plan-context.md frontmatter:
 ```yaml
 phase: completed
 status: completed
@@ -694,6 +694,6 @@ Resume logic based on `phase` and `status` fields:
 - Do NOT modify git config or push to remote
 - Use judgment for iteration limits (no hard caps)
 - Always use Task tool to invoke agents
-- Agents have NO workflow knowledge—all context via scaffold
+- Agents have NO workflow knowledge—all context via context file
 - Supervisor owns ALL routing and state decisions
 - Advocate reviews are cumulative (check against all previous artifacts)

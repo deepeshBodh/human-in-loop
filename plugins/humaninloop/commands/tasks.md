@@ -502,7 +502,7 @@ Compile the full chain in index.md:
 ```markdown
 | Workflow | Status | Timestamp | Last Agent | Context File |
 |----------|--------|-----------|------------|--------------|
-| specify | completed | {timestamp} | supervisor | specify-context.md |
+| specify | completed | {timestamp} | supervisor | context.md |
 | plan | completed | {timestamp} | supervisor | plan-context.md |
 | tasks | completed | {timestamp} | supervisor | tasks-context.md |
 ```

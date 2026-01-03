@@ -32,7 +32,7 @@ Each agent file in `agents/` must have valid YAML frontmatter:
 
 ```yaml
 ---
-name: agent-name           # REQUIRED: must match filename (e.g., scaffold-agent.md → scaffold-agent)
+name: agent-name           # REQUIRED: must match filename (e.g., plan-architect.md → plan-architect)
 description: ...           # REQUIRED: multi-line with examples for Task tool invocation
 model: opus|sonnet|haiku   # Optional: model override
 color: green|cyan|...      # Optional: visual indicator
@@ -360,7 +360,7 @@ grep -rE "specs/(completed|in-progress|planned)" plugins/ --include="*.md"
 
 **Fix pattern**: Replace internal references with self-contained explanations:
 - BAD: `This follows ADR-005 decoupled architecture`
-- GOOD: `This follows a decoupled architecture: create scaffold → invoke agent → finalize`
+- GOOD: `This follows a decoupled architecture: create context → invoke agent → finalize`
 
 ### 14. Release Notes Format Validation
 When preparing release, verify planned release notes follow RELEASES.md format:
@@ -587,7 +587,7 @@ Apply these standards during validation:
 This release manager is configured for the HumanInLoop Marketplace. Key facts:
 
 ### humaninloop Plugin (v0.2.6+)
-- **14 agents**: scaffold-agent, spec-writer, spec-clarify, checklist-context-analyzer, checklist-writer, gap-classifier, codebase-discovery, plan-research, plan-domain-model, plan-contract, plan-validator, task-planner, task-generator, task-validator
+- **5 agents**: requirements-analyst, devils-advocate, plan-architect, principal-architect, task-validator
 - **6 commands**: specify, plan, tasks, analyze, checklist, implement
 - **3 bundled skills**: authoring-requirements, authoring-user-stories, iterative-analysis
 - **6 check modules**: research-checks, model-checks, contract-checks, final-checks, mapping-checks, task-checks

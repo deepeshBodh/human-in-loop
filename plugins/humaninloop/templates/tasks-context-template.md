@@ -25,7 +25,7 @@
 - **Spec**: [spec.md](../spec.md)
 - **Plan**: [plan.md](../plan.md)
 - **Tasks**: [tasks.md](../tasks.md)
-- **Other Contexts**: [specify](./specify-context.md) | [checklist](./checklist-context.md) | [plan](./plan-context.md)
+- **Other Contexts**: [specify](./context.md) | [checklist](./checklist-context.md) | [plan](./plan-context.md)
 
 ---
 

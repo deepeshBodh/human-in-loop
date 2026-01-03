@@ -71,7 +71,7 @@ Skills now follow category-based naming:
 - **New command**: `/humaninloop:setup` - Initialize project constitution (previously `/humaninloop-constitution:setup`)
 - **New agent**: `principal-architect` - Senior technical leader for governance judgment
 - **New skills**: `authoring-constitution`, `analyzing-project-context`, `syncing-claude-md`
-- **New templates**: `constitution-template.md`, `constitution-scaffold-template.md`
+- **New templates**: `constitution-template.md`, `constitution-context-template.md`
 
 #### Migration Guide
 1. If you had `humaninloop-constitution` installed separately, uninstall it
@@ -91,7 +91,7 @@ Skills now follow category-based naming:
 - **Specify workflow redesigned** - Replaced 6-agent Priority Loop architecture with streamlined 2-agent Supervisor pattern
   - Old architecture (removed): Scaffold Agent → Spec Writer → Checklist Context Analyzer → Checklist Writer → Gap Classifier → Spec Clarify
   - New architecture: Requirements Analyst ↔ Devil's Advocate (supervised loop)
-- **Workflow artifacts changed** - New structure uses `scaffold.md`, `analyst-report.md`, `advocate-report.md` instead of `index.md`, `specify-context.md`, and checklist files
+- **Workflow artifacts changed** - New structure uses `context.md`, `analyst-report.md`, `advocate-report.md` instead of `index.md`, `specify-context.md`, and checklist files
 - **Constitution still required** - Pre-flight check remains; run `/humaninloop:setup` first
 
 #### New Agents
@@ -102,12 +102,12 @@ Skills now follow category-based naming:
 - **reviewing-specifications** - Review specs to find gaps and generate product-focused clarifying questions (not technical implementation questions)
 
 #### New Templates
-- `scaffold-template.md` - Scaffold for supervisor-agent communication
+- `context-template.md` - Context artifact for supervisor-agent communication
 - `analyst-report-template.md` - Report format for requirements analyst output
 - `advocate-report-template.md` - Report format for devil's advocate output
 
 #### Removed Agents
-- `scaffold-agent.md` - Replaced by inline scaffolding in supervisor
+- `scaffold-agent.md` - Replaced by inline context creation in supervisor
 - `spec-writer.md` - Replaced by requirements-analyst
 - `spec-clarify.md` - Clarification now handled in supervisor loop
 - `checklist-context-analyzer.md` - Checklist validation removed from specify
@@ -123,7 +123,7 @@ Skills now follow category-based naming:
 #### Migration Guide
 1. The `/humaninloop:checklist` command remains available for manual quality validation
 2. Existing specs in `specs/` directory remain compatible
-3. New specs will use the simpler `.workflow/` structure with scaffold and reports
+3. New specs will use the simpler `.workflow/` structure with context and reports
 4. No changes to `/humaninloop:plan`, `/humaninloop:tasks`, or other commands
 
 ---
@@ -152,7 +152,7 @@ New experimental plugin with decoupled agents architecture.
 #### New Plugin
 - **humaninloop-experiments** - Experimental sandbox for testing new agent patterns
   - Implements decoupled two-agent specify workflow
-  - Uses scaffold-based communication between agents
+  - Uses context-based communication between agents
   - Standalone plugin (does not require humaninloop)
 
 #### New Commands
