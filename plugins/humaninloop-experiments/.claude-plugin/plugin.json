@@ -1,0 +1,16 @@
+{
+  "name": "humaninloop-experiments",
+  "version": "0.1.0",
+  "description": "Experimental plugins following ADR-005 decoupled agents architecture",
+  "author": {
+    "name": "HumanInLoop",
+    "url": "https://humaninloop.dev"
+  },
+  "license": "MIT",
+  "keywords": ["experiments", "decoupled-agents", "artifact-chain", "ADR-005"],
+  "commands": "./commands/",
+  "agents": [
+    "./agents/experiment-runner.md"
+  ],
+  "skills": "./skills/"
+}

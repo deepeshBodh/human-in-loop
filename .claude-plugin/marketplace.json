@@ -17,6 +17,11 @@
       "name": "humaninloop-constitution",
       "source": "./plugins/humaninloop-constitution",
       "description": "Project constitution setup for HumanInLoop workflows"
+    },
+    {
+      "name": "humaninloop-experiments",
+      "source": "./plugins/humaninloop-experiments",
+      "description": "Experimental plugins following ADR-005 decoupled agents architecture"
     }
   ]
 }
