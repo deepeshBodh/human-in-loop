@@ -6,6 +6,33 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.7.0] - 2026-01-04
+
+**BREAKING CHANGE**: Consolidate checklist and analyze commands into unified audit command.
+
+### humaninloop 0.7.0
+
+#### Breaking Changes
+- **Commands consolidated** - `/humaninloop:checklist` and `/humaninloop:analyze` replaced by `/humaninloop:audit`
+  - Previous checklist functionality: `audit --review`
+  - Previous analyze functionality: `audit` (default mode)
+- **Template removed** - `checklist-template.md` no longer exists
+
+#### New Command
+- **/humaninloop:audit** - Comprehensive artifact analysis with two output modes
+  - Full mode (default): Deep diagnostics for authors/maintainers
+  - Review mode (`--review`): Scannable summary for peer reviewers
+  - Domain filters: `--security`, `--ux`, `--api`, `--performance`
+  - Phase-agnostic: works on whatever artifacts exist
+  - Leverages existing validation skills
+
+#### Migration Guide
+1. Replace `/humaninloop:checklist` with `/humaninloop:audit --review`
+2. Replace `/humaninloop:analyze` with `/humaninloop:audit`
+3. Domain filters work with both modes (e.g., `audit --review --security`)
+
+---
+
 ## [0.6.0] - 2026-01-04
 
 **BREAKING CHANGE**: Tasks workflow refactored to 2-agent pattern with vertical TDD slicing.
@@ -453,6 +480,7 @@ Initial marketplace scaffold.
 
 ---
 
+[0.7.0]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.7.0
 [0.6.0]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.6.0
 [0.5.0]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.5.0
 [0.4.0]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.4.0
