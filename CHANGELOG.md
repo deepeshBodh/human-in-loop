@@ -24,6 +24,25 @@ New authoring skills for specification writing and constitution decoupled archit
 - Added ADR-004: Skill-Augmented Agents Architecture
 - Added ADR-005: Decoupled Agents Architecture
 
+### humaninloop-experiments 0.1.0 (NEW)
+
+#### New Plugin
+- **humaninloop-experiments** - Experimental sandbox for testing new agent patterns
+  - Implements decoupled two-agent specify workflow
+  - Uses scaffold-based communication between agents
+
+#### New Commands
+- `/humaninloop-experiments:specify` - Create specifications using Requirements Analyst + Devil's Advocate pattern
+
+#### New Agents
+- `requirements-analyst` - Transforms vague requests into precise specifications
+- `devils-advocate` - Adversarial reviewer who stress-tests specs and finds gaps
+
+#### New Skills
+- `authoring-requirements` - Write functional requirements (shared with humaninloop)
+- `authoring-user-stories` - Write user stories (shared with humaninloop)
+- `reviewing-specifications` - Review specs and find gaps, ambiguities, and missing scenarios
+
 ### humaninloop-constitution 1.2.0
 
 #### Architecture
@@ -222,7 +241,6 @@ Initial marketplace scaffold.
 [0.2.7]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.7
 [0.2.6]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.6
 [0.2.5]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.5
-[0.2.4]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.4
 [0.2.3]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.3
 [0.2.2]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.2
 [0.2.1]: https://github.com/deepeshBodh/human-in-loop-marketplace/releases/tag/v0.2.1

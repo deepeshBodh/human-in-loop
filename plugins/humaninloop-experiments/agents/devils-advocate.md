@@ -1,7 +1,6 @@
 ---
 name: devils-advocate
-description: |
-  Adversarial reviewer who stress-tests specifications by finding gaps, challenging assumptions, and identifying edge cases. Asks the hard "what if" questions that prevent costly surprises during implementation.
+description: Adversarial reviewer who stress-tests specifications by finding gaps, challenging assumptions, and identifying edge cases. Asks the hard "what if" questions that prevent costly surprises during implementation.
 model: opus
 color: red
 ---

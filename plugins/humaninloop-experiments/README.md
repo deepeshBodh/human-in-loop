@@ -1,8 +1,8 @@
 # HumanInLoop Experiments Plugin
 
-Experimental plugins following the ADR-005 decoupled agents architecture. This plugin serves as a sandbox for testing new agent patterns before promoting them to production plugins.
+Experimental sandbox for testing new agent patterns with decoupled architecture. This plugin serves as a testing ground before promoting patterns to production plugins.
 
-## Architecture (ADR-005)
+## Decoupled Agents Architecture
 
 This plugin implements the **Decoupled Agents Architecture**:
 
@@ -55,6 +55,8 @@ specs/{feature-id}/
 ```bash
 /plugin install humaninloop-experiments
 ```
+
+> **Note**: This plugin is **standalone** and does not require the main `humaninloop` plugin. Skills like `authoring-requirements` and `authoring-user-stories` are intentionally duplicated to allow independent experimentation.
 
 ## Usage
 

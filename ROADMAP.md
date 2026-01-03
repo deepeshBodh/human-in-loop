@@ -22,6 +22,7 @@ The marketplace is in active development. The core specify → plan → tasks wo
 - `/humaninloop:checklist` - Generate implementation checklists
 - `/humaninloop:implement` - Execute implementation with tracking
 - `/humaninloop-constitution:setup` - Initialize project constitution **(v1.2.0)**
+- `/humaninloop-experiments:specify` - Create specifications using decoupled two-agent pattern **(experimental, v0.1.0)**
 
 **Skills** (auto-invoked by Claude):
 - `authoring-requirements` - Write functional requirements using FR-XXX format with RFC 2119 keywords
@@ -30,6 +31,7 @@ The marketplace is in active development. The core specify → plan → tasks wo
 - `authoring-constitution` - Write enforceable constitution content with Enforcement/Testability/Rationale
 - `analyzing-project-context` - Infer project characteristics from codebase for constitution authoring
 - `syncing-claude-md` - Ensure CLAUDE.md mirrors constitution sections per sync mapping
+- `reviewing-specifications` - Review specs and find gaps (humaninloop-experiments)
 
 ---
 

@@ -12,7 +12,28 @@ You are the **Supervisor** orchestrating a two-agent specification workflow. You
 $ARGUMENTS
 ```
 
-If `$ARGUMENTS` is empty, check for resume state first, then ask for a feature description.
+If `$ARGUMENTS` is empty or appears literally, check for resume state first, then ask for a feature description.
+
+### Empty Input Check
+
+If `$ARGUMENTS` is empty (blank string with no content), use AskUserQuestion to handle a known Claude Code bug where inputs containing `@` file references don't reach plugin commands:
+
+```
+AskUserQuestion(
+  questions: [{
+    question: "⚠️ Known Issue: Input may have been lost\n\nClaude Code has a bug where inputs containing @ file references don't reach plugin commands.\n\nWould you like to re-enter your input?",
+    header: "Input",
+    options: [
+      {label: "Re-enter input", description: "I'll type my input in the terminal"},
+      {label: "Continue without input", description: "Proceed with no input provided"}
+    ],
+    multiSelect: false
+  }]
+)
+```
+
+- If user selects "Re-enter input" → wait for user to type their input in the terminal, then use that as the effective `$ARGUMENTS`
+- If user selects "Continue without input" → proceed with empty input (check resume state, then ask for feature description)
 
 ---
 

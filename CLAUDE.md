@@ -143,6 +143,7 @@ human-in-loop-marketplace/
 |--------|-------------|----------|--------|
 | `humaninloop` | Specification-driven development workflow | `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:analyze`, `/humaninloop:checklist`, `/humaninloop:implement` | `authoring-requirements`, `authoring-user-stories`, `iterative-analysis` |
 | `humaninloop-constitution` | Project constitution setup with enforceable governance | `/humaninloop-constitution:setup` | `authoring-constitution`, `analyzing-project-context`, `syncing-claude-md` |
+| `humaninloop-experiments` | Experimental sandbox for new agent patterns | `/humaninloop-experiments:specify` | `authoring-requirements`, `authoring-user-stories`, `reviewing-specifications` |
 
 ## Common Commands
 

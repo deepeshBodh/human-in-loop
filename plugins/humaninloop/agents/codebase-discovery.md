@@ -1,27 +1,6 @@
 ---
 name: codebase-discovery
-description: |
-  Use this agent to analyze an existing codebase and create a structured inventory for brownfield support. This agent scans for existing entities, endpoints, features, and vocabulary, then assesses collision risks against the feature specification.
-
-  Invoke this agent during Phase A0 of the plan workflow (before research begins) to provide codebase context for downstream planning agents.
-
-  **Examples:**
-
-  <example>
-  Context: Starting plan workflow for a feature in an existing codebase
-  prompt: "Discover codebase for feature 005-user-auth. Spec proposes User and Session entities."
-  <commentary>
-  The plan workflow is starting Phase A0. Use the codebase-discovery agent to scan for existing entities, endpoints, and patterns before research begins.
-  </commentary>
-  </example>
-
-  <example>
-  Context: Need to understand existing codebase before planning
-  prompt: "Analyze codebase for brownfield context. Feature: Add OAuth authentication."
-  <commentary>
-  Before planning a new feature, discover what already exists to avoid collisions and leverage existing components.
-  </commentary>
-  </example>
+description: Use this agent to analyze an existing codebase and create a structured inventory for brownfield support. This agent scans for existing entities, endpoints, features, and vocabulary, then assesses collision risks against the feature specification. Invoke this agent during Phase A0 of the plan workflow (before research begins) to provide codebase context for downstream planning agents.
 model: sonnet
 color: cyan
 ---
