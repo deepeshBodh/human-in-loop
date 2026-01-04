@@ -89,7 +89,8 @@ Before starting, verify the specification workflow is complete:
 
 1. **Identify the feature directory**:
    - If `$ARGUMENTS` specifies a feature ID: use that
-   - Otherwise: Detect from current git branch or find most recent spec
+   - Otherwise: Detect from current git branch (branch name = feature ID, e.g., `001-user-auth`)
+   - Fallback: Find most recent spec in `specs/` by highest numeric prefix
 
 2. **Check for spec.md**: Read `specs/{feature-id}/spec.md`
    - If NOT found: Block and tell user to run `/humaninloop:specify` first

@@ -64,11 +64,16 @@ Create a feature specification with integrated quality validation.
 ```
 
 **Workflow:**
-1. Create feature directory (e.g., `specs/001-user-auth/`)
-2. Requirements Analyst generates structured specification
-3. Devil's Advocate reviews and finds gaps
-4. User answers clarifying questions
-5. Loop until specification is ready or user accepts
+1. Generate short name from description (2-4 words, e.g., `user-auth`)
+2. Create feature branch and directory using `create-new-feature.sh` script
+3. Requirements Analyst generates structured specification
+4. Devil's Advocate reviews and finds gaps
+5. User answers clarifying questions
+6. Loop until specification is ready or user accepts
+
+**Branch Format:** `###-short-name` (e.g., `001-user-auth`)
+- Branch name = spec directory name = feature ID
+- Number auto-increments based on existing branches and specs
 
 ### `/humaninloop:plan`
 

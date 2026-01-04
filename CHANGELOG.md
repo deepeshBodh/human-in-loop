@@ -6,6 +6,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.7.3] - 2026-01-04
+
+Branch creation standardization and cross-command consistency.
+
+### humaninloop 0.7.3
+
+#### Changed
+- **Specify command uses script-based branch creation** - Now uses `create-new-feature.sh` script matching speckit pattern
+  - Fetches remote branches before creating new ones
+  - Checks local branches, remote branches, AND specs directories for number conflicts
+  - Branch format: `###-short-name` (e.g., `001-user-auth`) - no `feat/` prefix
+  - Generates concise 2-4 word short names from feature descriptions
+- **Consistent feature detection across commands** - Plan and tasks commands now explicitly document that branch name = feature ID
+  - Detection order: explicit argument → current git branch → most recent spec by numeric prefix
+
+#### Fixed
+- **Branch/spec directory mismatch** - Previously specify.md didn't create branches, but plan.md expected to detect features from branches. Now both are aligned.
+
+---
+
 ## [0.7.2] - 2026-01-04
 
 Implement command overhaul and documentation completion.
