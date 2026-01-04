@@ -85,16 +85,21 @@ check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
 # If paths-only mode, output paths and exit (support JSON + paths-only combined)
 if $PATHS_ONLY; then
     if $JSON_MODE; then
-        # Minimal JSON paths payload (no validation performed)
-        printf '{"REPO_ROOT":"%s","BRANCH":"%s","FEATURE_DIR":"%s","FEATURE_SPEC":"%s","IMPL_PLAN":"%s","TASKS":"%s"}\n' \
-            "$REPO_ROOT" "$CURRENT_BRANCH" "$FEATURE_DIR" "$FEATURE_SPEC" "$IMPL_PLAN" "$TASKS"
+        # Full JSON paths payload (no validation performed)
+        printf '{"REPO_ROOT":"%s","BRANCH":"%s","FEATURE_DIR":"%s","FEATURE_SPEC":"%s","IMPL_PLAN":"%s","TASK_MAPPING":"%s","TASKS":"%s","RESEARCH":"%s","DATA_MODEL":"%s","QUICKSTART":"%s","CONTRACTS_DIR":"%s"}\n' \
+            "$REPO_ROOT" "$CURRENT_BRANCH" "$FEATURE_DIR" "$FEATURE_SPEC" "$IMPL_PLAN" "$TASK_MAPPING" "$TASKS" "$RESEARCH" "$DATA_MODEL" "$QUICKSTART" "$CONTRACTS_DIR"
     else
         echo "REPO_ROOT: $REPO_ROOT"
         echo "BRANCH: $CURRENT_BRANCH"
         echo "FEATURE_DIR: $FEATURE_DIR"
         echo "FEATURE_SPEC: $FEATURE_SPEC"
         echo "IMPL_PLAN: $IMPL_PLAN"
+        echo "TASK_MAPPING: $TASK_MAPPING"
         echo "TASKS: $TASKS"
+        echo "RESEARCH: $RESEARCH"
+        echo "DATA_MODEL: $DATA_MODEL"
+        echo "QUICKSTART: $QUICKSTART"
+        echo "CONTRACTS_DIR: $CONTRACTS_DIR"
     fi
     exit 0
 fi
@@ -122,7 +127,12 @@ fi
 # Build list of available documents
 docs=()
 
-# Always check these optional docs
+# Core workflow documents (always include if they exist)
+[[ -f "$FEATURE_SPEC" ]] && docs+=("spec.md")
+[[ -f "$IMPL_PLAN" ]] && docs+=("plan.md")
+[[ -f "$TASK_MAPPING" ]] && docs+=("task-mapping.md")
+
+# Supplementary planning documents
 [[ -f "$RESEARCH" ]] && docs+=("research.md")
 [[ -f "$DATA_MODEL" ]] && docs+=("data-model.md")
 
@@ -154,7 +164,12 @@ else
     echo "FEATURE_DIR:$FEATURE_DIR"
     echo "AVAILABLE_DOCS:"
 
-    # Show status of each potential document
+    # Core workflow documents
+    check_file "$FEATURE_SPEC" "spec.md"
+    check_file "$IMPL_PLAN" "plan.md"
+    check_file "$TASK_MAPPING" "task-mapping.md"
+
+    # Supplementary planning documents
     check_file "$RESEARCH" "research.md"
     check_file "$DATA_MODEL" "data-model.md"
     check_dir "$CONTRACTS_DIR" "contracts/"

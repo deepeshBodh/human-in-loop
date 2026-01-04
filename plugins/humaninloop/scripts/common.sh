@@ -81,8 +81,6 @@ check_feature_branch() {
     return 0
 }
 
-get_feature_dir() { echo "$1/specs/$2"; }
-
 # Find feature directory by numeric prefix instead of exact branch match
 # This allows multiple branches to work on the same spec (e.g., 004-fix-bug, 004-add-feature)
 find_feature_dir_by_prefix() {
@@ -143,6 +141,7 @@ HAS_GIT='$has_git_repo'
 FEATURE_DIR='$feature_dir'
 FEATURE_SPEC='$feature_dir/spec.md'
 IMPL_PLAN='$feature_dir/plan.md'
+TASK_MAPPING='$feature_dir/task-mapping.md'
 TASKS='$feature_dir/tasks.md'
 RESEARCH='$feature_dir/research.md'
 DATA_MODEL='$feature_dir/data-model.md'

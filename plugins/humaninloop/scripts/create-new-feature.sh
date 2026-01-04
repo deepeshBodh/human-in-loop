@@ -71,7 +71,8 @@ fi
 find_repo_root() {
     local dir="$1"
     while [ "$dir" != "/" ]; do
-        if [ -d "$dir/.git" ] || [ -d "$dir/.humaninloop" ]; then
+        # Check for git, .humaninloop (legacy), or specs directory as project markers
+        if [ -d "$dir/.git" ] || [ -d "$dir/.humaninloop" ] || [ -d "$dir/specs" ]; then
             echo "$dir"
             return 0
         fi
@@ -280,9 +281,12 @@ fi
 FEATURE_DIR="$SPECS_DIR/$BRANCH_NAME"
 mkdir -p "$FEATURE_DIR"
 
-# Use plugin template path if CLAUDE_PLUGIN_ROOT is set, otherwise fall back to .humaninloop
+# Use plugin template path (check CLAUDE_PLUGIN_ROOT, then script location, then fallback)
+PLUGIN_ROOT="$(dirname "$SCRIPT_DIR")"
 if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
     TEMPLATE="$CLAUDE_PLUGIN_ROOT/templates/spec-template.md"
+elif [ -f "$PLUGIN_ROOT/templates/spec-template.md" ]; then
+    TEMPLATE="$PLUGIN_ROOT/templates/spec-template.md"
 else
     TEMPLATE="$REPO_ROOT/.humaninloop/templates/spec-template.md"
 fi
