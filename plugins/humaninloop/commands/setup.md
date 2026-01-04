@@ -149,6 +149,11 @@ Parse agent's structured prose output:
    - If new: `docs: create constitution v1.0.0`
    - If amended: `docs: update constitution to v[X.Y.Z]`
 
+3. **Cleanup prompt**
+   - Ask user: "Would you like to delete the context file (`$CONTEXT_FILE`) used during this setup?"
+   - If yes: `rm $CONTEXT_FILE`
+   - If no: Inform user the file is retained for reference
+
 ---
 
 ## Supervisor Behaviors
