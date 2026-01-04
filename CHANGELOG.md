@@ -6,6 +6,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.7.2] - 2026-01-04
+
+Implement command overhaul and documentation completion.
+
+### humaninloop 0.7.2
+
+#### Changed
+- **Implement command refactored** - Overhauled with cycle-based TDD execution model
+  - Entry gate verification (tasks workflow must complete first)
+  - Foundation cycles execute sequentially, feature cycles can parallelize
+  - TDD discipline: each cycle starts with failing test
+  - Checkpoint verification between cycles
+  - Quality gates (lint, build, tests) after each cycle
+- **Removed risky git commands** - Implement command no longer runs `git diff` or `git checkout`; version control left to user
+
+#### Documentation
+- **Plugin README completed** - Added missing `/humaninloop:implement` command documentation
+
+---
+
 ## [0.7.1] - 2026-01-04
 
 Repository rename and cleanup release.
