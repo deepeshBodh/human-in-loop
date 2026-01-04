@@ -110,6 +110,33 @@ Generate implementation tasks from an existing plan.
 - **Foundation + parallel**: Sequential foundation cycles, then parallel feature cycles
 - **Brownfield markers**: `[EXTEND]`, `[MODIFY]` for existing code
 
+### `/humaninloop:implement`
+
+Execute the implementation plan by processing all tasks defined in tasks.md.
+
+```
+/humaninloop:implement
+```
+
+**Requires:** `tasks.md` to exist (run tasks workflow first)
+
+**Workflow:**
+1. **Entry Gate**: Verify tasks workflow completed successfully
+2. **Project Setup**: Create/verify ignore files for tech stack
+3. **Parse Structure**: Extract cycles, tasks, dependencies from tasks.md
+4. **Execute Foundation**: Complete foundation cycles sequentially (C1 → C2 → C3)
+5. **Execute Features**: Run feature cycles (parallel where marked `[P]`)
+6. **Verify Checkpoints**: Validate each cycle's checkpoint criteria
+7. **Quality Gates**: Run lint, build, tests after each cycle
+
+**Features:**
+- **Cycle-based execution**: Foundation cycles sequential, feature cycles can parallelize
+- **TDD discipline**: Each cycle starts with failing test (TN.1), then implements
+- **Checkpoint verification**: Validates done criteria between cycles
+- **Brownfield support**: Handles `[EXTEND]` and `[MODIFY]` markers
+- **Progress tracking**: Marks tasks complete (`[x]`) in tasks.md
+- **User-controlled git**: Does not run git commands - leaves version control to user
+
 ## Workflow Architecture
 
 ### Setup Workflow Agent
