@@ -1,95 +1,141 @@
-# HumanInLoop Claude Code Plugin Marketplace
+<p align="center">
+  <a href="https://humaninloop.dev">
+    <img src="docs/images/hero.png" alt="HumanInLoop - Plan with humans. Build with AI. Ship sustainably." width="800">
+  </a>
+</p>
 
-Official Claude Code plugin marketplace for [HumanInLoop](https://humaninloop.dev).
+<p align="center">
+  <strong>Stop vibe coding. Ship software that lasts.</strong>
+</p>
+
+<p align="center">
+  <a href="https://humaninloop.dev">Website</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="./ROADMAP.md">Roadmap</a> •
+  <a href="./CHANGELOG.md">Changelog</a>
+</p>
+
+---
+
+## What is HumanInLoop?
+
+HumanInLoop is a Claude Code plugin that enforces **specification-driven development**—ensuring architectural decisions are made by humans before AI writes code.
+
+Instead of letting AI improvise your architecture, you guide it through a structured workflow:
+
+```
+Idea → Specification → Plan → Tasks → Implementation
+```
+
+Every step produces artifacts you can review, refine, and approve before moving forward.
+
+---
 
 ## Quick Start
 
-### Add the Marketplace
+### 1. Add the marketplace
 
 ```bash
 /plugin marketplace add deepeshBodh/human-in-loop
 ```
 
-### Install Plugins
+### 2. Install the plugin
 
 ```bash
-# Install humaninloop plugin
 /plugin install humaninloop
+```
 
-# Set up your project constitution (first-time setup)
+### 3. Set up your project
+
+```bash
 /humaninloop:setup
 ```
 
-### Browse Installed Plugins
+This creates your project constitution—the standards and conventions that guide all future specifications.
+
+### 4. Create your first spec
 
 ```bash
-/plugin
+/humaninloop:specify add user authentication with email and password
 ```
 
-## Available Plugins
+---
 
-| Plugin | Description | Commands |
-|--------|-------------|----------|
-| [humaninloop](./plugins/humaninloop) | Specification-driven development workflow: setup → specify → plan → tasks → implement | `/humaninloop:setup`, `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:audit`, `/humaninloop:implement` |
+## The Workflow
 
-### humaninloop
+| Stage | Command | What You Get |
+|-------|---------|--------------|
+| **Setup** | `/humaninloop:setup` | Project constitution with your standards |
+| **Specify** | `/humaninloop:specify` | Structured spec with user stories and requirements |
+| **Plan** | `/humaninloop:plan` | Implementation plan with data models and contracts |
+| **Tasks** | `/humaninloop:tasks` | Ordered task list with TDD cycles |
+| **Audit** | `/humaninloop:audit` | Quality analysis across all artifacts |
+| **Implement** | `/humaninloop:implement` | Guided implementation with progress tracking |
 
-Multi-agent specification-driven development workflow with integrated quality validation and project constitution management.
+Each command produces artifacts you review before the next step. You stay in control.
 
-**Agents:** 5 specialized agents for spec writing, validation, planning, and task generation
-**Commands:** `/humaninloop:setup`, `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:audit`, `/humaninloop:implement`
-**Skills:** 13 model-invoked skills for authoring, analysis, patterns, and validation
+---
 
-#### Skills (13 total)
+## What's Included
 
-See [plugin README](./plugins/humaninloop/README.md) for the full list. Key skills include:
+### 6 Commands
+The full specify → plan → tasks → implement lifecycle.
 
-| Category | Skills |
-|----------|--------|
-| Authoring | `authoring-requirements`, `authoring-user-stories`, `authoring-constitution` |
-| Analysis | `analysis-codebase`, `analysis-iterative`, `analysis-specifications` |
-| Patterns | `patterns-api-contracts`, `patterns-entity-modeling`, `patterns-technical-decisions`, `patterns-vertical-tdd` |
-| Validation | `validation-plan-artifacts`, `validation-task-artifacts` |
-| Utilities | `syncing-claude-md` |
+### 13 Skills
+Claude automatically invokes these when relevant—authoring requirements, analyzing codebases, designing APIs, and more.
 
-## Contributing
+### 5 Specialized Agents
+Focused responsibilities: requirements analyst, devil's advocate, plan architect, principal architect, task architect.
 
-Want to add your plugin to the marketplace? See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+See the [plugin documentation](./plugins/humaninloop/README.md) for full details.
+
+---
 
 ## Documentation
 
-- [Claude Code Plugin Documentation](./docs/claude-plugin-documentation.md) - Complete technical reference for building plugins
-- [Changelog](./CHANGELOG.md) - Release history
-- [Roadmap](./ROADMAP.md) - Vision and planned features
-- [Architecture Decisions](./docs/decisions/) - ADRs explaining key technical choices
-- [Release Philosophy](./RELEASES.md) - Versioning strategy and release guidelines
+| Resource | Description |
+|----------|-------------|
+| [Roadmap](./ROADMAP.md) | Vision and planned features |
+| [Changelog](./CHANGELOG.md) | Release history |
+| [Plugin README](./plugins/humaninloop/README.md) | Detailed command and skill reference |
 
-## Repository Structure
+---
+
+## For Plugin Developers
+
+This repository serves as a reference implementation for Claude Code plugins. If you're building your own plugins, you can learn from:
+
+### Repository Structure
 
 ```
 human-in-loop/
-├── .claude-plugin/
-│   └── marketplace.json           # Marketplace manifest
-├── plugins/
-│   ├── humaninloop/               # Main workflow plugin
-│   │   ├── agents/                # 5 specialized workflow agents
-│   │   ├── commands/              # setup, specify, plan, tasks, audit, implement
-│   │   ├── skills/                # 13 model-invoked skills
-│   │   ├── scripts/               # Shell utilities
-│   │   └── templates/             # Workflow templates
-├── specs/                         # Feature specifications
-│   ├── completed/                 # Shipped features
-│   ├── in-progress/               # Currently implementing
-│   └── planned/                   # Future features
+├── plugins/humaninloop/
+│   ├── .claude-plugin/plugin.json   # Plugin manifest
+│   ├── commands/                     # Slash command definitions
+│   ├── agents/                       # Specialized agent definitions
+│   ├── skills/                       # Model-invoked skills
+│   ├── templates/                    # Workflow templates
+│   └── scripts/                      # Shell utilities
 ├── docs/
-│   ├── decisions/                 # Architecture Decision Records
-│   └── claude-plugin-documentation.md
-├── CHANGELOG.md                   # Release history
-├── ROADMAP.md                     # Vision and planned features
-├── RELEASES.md                    # Release philosophy
-├── CONTRIBUTING.md
-└── LICENSE
+│   ├── decisions/                    # Architecture Decision Records
+│   ├── claude-plugin-documentation.md
+│   └── agent-skills-documentation.md
+└── specs/                            # Feature specifications (dogfooding)
 ```
+
+### Key Resources
+
+- [Claude Code Plugin Documentation](./docs/claude-plugin-documentation.md) - Complete technical reference
+- [Agent Skills Documentation](./docs/agent-skills-documentation.md) - How skills work
+- [Architecture Decisions](./docs/decisions/) - ADRs explaining design choices
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+---
 
 ## License
 
