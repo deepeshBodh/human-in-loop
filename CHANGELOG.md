@@ -6,6 +6,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.7.4] - 2026-01-05
+
+Script bug fixes discovered during dogfooding.
+
+### humaninloop 0.7.4
+
+#### Fixed
+- **check-prerequisites.sh** - `AVAILABLE_DOCS` now includes `spec.md`, `plan.md`, `task-mapping.md` (were silently omitted)
+- **check-prerequisites.sh** - `--paths-only` output now includes all 11 path variables (was missing 5)
+- **common.sh** - Added `TASK_MAPPING` variable definition
+- **setup-plan.sh** - Added `--force` flag to prevent accidental `plan.md` overwrites
+- **setup-plan.sh** - Fixed confusing output naming (`SPECS_DIR` → `FEATURE_DIR`)
+- **create-new-feature.sh** - Added `specs/` directory as project marker for non-git repos
+- **create-new-feature.sh** - Improved template lookup to check plugin directory before fallback
+
+#### Removed
+- **common.sh** - Removed unused `get_feature_dir()` function (dead code)
+
+---
+
 ## [0.7.3] - 2026-01-04
 
 Branch creation standardization and cross-command consistency.
@@ -540,6 +560,9 @@ Initial marketplace scaffold.
 
 ---
 
+[0.7.4]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.4
+[0.7.3]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.3
+[0.7.2]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.2
 [0.7.1]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.1
 [0.7.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.0
 [0.6.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.6.0
