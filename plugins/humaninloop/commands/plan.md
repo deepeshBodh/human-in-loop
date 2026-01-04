@@ -219,7 +219,34 @@ updated: {ISO date}
 ```
 Task(
   subagent_type: "humaninloop:plan-architect",
-  prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-context.md",
+  prompt: """
+**Capability**: Research Analysis
+
+**Context**:
+- Spec: `specs/{feature-id}/spec.md`
+- Constitution: `.humaninloop/memory/constitution.md`
+{If brownfield: include codebase context from analysis-codebase skill}
+
+**Read these files** before producing output.
+
+**Write**:
+- Research document: `specs/{feature-id}/research.md`
+- Report: `specs/{feature-id}/.workflow/planner-report.md`
+
+**Report format**:
+Use the template at `${CLAUDE_PLUGIN_ROOT}/templates/planner-report-template.md`
+
+**Instructions**:
+Analyze the specification for technical unknowns. For each unknown:
+1. Evaluate 2+ alternatives
+2. Document rationale explaining WHY
+3. Check alignment with constitution principles
+
+Use the `patterns-technical-decisions` skill for ADR format guidance.
+{If brownfield: Use `analysis-codebase` skill first to understand existing patterns.}
+
+{If clarification_log not empty: Include previous clarifications and user answers here}
+""",
   description: "Create research document"
 )
 ```
@@ -264,7 +291,28 @@ Invoke advocate:
 ```
 Task(
   subagent_type: "humaninloop:devils-advocate",
-  prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-context.md",
+  prompt: """
+**Capability**: Plan Artifact Review
+
+**Context**:
+- Spec: `specs/{feature-id}/spec.md`
+- Research: `specs/{feature-id}/research.md`
+- Planner report: `specs/{feature-id}/.workflow/planner-report.md`
+
+**Read these files** before producing output.
+
+**Write**:
+- Report: `specs/{feature-id}/.workflow/advocate-report.md`
+
+**Report format**:
+Use the template at `${CLAUDE_PLUGIN_ROOT}/templates/advocate-report-template.md`
+
+**Instructions**:
+Review the research document for gaps and quality.
+Use the `validation-plan-artifacts` skill with phase: research.
+
+Produce a verdict: `ready`, `needs-revision`, or `critical-gaps`.
+""",
   description: "Review research document"
 )
 ```
@@ -326,7 +374,38 @@ updated: {ISO date}
 ```
 Task(
   subagent_type: "humaninloop:plan-architect",
-  prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-context.md",
+  prompt: """
+**Capability**: Data Model Design
+
+**Context**:
+- Spec: `specs/{feature-id}/spec.md`
+- Research: `specs/{feature-id}/research.md`
+- Constitution: `.humaninloop/memory/constitution.md`
+{If brownfield: include existing entity inventory from analysis-codebase skill}
+
+**Read these files** before producing output.
+
+**Write**:
+- Data Model: `specs/{feature-id}/data-model.md`
+- Report: `specs/{feature-id}/.workflow/planner-report.md`
+
+**Report format**:
+Use the template at `${CLAUDE_PLUGIN_ROOT}/templates/planner-report-template.md`
+
+**Instructions**:
+Extract entities, relationships, and validation rules from spec + research.
+1. Identify entities from requirement nouns
+2. Define attributes with types and constraints
+3. Document relationships with cardinality
+4. Model state machines for stateful entities
+5. Mark PII fields
+6. Add brownfield markers: [NEW], [EXTENDS EXISTING], [REUSES EXISTING]
+
+Use the `patterns-entity-modeling` skill for guidance.
+{If brownfield: Use `analysis-codebase` skill to check for existing entities.}
+
+{If clarification_log not empty: Include previous clarifications and user answers here}
+""",
   description: "Create data model"
 )
 ```
@@ -362,7 +441,43 @@ Review the data model for completeness and consistency with spec + research.
 - Consistency with research decisions
 ```
 
-Invoke advocate and route based on verdict (same as Phase 2).
+Invoke advocate:
+```
+Task(
+  subagent_type: "humaninloop:devils-advocate",
+  prompt: """
+**Capability**: Plan Artifact Review
+
+**Context**:
+- Spec: `specs/{feature-id}/spec.md`
+- Research: `specs/{feature-id}/research.md`
+- Data Model: `specs/{feature-id}/data-model.md`
+- Planner report: `specs/{feature-id}/.workflow/planner-report.md`
+
+**Read these files** before producing output.
+
+**Write**:
+- Report: `specs/{feature-id}/.workflow/advocate-report.md`
+
+**Report format**:
+Use the template at `${CLAUDE_PLUGIN_ROOT}/templates/advocate-report-template.md`
+
+**Instructions**:
+Review the data model for completeness and consistency with spec + research.
+Use the `validation-plan-artifacts` skill with phase: datamodel.
+
+Check:
+- Entity coverage (all nouns from requirements)
+- Relationship completeness
+- Consistency with research decisions
+
+Produce a verdict: `ready`, `needs-revision`, or `critical-gaps`.
+""",
+  description: "Review data model"
+)
+```
+
+Route based on verdict (same as Phase 2).
 
 **If ready**: Proceed to Phase 4 (Contracts)
 
@@ -411,7 +526,39 @@ updated: {ISO date}
 ```
 Task(
   subagent_type: "humaninloop:plan-architect",
-  prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-context.md",
+  prompt: """
+**Capability**: API Contract Design
+
+**Context**:
+- Spec: `specs/{feature-id}/spec.md`
+- Research: `specs/{feature-id}/research.md`
+- Data Model: `specs/{feature-id}/data-model.md`
+- Constitution: `.humaninloop/memory/constitution.md`
+{If brownfield: include existing API patterns from analysis-codebase skill}
+
+**Read these files** before producing output.
+
+**Write**:
+- Contracts: `specs/{feature-id}/contracts/api.yaml`
+- Quickstart: `specs/{feature-id}/quickstart.md`
+- Report: `specs/{feature-id}/.workflow/planner-report.md`
+
+**Report format**:
+Use the template at `${CLAUDE_PLUGIN_ROOT}/templates/planner-report-template.md`
+
+**Instructions**:
+Design API endpoints that fulfill requirements using the data model.
+1. Map user actions to API endpoints
+2. Define request/response schemas matching data model
+3. Document error responses for all failure modes
+4. Include authentication requirements
+5. Match brownfield API conventions if applicable
+
+Use the `patterns-api-contracts` skill for guidance.
+{If brownfield: Use `analysis-codebase` skill to match existing API patterns.}
+
+{If clarification_log not empty: Include previous clarifications and user answers here}
+""",
   description: "Create API contracts"
 )
 ```
@@ -452,7 +599,46 @@ Review API contracts for completeness and consistency with all previous artifact
 - Cross-artifact consistency
 ```
 
-Invoke advocate and route based on verdict.
+Invoke advocate:
+```
+Task(
+  subagent_type: "humaninloop:devils-advocate",
+  prompt: """
+**Capability**: Plan Artifact Review
+
+**Context**:
+- Spec: `specs/{feature-id}/spec.md`
+- Research: `specs/{feature-id}/research.md`
+- Data Model: `specs/{feature-id}/data-model.md`
+- Contracts: `specs/{feature-id}/contracts/api.yaml`
+- Quickstart: `specs/{feature-id}/quickstart.md`
+- Planner report: `specs/{feature-id}/.workflow/planner-report.md`
+
+**Read these files** before producing output.
+
+**Write**:
+- Report: `specs/{feature-id}/.workflow/advocate-report.md`
+
+**Report format**:
+Use the template at `${CLAUDE_PLUGIN_ROOT}/templates/advocate-report-template.md`
+
+**Instructions**:
+Review API contracts for completeness and consistency with all previous artifacts.
+Use the `validation-plan-artifacts` skill with phase: contracts.
+
+Check:
+- Endpoint coverage (all user actions mapped)
+- Schema consistency with data model
+- Error handling completeness
+- Cross-artifact consistency
+
+Produce a verdict: `ready`, `needs-revision`, or `critical-gaps`.
+""",
+  description: "Review API contracts"
+)
+```
+
+Route based on verdict.
 
 **If ready**: Proceed to Phase 5 (Completion)
 

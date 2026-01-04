@@ -229,7 +229,35 @@ updated: {ISO date}
 ```
 Task(
   subagent_type: "humaninloop:task-architect",
-  prompt: "Read your instructions from: specs/{feature-id}/.workflow/tasks-context.md",
+  prompt: """
+**Capability**: Story-to-Cycle Mapping
+
+**Context**:
+- Spec: `specs/{feature-id}/spec.md`
+- Plan: `specs/{feature-id}/plan.md`
+- Research: `specs/{feature-id}/research.md`
+- Data Model: `specs/{feature-id}/data-model.md`
+- Contracts: `specs/{feature-id}/contracts/`
+- Constitution: `.humaninloop/memory/constitution.md`
+
+**Read these files** before producing output.
+
+**Write**:
+- Mapping: `specs/{feature-id}/task-mapping.md`
+- Report: `specs/{feature-id}/.workflow/planner-report.md`
+
+**Instructions**:
+Map user stories to implementation cycles with clear traceability.
+1. Analyze user stories with priorities (P1/P2/P3) and acceptance criteria
+2. Identify vertical slices that deliver observable user value
+3. Separate foundation cycles (sequential) from feature cycles (parallel-eligible)
+4. Document dependencies between cycles
+5. Ensure every P1/P2 story maps to at least one cycle
+
+Use the `patterns-vertical-tdd` skill for vertical slice identification guidance.
+
+{If clarification_log not empty: Include previous clarifications and user answers here}
+""",
   description: "Create task mapping"
 )
 ```
@@ -275,7 +303,32 @@ Invoke advocate:
 ```
 Task(
   subagent_type: "humaninloop:devils-advocate",
-  prompt: "Read your instructions from: specs/{feature-id}/.workflow/tasks-context.md",
+  prompt: """
+**Capability**: Task Artifact Review
+
+**Context**:
+- Spec: `specs/{feature-id}/spec.md`
+- Plan: `specs/{feature-id}/plan.md`
+- Task Mapping: `specs/{feature-id}/task-mapping.md`
+- Architect report: `specs/{feature-id}/.workflow/planner-report.md`
+
+**Read these files** before producing output.
+
+**Write**:
+- Report: `specs/{feature-id}/.workflow/advocate-report.md`
+
+**Instructions**:
+Review the task mapping for gaps and quality.
+Use the `validation-task-artifacts` skill with phase: mapping.
+
+Check:
+- Story coverage (all P1/P2 stories mapped)
+- Vertical slice quality (not horizontal layers)
+- Foundation vs feature separation
+- Dependency accuracy
+
+Produce a verdict: `ready`, `needs-revision`, or `critical-gaps`.
+""",
   description: "Review task mapping"
 )
 ```
@@ -340,7 +393,39 @@ updated: {ISO date}
 ```
 Task(
   subagent_type: "humaninloop:task-architect",
-  prompt: "Read your instructions from: specs/{feature-id}/.workflow/tasks-context.md",
+  prompt: """
+**Capability**: Task Generation
+
+**Context**:
+- Task Mapping: `specs/{feature-id}/task-mapping.md`
+- Spec: `specs/{feature-id}/spec.md`
+- Plan: `specs/{feature-id}/plan.md`
+- Research: `specs/{feature-id}/research.md`
+- Data Model: `specs/{feature-id}/data-model.md`
+- Contracts: `specs/{feature-id}/contracts/`
+- Constitution: `.humaninloop/memory/constitution.md`
+
+**Read these files** before producing output.
+
+**Write**:
+- Tasks: `specs/{feature-id}/tasks.md`
+- Report: `specs/{feature-id}/.workflow/planner-report.md`
+
+**Instructions**:
+Generate implementation tasks organized into TDD cycles.
+1. Structure each cycle with test-first discipline (test → implement → refactor → demo)
+2. Define specific file paths for every task
+3. Apply story traceability markers ([US#])
+4. Mark brownfield tasks: [EXTEND], [MODIFY]
+5. Include checkpoints for observable outcomes
+6. Mark parallel-eligible feature cycles with [P]
+
+Use the `patterns-vertical-tdd` skill for TDD cycle structure guidance.
+
+Follow the Cycle Structure format from the task-architect agent.
+
+{If clarification_log not empty: Include previous clarifications and user answers here}
+""",
   description: "Create implementation tasks"
 )
 ```
@@ -377,7 +462,41 @@ Review the task list for completeness and TDD structure.
 - Cross-artifact consistency with mapping
 ```
 
-Invoke advocate and route based on verdict (same as Phase 2).
+Invoke advocate:
+```
+Task(
+  subagent_type: "humaninloop:devils-advocate",
+  prompt: """
+**Capability**: Task Artifact Review
+
+**Context**:
+- Task Mapping: `specs/{feature-id}/task-mapping.md`
+- Tasks: `specs/{feature-id}/tasks.md`
+- Spec: `specs/{feature-id}/spec.md`
+- Architect report: `specs/{feature-id}/.workflow/planner-report.md`
+
+**Read these files** before producing output.
+
+**Write**:
+- Report: `specs/{feature-id}/.workflow/advocate-report.md`
+
+**Instructions**:
+Review the task list for completeness and TDD structure.
+Use the `validation-task-artifacts` skill with phase: tasks.
+
+Check:
+- TDD structure (test-first ordering in each cycle)
+- Cycle coverage (all mapped cycles have tasks)
+- File path specificity (no vague paths)
+- Cross-artifact consistency with mapping
+
+Produce a verdict: `ready`, `needs-revision`, or `critical-gaps`.
+""",
+  description: "Review implementation tasks"
+)
+```
+
+Route based on verdict (same as Phase 2).
 
 **If ready**: Proceed to Phase 4 (Completion)
 
