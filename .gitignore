@@ -60,3 +60,4 @@ venv/
 dist/
 build/
 *.tgz
+/.playwright-mcp
