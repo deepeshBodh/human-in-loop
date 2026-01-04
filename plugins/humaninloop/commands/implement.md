@@ -35,46 +35,60 @@ AskUserQuestion(
 
 1. Run `${CLAUDE_PLUGIN_ROOT}/scripts/check-prerequisites.sh --json --require-tasks --include-tasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
-2. **Check checklists status** (if FEATURE_DIR/checklists/ exists):
-   - Scan all checklist files in the checklists/ directory
-   - For each checklist, count:
-     - Total items: All lines matching `- [ ]` or `- [X]` or `- [x]`
-     - Completed items: Lines matching `- [X]` or `- [x]`
-     - Incomplete items: Lines matching `- [ ]`
-   - Create a status table:
+1.5. **Entry Gate: Verify Tasks Workflow Complete**
 
-     ```text
-     | Checklist | Total | Completed | Incomplete | Status |
-     |-----------|-------|-----------|------------|--------|
-     | ux.md     | 12    | 12        | 0          | ✓ PASS |
-     | test.md   | 8     | 5         | 3          | ✗ FAIL |
-     | security.md | 6   | 6         | 0          | ✓ PASS |
-     ```
+   Check if the tasks workflow completed successfully before proceeding:
 
-   - Calculate overall status:
-     - **PASS**: All checklists have 0 incomplete items
-     - **FAIL**: One or more checklists have incomplete items
+   **1.5.1 Check for tasks-context.md**:
+   ```bash
+   test -f {FEATURE_DIR}/.workflow/tasks-context.md
+   ```
 
-   - **If any checklist is incomplete**:
-     - Display the table with incomplete item counts
-     - **STOP** and ask: "Some checklists are incomplete. Do you want to proceed with implementation anyway? (yes/no)"
-     - Wait for user response before continuing
-     - If user says "no" or "wait" or "stop", halt execution
-     - If user says "yes" or "proceed" or "continue", proceed to step 3
+   **1.5.2 If found**: Read frontmatter and check `status` field
 
-   - **If all checklists are complete**:
-     - Display the table showing all checklists passed
-     - Automatically proceed to step 3
+   **1.5.3 Route based on status**:
 
-3. Load and analyze the implementation context:
+   | Status | Action |
+   |--------|--------|
+   | `completed` | Proceed to step 2 |
+   | `awaiting-architect` / `awaiting-advocate` / `awaiting-user` | Tasks workflow incomplete - prompt user |
+   | Not found | No workflow context - proceed with warning |
+
+   **If status is not `completed`**:
+   ```
+   AskUserQuestion(
+     questions: [{
+       question: "Tasks workflow not complete (status: {status}). Implementation requires completed tasks.\n\nPhase: {phase}, Iteration: {iteration}",
+       header: "Entry Gate",
+       options: [
+         {label: "Complete tasks first", description: "Return to /humaninloop:tasks to finish"},
+         {label: "Proceed anyway", description: "Implement with current tasks.md (may be incomplete)"},
+         {label: "Abort", description: "Cancel implementation"}
+       ],
+       multiSelect: false
+     }]
+   )
+   ```
+
+   **1.5.4 Optional context from workflow artifacts**:
+   - If `{FEATURE_DIR}/.workflow/planner-report.md` exists: Note any assumptions made by Task Architect
+   - If `{FEATURE_DIR}/.workflow/advocate-report.md` exists: Note any known gaps/limitations flagged
+
+2. Load and analyze the implementation context:
    - **REQUIRED**: Read tasks.md for the complete task list and execution plan
    - **REQUIRED**: Read plan.md for tech stack, architecture, and file structure
+   - **IF EXISTS**: Read task-mapping.md for:
+     - Story-to-cycle mapping and coverage verification
+     - Cycle dependencies and parallel opportunities
+     - Per-cycle deliverables with specific file paths
+     - Success criteria and traceability to requirements
+     - Risk assessment and mitigation strategies
    - **IF EXISTS**: Read data-model.md for entities and relationships
    - **IF EXISTS**: Read contracts/ for API specifications and test requirements
    - **IF EXISTS**: Read research.md for technical decisions and constraints
    - **IF EXISTS**: Read quickstart.md for integration scenarios
 
-4. **Project Setup Verification**:
+3. **Project Setup Verification**:
    - **REQUIRED**: Create/verify ignore files based on actual project setup:
 
    **Detection & Creation Logic**:
@@ -118,234 +132,123 @@ AskUserQuestion(
    - **Terraform**: `.terraform/`, `*.tfstate*`, `*.tfvars`, `.terraform.lock.hcl`
    - **Kubernetes/k8s**: `*.secret.yaml`, `secrets/`, `.kube/`, `kubeconfig*`, `*.key`, `*.crt`
 
-4.5. **Pre-Implementation Collision Detection**:
+4. Parse tasks.md structure and extract:
 
-   Analyze ALL tasks for potential file collisions BEFORE any implementation begins.
-   This step ensures no silent overwrites of existing code.
+   **4.1 Summary Metrics** (from `## Summary` table):
+   - Total cycles, foundation cycles, feature cycles
+   - Total tasks count
+   - Parallel opportunities (which cycles can run concurrently)
 
-   **4.5.1 Extract Target Files from Tasks**:
+   **4.2 Enrich with task-mapping.md** (if exists):
+   - Use `## Cycle Details` for per-cycle success criteria
+   - Use `## Dependency Graph` for visual verification of execution order
+   - Use `## Risk Assessment` to identify cycles needing extra care
+   - Use deliverable tables to verify expected file paths
 
-   Parse tasks.md and extract file paths from task descriptions using these patterns (in priority order):
+   **4.3 Foundation Cycles** (from `## Foundation Cycles (Sequential)`):
+   - These MUST complete in order (C1 → C2 → C3 → ...)
+   - Each cycle has: Stories, Dependencies, Type in metadata block
+   - Parse cycle headers: `### Cycle N: Title`
 
-   1. `... in <path>` at end of description (e.g., "Create User model in src/models/user.py")
-   2. `... to <path>` at end (e.g., "Add validation to src/utils/validators.py")
-   3. Explicit path pattern: `(src|tests|app|lib|backend|frontend)/...` anywhere in description
-   4. `Create/Implement/Add X in <path>` pattern
+   **4.4 Feature Cycles** (from `## Feature Cycles`):
+   - Can begin only after ALL foundation cycles complete
+   - Cycles marked `[P]` are parallel-eligible
+   - Parse cycle headers: `### Cycle N: Title [P]`
+   - Dependencies in metadata show required prior cycles
 
-   For each task matching `^- \[ \] T\d+`:
-   - Extract task_id (T###)
-   - Extract file_path using patterns above
-   - Build list: `task_files = [{task_id, file_path, task_description}, ...]`
+   **4.5 Task Details**:
+   - Task pattern: `- [ ] **T{cycle}.{task}**: Description`
+   - File paths in backticks within description
+   - Brownfield markers `[EXTEND]` or `[MODIFY]` in task description
+   - Multi-line task descriptions with sub-bullets for details
+   - Checkpoint at end of each cycle defines done criteria
 
-   **4.5.2 Check for Existing Files**:
+   **4.6 Quality Gates** (from `## Quality Gates`):
+   - Build/lint requirements that apply to all cycles
+   - These should be verified after each cycle completes
 
-   For each extracted file path:
+5. Execute implementation following the task plan:
 
-   1. Check if file exists on filesystem using absolute path
-   2. If `{FEATURE_DIR}/.workflow/codebase-inventory.json` exists:
-      - Enrich collision info with inventory data (collision_risks, entities, endpoints)
-      - Use recommended_action from inventory if available
-   3. If no inventory exists: use basic filesystem check only (no enrichment)
-   4. Check protected_paths from constitution.md brownfield_overrides (if defined)
-   5. Check for brownfield markers in task description and use as default strategy:
+   **Cycle-based execution rules**:
 
-   **Brownfield Marker → Strategy Mapping**:
+   **Foundation Cycles (Sequential)**:
+   - Execute C1 completely before starting C2, C2 before C3, etc.
+   - Within each cycle, execute tasks in order (T1.1 → T1.2 → T1.3 → ...)
+   - Each cycle starts with a failing test task (TN.1)
+   - Verify cycle checkpoint before proceeding to next cycle
 
-   | Task Marker | Default Strategy | Meaning |
-   |-------------|------------------|---------|
-   | (none) | Normal create | New file (greenfield default) |
-   | `[EXTEND]` | MERGE | Add to existing file |
-   | `[MODIFY]` | MERGE | Change existing code |
-   | `[CONFLICT]` | (prompt user) | Manual resolution required |
+   **Feature Cycles (After Foundation)**:
+   - Only begin feature cycles after ALL foundation cycles complete
+   - Cycles marked `[P]` can execute in parallel with each other
+   - Non-parallel feature cycles respect their Dependencies metadata
+   - Within each cycle, execute tasks sequentially (TDD order)
 
-   Build collision list:
-   ```
-   collisions = [{
-     task_id: "T012",
-     file_path: "src/models/user.py",
-     exists: true,
-     line_count: 127,
-     brownfield_marker: "[EXTEND]",  // from task description, if present
-     inventory_match: { entity: "User", collision_risk: "compatible_extend" },
-     protected: false,
-     recommended_strategy: "MERGE"   // derived from marker or inventory
-   }, ...]
-   ```
+   **TDD Discipline**:
+   - Task TN.1 is always "Write failing test" - execute first
+   - Subsequent tasks implement code to make tests pass
+   - Final task in cycle is typically "Demo and verify"
 
-   **4.5.3 Generate Collision Report**:
+   **Checkpoints**:
+   - Each cycle ends with a `**Checkpoint**:` statement
+   - Verify checkpoint criteria before marking cycle complete
+   - Run quality gates (`pnpm lint`, `pnpm build`, tests) after each cycle
 
-   **If collisions.length == 0**:
-   - Display: "No file collisions detected. Proceeding with implementation."
-   - Proceed to Step 5
+6. Implementation execution guidance:
 
-   **If collisions.length > 0**:
-   Display collision report:
+   **Per-Task Execution**:
+   - Read full task description including sub-bullets
+   - Extract file path from backticks in description
+   - For `[EXTEND]` tasks: read existing file, add new code
+   - For `[MODIFY]` tasks: read existing file, modify specific sections
+   - Mark task complete: change `- [ ]` to `- [x]`
+   - **Do NOT run git commands** - leave version control to the user
 
-   ```markdown
-   ## Pre-Implementation Collision Report
+   **Per-Cycle Completion**:
+   - After final task in cycle, verify checkpoint criteria
+   - Run quality gates if defined (lint, build, tests)
+   - Report cycle completion to user before starting next cycle
 
-   **Feature**: {feature_id}
-   **Tasks Analyzed**: {task_count}
-   **Files Extracted**: {file_count}
-   **Collisions Detected**: {collision_count}
+   **Error Handling Within Cycles**:
+   - If a task fails, stop the cycle and report
+   - Do not proceed to next task until current task passes
+   - For test tasks (TN.1): failing test is EXPECTED initially
+   - For implementation tasks: failing means fix before continuing
 
-   | # | Task ID | Target File | Status | Lines | Recommended Strategy |
-   |---|---------|-------------|--------|-------|----------------------|
-   | 1 | T012 | src/models/user.py | EXISTS | 127 | MERGE |
-   | 2 | T014 | src/services/auth.py | EXISTS | 89 | OVERWRITE |
-   | 3 | T018 | src/auth/core.py | PROTECTED | 234 | REQUIRE APPROVAL |
-   ```
-
-   Proceed to 4.5.4
-
-   **4.5.4 Collect User Strategies via AskUserQuestion**:
-
-   Present overall strategy selection:
-
-   ```
-   AskUserQuestion(
-     questions: [{
-       question: "Found {collision_count} file collisions. Select handling approach:",
-       header: "Collision Strategy",
-       options: [
-         {label: "Review individually", description: "Choose strategy per file or group"},
-         {label: "Apply recommendations", description: "Use auto-suggested strategies from report"},
-         {label: "MERGE all", description: "Attempt intelligent merge for all conflicts"},
-         {label: "OVERWRITE all", description: "Replace all existing files (backups created)"},
-         {label: "Abort", description: "Stop implementation for manual review"}
-       ],
-       multiSelect: false
-     }]
-   )
-   ```
-
-   **Strategy Definitions**:
-   - **MERGE**: Intelligently combine new content with existing file (for additive changes)
-   - **OVERWRITE**: Replace file entirely (backup created first in {FEATURE_DIR}/.backup/)
-   - **SKIP**: Leave existing file unchanged, log skip reason, mark task as skipped
-   - **ABORT**: Stop entire implementation workflow, report all conflicts
-
-   **Protected file handling**:
-   Protected files (from constitution.brownfield_overrides.protected_paths) ALWAYS require
-   individual confirmation, regardless of batch strategy:
-
-   ```
-   AskUserQuestion(
-     questions: [{
-       question: "Protected file: {file_path}\nReason: {protection_reason}\nThis file requires explicit approval to modify.",
-       header: "Protected File",
-       options: [
-         {label: "OVERWRITE anyway", description: "Backup and replace (not recommended)"},
-         {label: "SKIP", description: "Keep existing file, skip this task"},
-         {label: "Abort", description: "Stop implementation for manual review"}
-       ],
-       multiSelect: false
-     }]
-   )
-   ```
-
-   **4.5.5 Log Decisions to index.md**:
-
-   Update `{FEATURE_DIR}/.workflow/index.md` Implementation Collision Log section:
-
-   ```markdown
-   | Timestamp | Task ID | File Path | Strategy | Status |
-   |-----------|---------|-----------|----------|--------|
-   | 2025-12-31T14:30:22Z | T012 | src/models/user.py | MERGE | pending |
-   | 2025-12-31T14:30:22Z | T014 | src/services/auth.py | OVERWRITE | pending |
-   | 2025-12-31T14:30:22Z | T018 | src/auth/core.py | SKIP | pending |
-   ```
-
-   **4.5.6 Handle ABORT Strategy**:
-
-   If any collision strategy == "ABORT":
-   - Log to index.md with status: "aborted"
-   - Display detailed conflict summary
-   - Display: "Implementation aborted. Review conflicts manually before retrying."
-   - List all files requiring attention
-   - STOP workflow (do not proceed to Step 5)
-
-   **4.5.7 Store Strategies for Step 6**:
-
-   Store collision strategies in memory for use during task execution:
-   ```
-   collision_strategies = {
-     "src/models/user.py": { strategy: "MERGE", task_id: "T012" },
-     "src/services/auth.py": { strategy: "OVERWRITE", task_id: "T014" },
-     "src/auth/core.py": { strategy: "SKIP", task_id: "T018" }
-   }
-   ```
-
-   Proceed to Step 5.
-
-5. Parse tasks.md structure and extract:
-   - **Task phases**: Setup, Tests, Core, Integration, Polish
-   - **Task dependencies**: Sequential vs parallel execution rules
-   - **Task details**: ID, description, file paths, parallel markers [P]
-   - **Execution flow**: Order and dependency requirements
-
-6. Execute implementation following the task plan:
-
-   **Pre-write collision check for each task**:
-
-   Before writing/modifying any file for a task, check if the file_path exists in collision_strategies (from Step 4.5):
-
-   ```
-   FOR each task being executed:
-     file_path = extract_file_path(task_description)
-
-     IF file_path in collision_strategies:
-       strategy = collision_strategies[file_path]
-
-       SWITCH strategy:
-         CASE "SKIP":
-           - Log: "Skipping {file_path} per collision strategy (keeping existing file)"
-           - Mark task as skipped in tasks.md: `- [S] T### [SKIPPED] ...`
-           - Update index.md collision log: status = "skipped"
-           - CONTINUE to next task (do not write file)
-
-         CASE "MERGE":
-           - Read existing file content
-           - Generate merged content (combine existing + new, preserving both)
-           - Write merged content to file
-           - Update index.md collision log: status = "completed"
-
-         CASE "OVERWRITE":
-           - Write new content (replacing entire file)
-           - Update index.md collision log: status = "completed"
-           - Note: Use `git diff` or `git checkout` to recover if needed
-
-     ELSE:
-       - Proceed with normal file creation (no collision)
-   ```
-
-   **Standard execution rules**:
-   - **Phase-by-phase execution**: Complete each phase before moving to the next
-   - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together
-   - **Follow TDD approach**: Execute test tasks before their corresponding implementation tasks
-   - **File-based coordination**: Tasks affecting the same files must run sequentially
-   - **Validation checkpoints**: Verify each phase completion before proceeding
-
-7. Implementation execution rules:
-   - **Setup first**: Initialize project structure, dependencies, configuration
-   - **Tests before code**: If you need to write tests for contracts, entities, and integration scenarios
-   - **Core development**: Implement models, services, CLI commands, endpoints
-   - **Integration work**: Database connections, middleware, logging, external services
-   - **Polish and validation**: Unit tests, performance optimization, documentation
-
-8. Progress tracking and error handling:
-   - Report progress after each completed task
-   - Halt execution if any non-parallel task fails
-   - For parallel tasks [P], continue with successful tasks, report failed ones
+7. Progress tracking and error handling:
+   - Report progress after each completed task and cycle
+   - Halt cycle execution if any task fails (except TN.1 failing tests which are expected)
+   - For parallel cycles `[P]`, can run multiple cycles concurrently
    - Provide clear error messages with context for debugging
    - Suggest next steps if implementation cannot proceed
-   - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
+   - **IMPORTANT**: Mark completed tasks as `- [x] **T#.#**:` in tasks.md
+   - **IMPORTANT**: Report cycle checkpoint verification before proceeding
 
-9. Completion validation:
-   - Verify all required tasks are completed
-   - Check that implemented features match the original specification
-   - Validate that tests pass and coverage meets requirements
-   - Confirm the implementation follows the technical plan
-   - Report final status with summary of completed work
+8. Completion validation:
+   - Verify all cycles are completed (all tasks marked `[x]`)
+   - Verify all cycle checkpoints passed
+   - Run final quality gates (`pnpm lint`, `pnpm build`, full test suite)
+   - Check traceability matrix coverage (all user stories have implementing cycles)
+   - Validate constitution alignment (if `## Constitution Alignment` section exists)
+   - Report final status:
+     ```markdown
+     ## Implementation Complete
+
+     **Feature**: {feature_id}
+
+     | Metric | Value |
+     |--------|-------|
+     | Foundation Cycles | {N}/{N} complete |
+     | Feature Cycles | {N}/{N} complete |
+     | Total Tasks | {N}/{N} complete |
+
+     ### Quality Gates
+     - Lint: ✓ Pass
+     - Build: ✓ Pass
+     - Tests: ✓ Pass ({N} passing)
+
+     ### Next Steps
+     - Review implementation at `{paths}`
+     - Deploy or continue with next feature
+     ```
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/humaninloop:tasks` first to regenerate the task list.
