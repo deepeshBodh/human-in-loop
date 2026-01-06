@@ -82,6 +82,19 @@ New features follow spec-driven development (dogfooding our own tools):
 2. **Fix** → PR references issue
 3. **Trivial fixes** → clear commit message, no issue required
 
+### Feedback Triage
+
+User feedback is tracked using a structured methodology in `docs/internal/feedback/`:
+
+1. **Collect** raw feedback from users
+2. **Anonymize** using first+last letter convention (e.g., "John" → "Jn")
+3. **Categorize** by type (`bug`, `enhancement`, `feature-request`, `performance`) and phase
+4. **Prioritize** using Pain × Effort matrix → P1/P2/P3
+5. **Document** in `round-N.md` following `_template.md`
+6. **Create GitHub issue** as tracking issue with checklist
+
+See `docs/internal/feedback/methodology.md` for full process details.
+
 ### Releases
 
 See [RELEASES.md](RELEASES.md) for release process. Update [CHANGELOG.md](CHANGELOG.md) with each release.
@@ -94,6 +107,7 @@ See [RELEASES.md](RELEASES.md) for release process. Update [CHANGELOG.md](CHANGE
 - **[CHANGELOG.md](CHANGELOG.md)**: Curated history of all releases.
 - **[ROADMAP.md](ROADMAP.md)**: Vision and planned features.
 - **[docs/decisions/](docs/decisions/)**: Architecture Decision Records (ADRs) explaining key technical choices.
+- **[docs/internal/feedback/](docs/internal/feedback/)**: Feedback triage methodology and round-by-round tracking.
 - **[specs/](specs/)**: Feature specifications (completed, in-progress, planned).
 
 ## Marketplace Structure
@@ -118,7 +132,9 @@ human-in-loop/
 │   └── planned/                   # Future features (living roadmap)
 ├── docs/
 │   ├── decisions/                 # Architecture Decision Records
-│   ├── internal/                  # Internal strategy docs (not for external use)
+│   ├── internal/                  # Internal docs (not for external use)
+│   │   ├── feedback/              # Feedback triage (methodology, rounds)
+│   │   └── strategy.md
 │   ├── agent-skills-documentation.md
 │   ├── claude-plugin-documentation.md
 │   └── speckit-artefacts/         # READ-ONLY reference (original speckit)

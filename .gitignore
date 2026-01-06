@@ -4,7 +4,9 @@
 .claude/commands/
 
 # Internal strategy documentation (maintainer context, not public)
-docs/internal/
+# Ignore contents of docs/internal/ but allow feedback/ subfolder
+docs/internal/*
+!docs/internal/feedback/
 
 # OS generated files
 .DS_Store
