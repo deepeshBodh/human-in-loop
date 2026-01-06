@@ -25,21 +25,21 @@
 
 ### P1 - High Pain (Address First)
 
-| # | Feedback | Type | Phase | Pain | Effort | Source |
-|---|----------|------|-------|------|--------|--------|
-| 1 | Description | `type` | `phase:x` | High | Low/Med/High | User XX |
+| ID | Feedback | Type | Phase | Pain | Effort | Source |
+|----|----------|------|-------|------|--------|--------|
+| [F1] | Description | `type` | `phase:x` | High | Low/Med/High | User XX |
 
 ### P2 - Medium Priority
 
-| # | Feedback | Type | Phase | Pain | Effort | Source |
-|---|----------|------|-------|------|--------|--------|
-| 1 | Description | `type` | `phase:x` | Med | Low/Med/High | User XX |
+| ID | Feedback | Type | Phase | Pain | Effort | Source |
+|----|----------|------|-------|------|--------|--------|
+| [F2] | Description | `type` | `phase:x` | Med | Low/Med/High | User XX |
 
 ### P3 - Backlog
 
-| # | Feedback | Type | Phase | Pain | Effort | Source |
-|---|----------|------|-------|------|--------|--------|
-| 1 | Description | `type` | `phase:x` | Low | Low/Med/High | User XX |
+| ID | Feedback | Type | Phase | Pain | Effort | Source |
+|----|----------|------|-------|------|--------|--------|
+| [F3] | Description | `type` | `phase:x` | Low | Low/Med/High | User XX |
 
 ---
 
@@ -47,8 +47,8 @@
 
 Low-effort items to tackle first for momentum:
 
-1. **Item name** (#N) - Brief reason why it's quick
-2. **Item name** (#N) - Brief reason why it's quick
+1. **Item name** ([FN]) - Brief reason why it's quick
+2. **Item name** ([FN]) - Brief reason why it's quick
 
 ---
 
@@ -75,15 +75,15 @@ Feedback collected from [User list].
 
 ### P1 - High Pain
 
-- [ ] #1 Description (`type`, `phase:x`)
+- [ ] [F1] Description (`type`, `phase:x`)
 
 ### P2 - Medium Priority
 
-- [ ] #2 Description (`type`, `phase:x`) ⚡
+- [ ] [F2] Description (`type`, `phase:x`) ⚡
 
 ### P3 - Backlog
 
-- [ ] #3 Description (`type`, `phase:x`)
+- [ ] [F3] Description (`type`, `phase:x`)
 
 ---
 
@@ -107,6 +107,6 @@ Feedback collected from [User list].
 
 <!-- Update as items are resolved -->
 
-| # | Item | Resolution | Date | PR/Issue |
-|---|------|------------|------|----------|
-| 1 | Description | Fixed / Won't fix / Deferred | YYYY-MM-DD | #123 |
+| ID | Item | Resolution | Date | PR/Issue |
+|----|------|------------|------|----------|
+| [F1] | Description | Fixed / Won't fix / Deferred | YYYY-MM-DD | #123 |
