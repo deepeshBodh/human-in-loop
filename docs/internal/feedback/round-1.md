@@ -8,14 +8,14 @@
 | Date Collected | 2025-01-07 |
 | Plugin Version | v0.7.4 |
 | User Count | 4 |
-| Item Count | 16 |
+| Item Count | 17 |
 
 ## User Aliases
 
 | Alias | Items | Notes |
 |-------|-------|-------|
 | User TJ | 14 | Software engineer, primary feedback provider |
-| User Le | 1 | Software engineer, single high-level feedback |
+| User Le | 2 | Software engineer, security reviewer |
 | User Dh | 1 | Creator of HumanInLoop, observed User Sn |
 | User Sn | 1 | Non-technical user (not an engineer), corroborated #1 |
 
@@ -44,6 +44,7 @@
 | 10 | Function-level modularity needed, not file-level - initial simplicity led to multiple files but granularity is wrong | `enhancement` | `phase:tasks` | Medium | Medium | User TJ |
 | 11 | PR too long | `enhancement` | `phase:implement` | Medium | Medium | User Le |
 | 16 | Non-technical users may clone repo instead of plugin install, polluting branch with humaninloop codebase | `bug` | `phase:cross-cutting` | Medium | Medium | User Dh (observing Sn) |
+| 17 | Shell script security concerns: (a) eval with untrusted get_feature_paths output risks arbitrary code execution, (b) source.sh replacement attack vector, (c) no input sanitization, (d) unsafe ls for directory checks | `bug` | `phase:cross-cutting` | Medium | Medium | User Le |
 
 ### P3 - Backlog
 
@@ -104,6 +105,7 @@ Feedback collected from User TJ, User Le, User Dh, and User Sn.
 - [ ] #10 Function-level modularity vs file-level (`enhancement`, `phase:tasks`)
 - [ ] #11 PR output too long (`enhancement`, `phase:implement`)
 - [ ] #16 Installation confusion for non-technical users (`bug`, `phase:cross-cutting`)
+- [ ] #17 Shell script security hardening (`bug`, `phase:cross-cutting`)
 
 ### P3 - Backlog
 
