@@ -7,15 +7,17 @@
 | Round | 1 |
 | Date Collected | 2025-01-07 |
 | Plugin Version | v0.7.4 |
-| User Count | 2 |
-| Item Count | 15 |
+| User Count | 4 |
+| Item Count | 16 |
 
 ## User Aliases
 
 | Alias | Items | Notes |
 |-------|-------|-------|
-| User TJ | 14 | Primary feedback provider |
-| User Le | 1 | Single high-level feedback |
+| User TJ | 14 | Software engineer, primary feedback provider |
+| User Le | 1 | Software engineer, single high-level feedback |
+| User Dh | 1 | Creator of HumanInLoop, observed User Sn |
+| User Sn | 1 | Non-technical user (not an engineer), corroborated #1 |
 
 ---
 
@@ -25,7 +27,7 @@
 
 | # | Feedback | Type | Phase | Pain | Effort | Source |
 |---|----------|------|-------|------|--------|--------|
-| 1 | Plan takes too long to run | `performance` | `phase:plan` | High | Medium | User TJ |
+| 1 | Plan takes too long to run (User Sn corroborated but values devil's advocate rigor) | `performance` | `phase:plan` | High | Medium | User TJ, User Sn |
 | 2 | Time could be improved in every iteration | `performance` | `phase:cross-cutting` | High | High | User TJ |
 | 3 | Brownfield file structure/logic understanding - AI plugins should understand existing codebase structure; this info isn't present in Claude as agents typically handle this | `feature-request` | `phase:cross-cutting` | High | High | User TJ |
 
@@ -41,6 +43,7 @@
 | 9 | Devil's advocate should research and critique both human feedback and other agent personalities, not just specs | `enhancement` | `phase:specify` | Medium | Medium | User TJ |
 | 10 | Function-level modularity needed, not file-level - initial simplicity led to multiple files but granularity is wrong | `enhancement` | `phase:tasks` | Medium | Medium | User TJ |
 | 11 | PR too long | `enhancement` | `phase:implement` | Medium | Medium | User Le |
+| 16 | Non-technical users may clone repo instead of plugin install, polluting branch with humaninloop codebase | `bug` | `phase:cross-cutting` | Medium | Medium | User Dh (observing Sn) |
 
 ### P3 - Backlog
 
@@ -70,7 +73,7 @@ Copy the content below to create the tracking issue:
 ```markdown
 ## Plugin Feedback Round 1
 
-Feedback collected from User TJ and User Le.
+Feedback collected from User TJ, User Le, User Dh, and User Sn.
 
 **Collected**: 2025-01-07
 **Plugin Version**: v0.7.4
@@ -100,6 +103,7 @@ Feedback collected from User TJ and User Le.
 - [ ] #9 Devil's advocate critiques all perspectives (`enhancement`, `phase:specify`)
 - [ ] #10 Function-level modularity vs file-level (`enhancement`, `phase:tasks`)
 - [ ] #11 PR output too long (`enhancement`, `phase:implement`)
+- [ ] #16 Installation confusion for non-technical users (`bug`, `phase:cross-cutting`)
 
 ### P3 - Backlog
 
@@ -123,6 +127,9 @@ Feedback collected from User TJ and User Le.
 - Workflow ordering suggestions (#7, #8) indicate users want more control over the process
 - User TJ provided comprehensive feedback across all phases
 - User Le's feedback (#11 PR too long) aligns with general verbosity concerns
+- **User diversity**: Feedback spans software engineers (TJ, Le) and non-technical users (Sn)
+- **Positive signal**: User Sn found planning slow but valued the devil's advocate rigor - suggests the thoroughness is appreciated even when it takes time
+- **Installation UX gap**: Non-technical users may struggle with plugin installation vs repo cloning (#16)
 
 ---
 
