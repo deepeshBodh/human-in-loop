@@ -222,12 +222,24 @@ INSTRUCTION: Define dependency rules if using layered architecture.
 
 ## Governance
 
+<!--
+INSTRUCTION: Specify who approves constitution changes.
+Options:
+- CODEOWNERS file (recommended): Reference GitHub/GitLab CODEOWNERS
+- Named role: "Tech Lead", "Principal Engineer", "Architecture Board"
+- Team reference: "@org/team-name"
+-->
+
+### Approvers
+
+Constitution amendments MUST be approved by: [APPROVER - e.g., CODEOWNERS, @org/architecture-team, Tech Lead]
+
 ### Amendment Process
 
 1. Propose change via PR to constitution file
 2. Document rationale for change in PR description
 3. Review impact on existing code and templates
-4. Obtain team consensus (minimum 1 approval)
+4. Obtain approval from designated approvers (see above)
 5. Update version per semantic versioning rules below
 6. Update CLAUDE.md to reflect changes (mandatory sync)
 

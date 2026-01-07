@@ -238,6 +238,7 @@ This supervisor follows a multi-phase architecture for brownfield-aware constitu
    - Quality Gates: Use ACTUAL commands from codebase-analysis.md (e.g., if analysis found "pytest", write `pytest --cov`, NOT `[TEST_COMMAND]`)
    - Coverage thresholds: Use numeric values from analysis OR sensible defaults (warning <80%, blocking <60%)
    - Security scanning: Name specific tools found (e.g., "Trivy + Snyk") NOT `[SECURITY_COMMAND]`
+   - Governance Approvers: Check for CODEOWNERS file; if exists, reference it (e.g., "as defined in CODEOWNERS"); otherwise use team/role from analysis
    - If analysis doesn't specify a tool, use industry-standard defaults for the detected language/framework
 
    **Write**:

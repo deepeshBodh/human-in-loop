@@ -419,6 +419,42 @@ Beyond the essential floor, identify **existing good patterns** worth codifying:
 2. **Identify patterns** - Naming conventions, architecture patterns, error formats
 3. **Codify as principles** - With enforcement mechanisms
 
+#### Common Emergent Ceiling Patterns
+
+Look for these patterns in brownfield analysis and codify if present:
+
+| Pattern Category | What to Look For | Example Principle |
+|------------------|------------------|-------------------|
+| **Code Quality** | Documentation requirements, API annotations, deprecation handling | "All public APIs MUST have documentation comments" |
+| **Architecture** | Layer rules, dependency injection, module boundaries | "Controllers MUST NOT directly access repositories" |
+| **API Design** | Response formats, versioning, pagination | "API responses MUST follow RFC 7807 Problem Details" |
+| **Authorization** | Role-based access, permission checks | "All endpoints MUST validate user permissions" |
+| **Resilience** | Retry policies, circuit breakers, timeouts | "External calls MUST use retry with exponential backoff" |
+| **Configuration** | Strongly-typed options, feature flags | "Configuration MUST use strongly-typed options pattern" |
+
+Example (codebase has Code Quality standards):
+```markdown
+### V. Code Quality Standards
+
+All production code MUST meet documentation and annotation requirements.
+
+- Public APIs MUST have XML documentation comments (or JSDoc, docstrings, etc.)
+- API endpoints MUST declare response types (e.g., `[ProducesResponseType]`, OpenAPI annotations)
+- Deprecated endpoints MUST return warning headers and log deprecation notices
+- Configuration MUST use strongly-typed options pattern (no magic strings)
+
+**Enforcement**:
+- CI runs documentation coverage check and warns on missing docs
+- OpenAPI spec generated from annotations and validated
+- Linter rules enforce no magic strings in configuration
+
+**Testability**:
+- Pass: All public APIs documented, all endpoints annotated, zero magic strings
+- Fail: Missing documentation on public API OR missing response type annotation
+
+**Rationale**: Documentation enables discoverability and correct usage. Annotations enable tooling and client generation. Strongly-typed configuration prevents runtime errors.
+```
+
 Example (codebase has consistent error format):
 ```markdown
 ### V. Error Response Format

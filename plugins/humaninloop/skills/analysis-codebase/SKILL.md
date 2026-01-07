@@ -80,8 +80,8 @@ For constitution authoring - gather broad project characteristics.
 - Tech stack with versions
 - Linting/formatting conventions
 - CI/CD quality gates
-- Team signals (test coverage, required approvals)
-- Existing governance docs
+- Team signals (test coverage, required approvals, CODEOWNERS)
+- Existing governance docs (CODEOWNERS, ADRs, CONTRIBUTING.md)
 
 **Output**: Project Context Report (markdown)
 
@@ -262,6 +262,10 @@ ls -d src/domain src/application src/features 2>/dev/null
 # CI/CD detection
 ls .github/workflows/*.yml .gitlab-ci.yml 2>/dev/null
 
+# Governance detection
+ls CODEOWNERS .github/CODEOWNERS docs/CODEOWNERS 2>/dev/null
+cat CODEOWNERS 2>/dev/null | head -20
+
 # Test structure
 ls -d test/ tests/ spec/ __tests__/ 2>/dev/null
 ```
@@ -278,7 +282,8 @@ Before finalizing analysis:
 **Context Mode:**
 - [ ] Existing linting/formatting config extracted
 - [ ] CI quality gates analyzed
-- [ ] Existing governance docs checked
+- [ ] Existing governance docs checked (CODEOWNERS, ADRs, CONTRIBUTING.md)
+- [ ] Approvers identified (from CODEOWNERS or team structure)
 - [ ] Recommendations provided
 
 **Brownfield Mode:**
