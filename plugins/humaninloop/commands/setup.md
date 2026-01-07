@@ -233,6 +233,14 @@ This supervisor follows a multi-phase architecture for brownfield-aware constitu
    - Each principle: Statement, Enforcement, Testability, Rationale
    - Use RFC 2119 keywords (MUST, SHOULD, MAY)
 
+   **CRITICAL - Populate from Analysis**:
+   - Technology Stack: Use ACTUAL tools/versions from codebase-analysis.md, NOT placeholders
+   - Quality Gates: Use ACTUAL commands from codebase-analysis.md (e.g., if analysis found "pytest", write `pytest --cov`, NOT `[TEST_COMMAND]`)
+   - Coverage thresholds: Use numeric values from analysis OR sensible defaults (warning <80%, blocking <60%)
+   - Security scanning: Name specific tools found (e.g., "Trivy + Snyk") NOT `[SECURITY_COMMAND]`
+   - Governance Approvers: Check for CODEOWNERS file; if exists, reference it (e.g., "as defined in CODEOWNERS"); otherwise use team/role from analysis
+   - If analysis doesn't specify a tool, use industry-standard defaults for the detected language/framework
+
    **Write**:
    - Constitution: `.humaninloop/memory/constitution.md`
    - Report: `.humaninloop/memory/architect-report.md`
@@ -256,6 +264,13 @@ This supervisor follows a multi-phase architecture for brownfield-aware constitu
    - Essential floor principles with industry-standard defaults
    - Each principle: Statement, Enforcement, Testability, Rationale
    - Use RFC 2119 keywords (MUST, SHOULD, MAY)
+
+   **CRITICAL - No Placeholders**:
+   - Technology Stack: Use detected language/framework from Phase 0, or ask user
+   - Quality Gates: Use concrete commands appropriate for the detected stack (e.g., `npm test`, `pytest`, `dotnet test`)
+   - Coverage thresholds: Use numeric defaults (warning <80%, blocking <60%)
+   - Security scanning: Recommend appropriate tools for the stack (e.g., npm audit, pip-audit, Trivy)
+   - NEVER write `[PLACEHOLDER]` syntax - always use actual tool names or sensible defaults
 
    **Write**:
    - Constitution: `.humaninloop/memory/constitution.md`

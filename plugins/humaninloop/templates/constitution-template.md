@@ -3,33 +3,48 @@ SYNC IMPACT REPORT
 ==================
 Version change: (none) → 1.0.0 (MAJOR: Initial constitution)
 
-Rationale for bump:
-- Initial ratification of project constitution
-- Establishes core principles for development governance
+Modified principles: N/A (initial version)
 
-Modified Sections: N/A (initial version)
-
-Added Sections:
+Added sections:
 - Core Principles
 - Technology Stack
 - Quality Gates
 - Governance
 - CLAUDE.md Synchronization
 
-Removed Sections: None
+Removed sections: None
 
-Templates Alignment:
-- ⚠️ CLAUDE.md: Requires sync after constitution creation
-- ⚠️ Other templates: Review for constitution compliance
+Configuration changes: N/A (initial version)
+
+Templates requiring updates:
+- CLAUDE.md: Requires sync after constitution creation ⚠️
 
 Follow-up TODOs:
 - Sync CLAUDE.md with constitution content
 - Review existing code for constitution compliance
 
-Previous Reports: None (initial version)
+Previous reports: None (initial version)
+
+INSTRUCTION: Maintain version history in this section. After each amendment, add
+the previous version to "Previous reports" with a one-line summary. Example:
+  - 1.0.0 (YYYY-MM-DD): Initial constitution with 5 core principles
+  - 1.1.0 (YYYY-MM-DD): Added API Consistency principle
 -->
 
 # [PROJECT_NAME] Constitution
+
+## Overview
+
+<!--
+INSTRUCTION: Brief project description (2-3 sentences) and purpose of this constitution.
+Include: What the project does, primary technology, and governance goals.
+-->
+
+[PROJECT_DESCRIPTION]
+
+This constitution establishes enforceable development standards for [PROJECT_NAME]. It codifies principles that protect quality, security, and maintainability while enabling rapid, confident delivery.
+
+---
 
 ## Core Principles
 
@@ -153,15 +168,27 @@ This section MUST match exactly in CLAUDE.md.
 <!--
 INSTRUCTION: Define automated checks that block merge.
 This section MUST match exactly in CLAUDE.md.
+
+CRITICAL: Replace ALL placeholders with actual tool names and commands.
+- Use tools detected in codebase analysis
+- Use industry-standard defaults if not detected
+- NEVER leave [PLACEHOLDER] syntax in final constitution
+
+Examples by stack:
+- Python: `ruff check .`, `pytest --cov-fail-under=80`, `pip-audit`
+- Node.js: `eslint .`, `npm test -- --coverage`, `npm audit`
+- .NET: `dotnet build --warnaserror`, `dotnet test /p:CollectCoverage=true`, `dotnet list package --vulnerable`
+- Go: `golangci-lint run`, `go test -coverprofile=coverage.out`, `govulncheck ./...`
 -->
 
 | Gate | Requirement | Measurement | Enforcement |
 |------|-------------|-------------|-------------|
-| Static Analysis | Zero errors | `[LINT_COMMAND]` | CI automated |
-| Type Checking | Zero errors | `[TYPE_CHECK_COMMAND]` | CI automated |
-| Test Suite | All tests pass | `[TEST_COMMAND]` | CI automated |
-| Test Coverage | ≥[COVERAGE_THRESHOLD]% | `[COVERAGE_COMMAND]` | CI automated |
-| Security Scan | No vulnerabilities | `[SECURITY_COMMAND]` | CI automated |
+| Static Analysis | Zero errors | `[actual lint command]` | CI automated |
+| Type Checking | Zero errors | `[actual type check command]` | CI automated |
+| Test Suite | All tests pass | `[actual test command]` | CI automated |
+| Test Coverage | ≥80% (warning), ≥60% (blocking) | `[actual coverage command]` | CI automated |
+| Security Scan | No high/critical vulnerabilities | `[actual security tool, e.g., Trivy, Snyk]` | CI automated |
+| Secret Scan | No secrets in code | `[actual secret scanner, e.g., gitleaks, Trivy]` | CI automated |
 | Code Review | ≥1 approval | PR status | Branch protection |
 
 ## Project Structure
@@ -197,12 +224,24 @@ INSTRUCTION: Define dependency rules if using layered architecture.
 
 ## Governance
 
+<!--
+INSTRUCTION: Specify who approves constitution changes.
+Options:
+- CODEOWNERS file (recommended): Reference GitHub/GitLab CODEOWNERS
+- Named role: "Tech Lead", "Principal Engineer", "Architecture Board"
+- Team reference: "@org/team-name"
+-->
+
+### Approvers
+
+Constitution amendments MUST be approved by: [APPROVER - e.g., CODEOWNERS, @org/architecture-team, Tech Lead]
+
 ### Amendment Process
 
 1. Propose change via PR to constitution file
 2. Document rationale for change in PR description
 3. Review impact on existing code and templates
-4. Obtain team consensus (minimum 1 approval)
+4. Obtain approval from designated approvers (see above)
 5. Update version per semantic versioning rules below
 6. Update CLAUDE.md to reflect changes (mandatory sync)
 
@@ -245,22 +284,29 @@ When a principle cannot be followed, approved exceptions MUST be recorded in `do
 
 The `CLAUDE.md` file at repository root MUST remain synchronized with this constitution. It serves as the primary instruction file for AI coding assistants and MUST contain accurate governance information.
 
-### Mandatory Sync Mapping
+### Mandatory Sync Artifacts
+
+<!--
+INSTRUCTION: This table defines what MUST be replicated in CLAUDE.md.
+Add rows for any constitution sections that AI agents need to follow.
+-->
 
 | Constitution Section | CLAUDE.md Section | Sync Rule |
 |---------------------|-------------------|-----------|
-| Core Principles | Principles Summary | MUST list all principles with enforcement keywords |
+| Core Principles (I-X) | Principles Summary | MUST list all principles with enforcement keywords |
+| Layer Import Rules | Architecture section | MUST replicate MAY/MUST NOT import rules |
 | Technology Stack | Technical Stack | MUST match exactly |
 | Quality Gates | Quality Gates | MUST match exactly |
 | Project Structure | Project Structure | MUST match if present |
-| Governance | Development Workflow | MUST include versioning and commit rules |
+| Development Workflow | Development Workflow | MUST match branch/review rules |
+| Governance | Governance section | MUST include versioning and commit rules |
 
 ### Synchronization Process
 
 When amending this constitution:
 
 1. Update constitution version and content
-2. Update CLAUDE.md to reflect all changes in the Mandatory Sync Mapping table
+2. Update CLAUDE.md to reflect all changes in the Mandatory Sync Artifacts table
 3. Verify CLAUDE.md version matches constitution version
 4. Include both files in the same commit
 5. PR description MUST note "Constitution sync: CLAUDE.md updated"
@@ -270,6 +316,8 @@ When amending this constitution:
 - Code review MUST verify CLAUDE.md is updated when constitution changes
 - CLAUDE.md MUST display the same version number as the constitution
 - Sync drift between files is a blocking issue for PRs that modify either file
+
+**Rationale**: If CLAUDE.md diverges from the constitution, agents will operate with outdated or incorrect guidance, undermining the governance this constitution establishes.
 
 ---
 

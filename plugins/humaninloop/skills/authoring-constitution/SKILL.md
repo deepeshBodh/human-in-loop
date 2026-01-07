@@ -106,7 +106,7 @@ Every constitution MUST include these sections:
 
 ### 1. SYNC IMPACT REPORT (Header)
 
-Track changes as HTML comment at file top:
+Track changes as HTML comment at file top. This provides an audit trail of constitution evolution.
 
 ```html
 <!--
@@ -114,27 +114,46 @@ SYNC IMPACT REPORT
 ==================
 Version change: X.Y.Z → A.B.C (MAJOR|MINOR|PATCH: Brief rationale)
 
-Rationale for bump:
-- [Why this version increment]
+Modified principles: [List or "None (enforcement details updated)"]
 
-Modified Sections:
-- [Section]: [What changed]
-
-Added Sections:
+Added sections:
 - [New section name]
 
-Removed Sections:
+Removed sections:
 - [Removed section name] (or "None")
 
-Templates Alignment:
-- ✅ [template]: [status]
-- ⚠️ [template]: [pending action]
+Configuration changes:
+- [File/path change]: [old] → [new]
+- [Structural change description]
+
+Templates requiring updates:
+- CLAUDE.md: [Status - updated ✅ or pending ⚠️]
+- [Other templates]: [Status]
 
 Follow-up TODOs:
-- [Any deferred items]
+- [Any deferred items] (or "None")
 
-Previous Reports:
-- X.Y.Z (YYYY-MM-DD): [Summary]
+Previous reports:
+- X.Y.Z (YYYY-MM-DD): [One-line summary of that version's changes]
+- W.X.Y (YYYY-MM-DD): [One-line summary]
+- ...
+-->
+```
+
+**Version History Best Practice**: Maintain a rolling log of previous versions in the SYNC IMPACT REPORT. This provides:
+- Quick reference for what changed when
+- Context for understanding current state
+- Audit trail for compliance reviews
+
+Example from mature constitution:
+```html
+<!--
+Previous reports:
+  - 3.1.0 (YYYY-MM-DD): Added CLAUDE.md synchronization mandate
+  - 3.0.0 (YYYY-MM-DD): Adopted hexagonal architecture, added strategic abstraction principle
+  - 2.1.0 (YYYY-MM-DD): Added unification trigger to API consistency principle
+  - 2.0.0 (YYYY-MM-DD): Added API consistency principle
+  - 1.8.0 (YYYY-MM-DD): Added exception registry and process
 -->
 ```
 
@@ -220,21 +239,44 @@ Approved exceptions MUST be recorded in `docs/constitution-exceptions.md` with:
 
 ### 6. CLAUDE.md Sync Mandate
 
-Define synchronization requirements:
+Define synchronization requirements. This is critical because AI coding assistants read CLAUDE.md as their primary instruction source.
 
 ```markdown
 ## CLAUDE.md Synchronization
 
-The `CLAUDE.md` file MUST remain synchronized with this constitution.
+The `CLAUDE.md` file at repository root MUST remain synchronized with this constitution.
+It serves as the primary agent instruction file and MUST contain all information
+necessary for AI coding assistants to operate correctly.
 
-**Mandatory Sync Mapping**:
+**Mandatory Sync Artifacts**:
 
 | Constitution Section | CLAUDE.md Section | Sync Rule |
 |---------------------|-------------------|-----------|
-| Core Principles | Principles Summary | MUST list all with enforcement |
+| Core Principles (I-X) | Principles Summary | MUST list all principles with enforcement keywords |
+| Layer Import Rules | Architecture section | MUST replicate layer rules table |
 | Technology Stack | Technical Stack | MUST match exactly |
 | Quality Gates | Quality Gates | MUST match exactly |
-| Governance | Development Workflow | MUST match versioning rules |
+| Development Workflow | Development Workflow | MUST match branch/review rules |
+| Project Management | Project Management | MUST include tool conventions |
+
+**Synchronization Process**:
+
+When amending this constitution:
+
+1. Update constitution version and content
+2. Update CLAUDE.md to reflect all changes in the Mandatory Sync Artifacts table
+3. Verify CLAUDE.md version matches constitution version
+4. Include both files in the same commit
+5. PR description MUST note "Constitution sync: CLAUDE.md updated"
+
+**Enforcement**:
+
+- Code review MUST verify CLAUDE.md is updated when constitution changes
+- CLAUDE.md MUST display the same version number as the constitution
+- Sync drift between files is a blocking issue for PRs that modify either file
+
+**Rationale**: If CLAUDE.md diverges from the constitution, agents will operate with
+outdated or incorrect guidance, undermining the governance this constitution establishes.
 ```
 
 See [syncing-claude-md skill](../syncing-claude-md/SKILL.md) for implementation.
@@ -276,12 +318,20 @@ Before finalizing a constitution, verify:
 
 **Structure Quality**:
 - [ ] SYNC IMPACT REPORT present as HTML comment
+- [ ] Overview section with project description
 - [ ] Core Principles numbered with Roman numerals
 - [ ] Technology Stack table complete with rationale
 - [ ] Quality Gates table with measurement commands
 - [ ] Governance section with amendment process
 - [ ] CLAUDE.md Sync Mandate with mapping table
 - [ ] Version footer with dates in ISO format
+
+**No Placeholders Rule**:
+- [ ] Technology Stack has NO `[PLACEHOLDER]` syntax - all actual tool names
+- [ ] Quality Gates has NO `[COMMAND]` placeholders - all actual commands
+- [ ] Coverage thresholds are numeric (e.g., "≥80%", NOT "[THRESHOLD]%")
+- [ ] Security tools are named (e.g., "Trivy + Snyk", NOT "[SECURITY_COMMAND]")
+- [ ] Test commands are complete (e.g., "`pytest --cov`", NOT "`[TEST_COMMAND]`")
 
 **Governance Quality**:
 - [ ] Version follows semantic versioning
@@ -299,6 +349,9 @@ Before finalizing a constitution, verify:
 | **Cargo-cult rule** | Rule copied without understanding | Add rationale explaining the "why" |
 | **Over-engineering** | 50 principles for a 3-person team | Start with 5-7 core principles |
 | **No escape hatch** | No exception process | Define exception registry |
+| **Placeholder syndrome** | `[COMMAND]` instead of actual tool | Use detected tools or industry defaults |
+| **Generic thresholds** | "Coverage MUST be measured" | Specify numeric values: "≥80% warning, ≥60% blocking" |
+| **Missing secret management** | "Secrets from env" only | Specify secret managers, scanning tools, .gitignore rules |
 
 ## Brownfield Mode
 
@@ -310,36 +363,92 @@ Every constitution MUST include principles for these four categories, regardless
 
 | Category | Minimum Requirements | Default Enforcement |
 |----------|---------------------|---------------------|
-| **Security** | Auth at boundaries, secrets from env, input validation | Integration tests, code review, secret scanning |
-| **Testing** | Automated tests exist, coverage measured | CI test gate, coverage threshold (≥80% default) |
-| **Error Handling** | Explicit handling, context for debugging, status codes | Tests verify error responses, code review |
-| **Observability** | Structured logging, correlation IDs, no PII in logs | Config verification, log audit |
+| **Security** | Auth at boundaries, secrets via env/secret managers, input validation, secret scanning in CI | Integration tests, code review, secret scanning tools |
+| **Testing** | Automated tests exist, coverage ≥80% (configurable), ratchet rule (coverage MUST NOT decrease) | CI test gate, coverage threshold with warning/blocking levels |
+| **Error Handling** | Explicit handling, RFC 7807 Problem Details format, correlation IDs in responses | Schema validation in tests, code review |
+| **Observability** | Structured logging, correlation IDs, APM integration, no PII in logs | Config verification, log audit, APM dashboards |
+
+#### Essential Floor Detail Requirements
+
+When writing Essential Floor principles, include these specifics:
+
+**Security Principle MUST address:**
+- Secret management: Environment variables OR cloud secret managers (AWS Secrets Manager, Azure Key Vault, HashiCorp Vault, etc.)
+- Secret scanning: CI MUST run secret scanning tools (e.g., Trivy, Snyk, git-secrets, gitleaks)
+- Config file exclusion: Sensitive config files (e.g., `*.local.*`, `appsettings.*.json` with secrets) MUST be in `.gitignore`
+- Input validation: All external inputs MUST be validated before processing
+
+**Testing Principle MUST address:**
+- Coverage thresholds: Specify numeric values (e.g., warning at <80%, blocking at <60%)
+- Ratchet rule: "Coverage baseline MUST NOT decrease" - prevents coverage regression
+- Test file conventions: Naming patterns for test files (e.g., `*_test.py`, `*.spec.ts`, `*Test.java`)
+- Test organization: How tests mirror source structure
+
+**Error Handling Principle MUST address:**
+- Response format: RFC 7807 Problem Details (preferred) or consistent JSON schema
+- Error codes: Naming convention (e.g., `ERR_DOMAIN_ACTION`)
+- Stack traces: MUST NOT be exposed in production responses
+- Correlation: Error responses MUST include correlation/trace IDs
+
+**Observability Principle MUST address:**
+- Logging format: Structured JSON logging with standard fields
+- APM tools: Name specific tools if detected (e.g., Application Insights, Datadog, New Relic)
+- Health checks: Endpoint path and what it validates
+- PII prohibition: Logs MUST NOT contain personally identifiable information
 
 **Writing Essential Floor Principles:**
 
 - If codebase **has** the capability → Principle codifies existing pattern with enforcement
 - If codebase **lacks** the capability → Principle states "MUST implement" with roadmap gap
 
+Example (Security principle with proper secret management):
+```markdown
+### I. Security by Default (NON-NEGOTIABLE)
+
+All code MUST follow security-first principles.
+
+- Authentication MUST be enforced at API boundaries
+- Secrets MUST be loaded from environment variables or AWS Secrets Manager
+- Sensitive config files (`appsettings.*.json`, `.env.local`) MUST be in `.gitignore`
+- All external inputs MUST be validated before processing
+- CI MUST run secret scanning on every push
+
+**Enforcement**:
+- CI runs `trivy fs --scanners secret .` and blocks merge on findings
+- CI runs `snyk test` for dependency vulnerabilities
+- Code review checklist includes auth verification
+- Pre-commit hook runs `gitleaks protect`
+
+**Testability**:
+- Pass: Zero secrets in codebase, zero high/critical vulnerabilities, auth on all endpoints
+- Fail: Any secret detected OR critical vulnerability OR unauthenticated endpoint
+
+**Rationale**: Security breaches are expensive and damage trust. Defense in depth with automated scanning catches issues before they reach production.
+```
+
 Example (codebase has partial testing):
 ```markdown
-### II. Testing Discipline
+### II. Testing Discipline (NON-NEGOTIABLE)
 
 All production code MUST have automated tests.
 
 - New functionality MUST have accompanying tests before merge
-- Test coverage MUST be measured and reported
-- Coverage threshold SHOULD be ≥80% (current: 65%)
+- Test coverage MUST be ≥80% (warning) and ≥60% (blocking)
+- Coverage baseline MUST NOT decrease (ratchet rule)
+- Test files MUST follow naming convention: `*_test.py` or `test_*.py`
+- Tests MUST mirror source structure in `tests/` directory
 
 **Enforcement**:
-- CI runs `pytest` and blocks merge on failure
-- Coverage report generated on every PR
-- Coverage gate: warning at <80%, blocking at <60%
+- CI runs `pytest --cov --cov-fail-under=60` and blocks merge on failure
+- Coverage report generated on every PR via `pytest-cov`
+- Pre-commit hook runs `pytest tests/unit/` for fast feedback
+- Coverage ratchet enforced by comparing to baseline in CI
 
 **Testability**:
-- Pass: All tests pass, coverage ≥80%
-- Fail: Any test fails OR coverage <60%
+- Pass: All tests pass AND coverage ≥60% AND coverage ≥ previous baseline
+- Fail: Any test fails OR coverage <60% OR coverage decreased
 
-**Rationale**: Tests enable confident refactoring and catch regressions early. The 80% threshold balances coverage with pragmatism.
+**Rationale**: Tests enable confident refactoring and catch regressions early. The 80% warning/60% blocking thresholds balance coverage with pragmatism. The ratchet rule prevents coverage erosion over time.
 
 > Note: Current coverage is 65%. See GAP-002 in evolution-roadmap.md for improvement plan.
 ```
@@ -351,6 +460,46 @@ Beyond the essential floor, identify **existing good patterns** worth codifying:
 1. **Read codebase analysis** - Look for "Strengths to Preserve" section
 2. **Identify patterns** - Naming conventions, architecture patterns, error formats
 3. **Codify as principles** - With enforcement mechanisms
+
+#### Common Emergent Ceiling Patterns
+
+Look for these patterns in brownfield analysis and codify if present:
+
+| Pattern Category | What to Look For | Example Principle |
+|------------------|------------------|-------------------|
+| **Code Quality** | Documentation requirements, API annotations, deprecation handling | "All public APIs MUST have documentation comments" |
+| **Architecture** | Layer rules, dependency injection, module boundaries | "Controllers MUST NOT directly access repositories" |
+| **API Design** | Response formats, versioning, pagination | "API responses MUST follow RFC 7807 Problem Details" |
+| **Authorization** | Role-based access, permission checks | "All endpoints MUST validate user permissions" |
+| **Resilience** | Retry policies, circuit breakers, timeouts | "External calls MUST use retry with exponential backoff" |
+| **Configuration** | Strongly-typed options, feature flags | "Configuration MUST use strongly-typed options pattern" |
+| **Error Handling** | Error display guidelines, data resilience, user-friendly messages | "Users MUST see actionable error messages, never stack traces" |
+| **Observability** | Log levels, context requirements, crash reporting | "Errors MUST be logged with context sufficient for debugging" |
+| **Product Analytics** | Event categories, naming conventions, funnel tracking | "Events MUST follow `{object}_{action}` naming in snake_case" |
+| **Naming Conventions** | File/class/variable naming, directory structure | "Files MUST use snake_case, classes MUST use PascalCase" |
+
+Example (codebase has Code Quality standards):
+```markdown
+### V. Code Quality Standards
+
+All production code MUST meet documentation and annotation requirements.
+
+- Public APIs MUST have XML documentation comments (or JSDoc, docstrings, etc.)
+- API endpoints MUST declare response types (e.g., `[ProducesResponseType]`, OpenAPI annotations)
+- Deprecated endpoints MUST return warning headers and log deprecation notices
+- Configuration MUST use strongly-typed options pattern (no magic strings)
+
+**Enforcement**:
+- CI runs documentation coverage check and warns on missing docs
+- OpenAPI spec generated from annotations and validated
+- Linter rules enforce no magic strings in configuration
+
+**Testability**:
+- Pass: All public APIs documented, all endpoints annotated, zero magic strings
+- Fail: Missing documentation on public API OR missing response type annotation
+
+**Rationale**: Documentation enables discoverability and correct usage. Annotations enable tooling and client generation. Strongly-typed configuration prevents runtime errors.
+```
 
 Example (codebase has consistent error format):
 ```markdown
@@ -371,6 +520,262 @@ API error responses MUST follow the established format.
 - Fail: Any error response missing required fields
 
 **Rationale**: Consistent error format enables client-side error handling and debugging. Pattern established in existing codebase and proven effective.
+```
+
+Example (codebase has Clean Architecture):
+```markdown
+### VI. Single Responsibility & Layer Discipline
+
+Each module, service, and function MUST have one clear purpose.
+
+- Domain layer handles business logic, not infrastructure concerns
+- Adapters handle external system integration, not business logic
+- Models define data shape, not behavior
+- No "utils" or "helpers" modules—find the right home or create a named module
+
+**Clean Architecture Layers**:
+
+Dependencies MUST flow inward—outer layers depend on inner layers, never reverse:
+
+| Layer | Location | MAY import | MUST NOT import |
+|-------|----------|------------|-----------------|
+| Domain | `src/domain/` | Python stdlib only | application, adapters, infrastructure |
+| Application | `src/application/` | domain, port interfaces | adapters, infrastructure |
+| Adapters | `src/adapters/` | application, domain, ports | other adapters directly |
+| Infrastructure | `src/infrastructure/` | application (for DI wiring) | domain logic |
+
+**Code Quality Metrics**:
+
+| Metric | Limit | Enforcement |
+|--------|-------|-------------|
+| Cyclomatic complexity | ≤10 per function | Linter rule in CI |
+| Function parameters | ≤5 (use models for more) | Code review |
+| File length | ≤300 lines SHOULD, ≤500 MUST | Code review |
+| Nesting depth | ≤4 levels | Code review |
+
+**Enforcement**:
+- Linter complexity rule configured with `max-complexity = 10` (CI blocks on violation)
+- Project structure enforces separation: `domain/`, `application/`, `adapters/`
+- Code review MUST reject PRs that mix layers inappropriately
+- Type checker strict mode catches type leakage across boundaries
+
+**Testability**:
+- Pass: All imports respect layer rules, complexity ≤10, no layer violations
+- Fail: Any import from inner to outer layer OR complexity >10
+
+**Rationale**: Clear boundaries make code easier to test, understand, and modify. Mixed responsibilities compound complexity over time.
+```
+
+Example (codebase has external service integrations):
+```markdown
+### VII. Dependency Discipline & Port Interfaces
+
+External dependencies MUST be justified and isolated behind port interfaces.
+
+- New dependencies MUST solve a problem that cannot be reasonably solved in-house
+- External service calls MUST be isolated behind port interfaces (enable swapping)
+- Version pins MUST be explicit in lock files
+- Dependency updates MUST be intentional, not automatic
+
+**Port Interface Requirements**:
+
+All external service calls MUST go through port interfaces:
+
+| External Service | Port Interface Location | Adapter Location |
+|------------------|------------------------|------------------|
+| AI Providers | `application/ports/outbound/ai_provider.py` | `adapters/outbound/ai/` |
+| Storage | `application/ports/outbound/storage.py` | `adapters/outbound/storage/` |
+| Database | `application/ports/outbound/repository.py` | `adapters/outbound/persistence/` |
+| External APIs | `application/ports/outbound/[service].py` | `adapters/outbound/[service]/` |
+
+**Port Design Rules**:
+- Port interfaces MUST be defined as `Protocol` or `ABC` classes
+- Port interfaces MUST use domain types in signatures, not SDK types
+- Adapters MUST implement port interfaces, not extend them
+- One port per logical capability (not per provider)
+- Async methods for all I/O operations
+
+**Enforcement**:
+- Security scanner blocks merge on known vulnerabilities
+- Lock file committed to repo ensures reproducible builds
+- Code review MUST justify new dependencies in PR description
+- Code review MUST verify external calls use port interfaces
+
+**Testability**:
+- Pass: All external calls through ports, no direct SDK usage in domain/application
+- Fail: Any external SDK imported in domain layer OR direct HTTP call without port
+
+**Rationale**: Each dependency is a liability—maintenance burden, security surface, potential breaking changes. Isolation via ports enables evolution without rewrite and makes the codebase testable without hitting real external services.
+```
+
+Example (codebase has error handling patterns):
+```markdown
+### VIII. Error Handling & Resilience
+
+All code MUST handle errors gracefully. Failures MUST NOT crash the app or lose user data.
+
+- All external calls (network, file system, database) MUST be wrapped in try/catch
+- Errors MUST be logged with sufficient context for debugging
+- Users MUST see friendly error messages, never stack traces or technical jargon
+- Users MUST have a path forward (retry, alternative action, support contact)
+- Critical user data MUST survive crashes (persist early, persist often)
+- Async operations MUST show loading states
+- Timeouts MUST be configured for all network operations (default: 30 seconds)
+- Circuit breakers MUST be implemented for external APIs with historical uptime <99.5%
+
+**Error Display Guidelines**:
+- Error messages MUST be actionable ("Could not save. Tap to retry." not "Error 500")
+- Transient errors MUST offer automatic or manual retry
+- Permanent errors MUST explain what the user can do next
+
+**Data Resilience**:
+- User input MUST be preserved across navigation and app restarts
+- Draft/unsaved state MUST be recoverable after crashes
+- Sync conflicts MUST be handled with user notification, not silent data loss
+
+**Enforcement**:
+- Integration tests MUST verify error responses
+- Code review MUST verify try/catch blocks around external service calls
+- Error scenarios MUST be tested explicitly
+
+**Testability**:
+- Pass: All external calls have error handling, user-friendly messages for all error states
+- Fail: Unhandled exception OR technical error shown to user OR data loss on error
+
+**Rationale**: Users judge software quality by how it handles the unhappy path. Graceful degradation and clear communication build trust and reduce support burden.
+```
+
+Example (codebase has observability):
+```markdown
+### IX. Observability
+
+The app MUST be observable. When something goes wrong in production, there MUST be enough information to diagnose and fix it without requiring reproduction.
+
+- Crashes MUST be reported automatically with full stack traces
+- Errors MUST be logged with context (user action, app state, device info)
+- Logs MUST have appropriate levels (debug, info, warning, error)
+- Logs MUST NOT contain sensitive data (PII, tokens, passwords)
+- Key user flows MUST have analytics events for funnel analysis
+- Performance metrics MUST be tracked (startup time, screen load times)
+- Debug builds MUST have verbose logging; release builds MUST NOT
+
+**Log Levels**:
+
+| Level | Use For | Example |
+|-------|---------|---------|
+| `error` | Failures requiring attention | API call failed, database write error |
+| `warning` | Recoverable issues | Retry succeeded, fallback used |
+| `info` | Significant state changes | User logged in, sync completed |
+| `debug` | Development diagnostics | Request/response bodies, state dumps |
+
+**Context Requirements**:
+- User ID (anonymized) for session correlation
+- Device info (model, OS version, app version)
+- Current screen/route at time of error
+- Recent user actions (breadcrumbs)
+- Relevant state that led to the error
+
+**Enforcement**:
+- Crash reporting tool configured and verified in CI
+- Structured logging with required fields enforced by wrapper
+- Code review MUST verify no PII in log statements
+
+**Testability**:
+- Pass: All errors logged with context, no PII in logs, crash reporting active
+- Fail: Silent failures OR PII in logs OR missing context
+
+**Rationale**: You cannot fix what you cannot see. Production issues without observability become guessing games. Good observability reduces mean time to resolution.
+```
+
+Example (codebase has product analytics):
+```markdown
+### X. Product Analytics
+
+Product analytics MUST be systematic, consistent, and actionable. Every feature MUST be instrumented to measure adoption, engagement, and conversion.
+
+**Mandatory Event Categories**:
+
+| Category | Description | When to Track |
+|----------|-------------|---------------|
+| Screen View | User navigates to a screen | Every screen entry |
+| User Action | Intentional user interaction | Taps, clicks with business meaning |
+| Conversion | Funnel milestone achieved | Signup, onboarding, first value |
+| Error | User-facing error occurred | Errors shown to user (not crashes) |
+| Feature | Feature-specific engagement | Feature used meaningfully |
+
+**Event Naming Convention**:
+
+All events MUST follow the `{object}_{action}` pattern in `snake_case`:
+
+| Pattern | Format | Examples |
+|---------|--------|----------|
+| Screen views | `screen_viewed` | Differentiate via properties |
+| User actions | `{element}_{action}` | `continue_button_tapped`, `item_selected` |
+| Conversions | `{milestone}_completed` | `onboarding_completed`, `signup_completed` |
+| Features | `{feature}_{action}` | `ai_suggestion_accepted`, `photo_uploaded` |
+
+**Required Event Properties**:
+
+All events MUST include:
+- `timestamp` - Event occurrence time
+- `user_id` - Anonymized user identifier
+- `session_id` - Current session identifier
+- `app_version` - Semantic version
+- `platform` - Platform identifier
+
+**Funnel Tracking Requirements**:
+- Each funnel MUST be defined in feature specification before implementation
+- Funnel steps MUST have paired `{step}_started` and `{step}_completed` events
+- Drop-off points MUST be identifiable in analytics dashboards
+
+**Analytics Privacy & Compliance**:
+- Event properties MUST NOT contain PII (names, emails, phone numbers)
+- User IDs MUST be anonymized
+- Location data MUST be coarse (city/region, not exact coordinates)
+
+**Enforcement**:
+- Specs MUST include "Analytics Events" section with event tables
+- Code review MUST verify events match specification
+- No PII in any event properties (automated scan if possible)
+
+**Testability**:
+- Pass: All specified events firing, properties complete, no PII
+- Fail: Missing events OR incomplete properties OR PII detected
+
+**Rationale**: Product analytics enables data-driven decisions about feature development and user experience optimization. Consistent naming enables cross-feature analysis.
+```
+
+Example (codebase has naming conventions):
+```markdown
+### XI. Naming Conventions
+
+All code artifacts MUST follow consistent naming conventions for discoverability and maintainability.
+
+| Item | Convention | Example |
+|------|------------|---------|
+| Files | snake_case | `user_provider.dart`, `auth_service.py` |
+| Classes | PascalCase | `UserProvider`, `AuthService` |
+| Variables/functions | camelCase | `getUserById()`, `isAuthenticated` |
+| Constants | SCREAMING_SNAKE or camelCase | `MAX_RETRIES`, `apiTimeout` |
+| Interfaces/Protocols | IPascalCase or PascalCase | `IUserRepository`, `UserRepository` |
+| Test files | {source}_test.{ext} | `user_service_test.dart` |
+| Config files | kebab-case or snake_case | `app-config.yaml`, `database_config.py` |
+
+**Directory Naming**:
+- Feature directories: `kebab-case` or `snake_case` (consistent within project)
+- Layer directories: lowercase (`domain/`, `application/`, `adapters/`)
+- Test directories mirror source: `test/unit/services/` → `src/services/`
+
+**Enforcement**:
+- Linter rules configured for naming violations
+- Code review MUST reject non-compliant names
+- New developers MUST be onboarded to conventions
+
+**Testability**:
+- Pass: All names follow conventions, test files mirror source structure
+- Fail: Any naming violation OR test file in wrong location
+
+**Rationale**: Consistent naming enables quick navigation, reduces cognitive load, and makes codebase searchable. Developers can predict file locations without searching.
 ```
 
 ### Brownfield Constitution Structure
