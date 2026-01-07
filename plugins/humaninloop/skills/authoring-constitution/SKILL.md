@@ -106,7 +106,7 @@ Every constitution MUST include these sections:
 
 ### 1. SYNC IMPACT REPORT (Header)
 
-Track changes as HTML comment at file top:
+Track changes as HTML comment at file top. This provides an audit trail of constitution evolution.
 
 ```html
 <!--
@@ -114,27 +114,46 @@ SYNC IMPACT REPORT
 ==================
 Version change: X.Y.Z → A.B.C (MAJOR|MINOR|PATCH: Brief rationale)
 
-Rationale for bump:
-- [Why this version increment]
+Modified principles: [List or "None (enforcement details updated)"]
 
-Modified Sections:
-- [Section]: [What changed]
-
-Added Sections:
+Added sections:
 - [New section name]
 
-Removed Sections:
+Removed sections:
 - [Removed section name] (or "None")
 
-Templates Alignment:
-- ✅ [template]: [status]
-- ⚠️ [template]: [pending action]
+Configuration changes:
+- [File/path change]: [old] → [new]
+- [Structural change description]
+
+Templates requiring updates:
+- CLAUDE.md: [Status - updated ✅ or pending ⚠️]
+- [Other templates]: [Status]
 
 Follow-up TODOs:
-- [Any deferred items]
+- [Any deferred items] (or "None")
 
-Previous Reports:
-- X.Y.Z (YYYY-MM-DD): [Summary]
+Previous reports:
+- X.Y.Z (YYYY-MM-DD): [One-line summary of that version's changes]
+- W.X.Y (YYYY-MM-DD): [One-line summary]
+- ...
+-->
+```
+
+**Version History Best Practice**: Maintain a rolling log of previous versions in the SYNC IMPACT REPORT. This provides:
+- Quick reference for what changed when
+- Context for understanding current state
+- Audit trail for compliance reviews
+
+Example from mature constitution:
+```html
+<!--
+Previous reports:
+  - 3.1.0 (2025-12-24): Added CLAUDE.md synchronization mandate
+  - 3.0.0 (2025-12-20): Hexagonal Architecture adoption, Strategic Abstraction principle
+  - 2.1.0 (2025-12-19): Added Unification Trigger to Principle VII
+  - 2.0.0 (2025-12-19): Added Principle X - API Consistency
+  - 1.8.0 (2025-12-19): Added Exception Registry and Process
 -->
 ```
 
@@ -220,21 +239,44 @@ Approved exceptions MUST be recorded in `docs/constitution-exceptions.md` with:
 
 ### 6. CLAUDE.md Sync Mandate
 
-Define synchronization requirements:
+Define synchronization requirements. This is critical because AI coding assistants read CLAUDE.md as their primary instruction source.
 
 ```markdown
 ## CLAUDE.md Synchronization
 
-The `CLAUDE.md` file MUST remain synchronized with this constitution.
+The `CLAUDE.md` file at repository root MUST remain synchronized with this constitution.
+It serves as the primary agent instruction file and MUST contain all information
+necessary for AI coding assistants to operate correctly.
 
-**Mandatory Sync Mapping**:
+**Mandatory Sync Artifacts**:
 
 | Constitution Section | CLAUDE.md Section | Sync Rule |
 |---------------------|-------------------|-----------|
-| Core Principles | Principles Summary | MUST list all with enforcement |
+| Core Principles (I-X) | Principles Summary | MUST list all principles with enforcement keywords |
+| Layer Import Rules | Architecture section | MUST replicate layer rules table |
 | Technology Stack | Technical Stack | MUST match exactly |
 | Quality Gates | Quality Gates | MUST match exactly |
-| Governance | Development Workflow | MUST match versioning rules |
+| Development Workflow | Development Workflow | MUST match branch/review rules |
+| Project Management | Project Management | MUST include tool conventions |
+
+**Synchronization Process**:
+
+When amending this constitution:
+
+1. Update constitution version and content
+2. Update CLAUDE.md to reflect all changes in the Mandatory Sync Artifacts table
+3. Verify CLAUDE.md version matches constitution version
+4. Include both files in the same commit
+5. PR description MUST note "Constitution sync: CLAUDE.md updated"
+
+**Enforcement**:
+
+- Code review MUST verify CLAUDE.md is updated when constitution changes
+- CLAUDE.md MUST display the same version number as the constitution
+- Sync drift between files is a blocking issue for PRs that modify either file
+
+**Rationale**: If CLAUDE.md diverges from the constitution, agents will operate with
+outdated or incorrect guidance, undermining the governance this constitution establishes.
 ```
 
 See [syncing-claude-md skill](../syncing-claude-md/SKILL.md) for implementation.
@@ -474,6 +516,92 @@ API error responses MUST follow the established format.
 - Fail: Any error response missing required fields
 
 **Rationale**: Consistent error format enables client-side error handling and debugging. Pattern established in existing codebase and proven effective.
+```
+
+Example (codebase has Clean Architecture):
+```markdown
+### VI. Single Responsibility & Layer Discipline
+
+Each module, service, and function MUST have one clear purpose.
+
+- Domain layer handles business logic, not infrastructure concerns
+- Adapters handle external system integration, not business logic
+- Models define data shape, not behavior
+- No "utils" or "helpers" modules—find the right home or create a named module
+
+**Clean Architecture Layers**:
+
+Dependencies MUST flow inward—outer layers depend on inner layers, never reverse:
+
+| Layer | Location | MAY import | MUST NOT import |
+|-------|----------|------------|-----------------|
+| Domain | `src/domain/` | Python stdlib only | application, adapters, infrastructure |
+| Application | `src/application/` | domain, port interfaces | adapters, infrastructure |
+| Adapters | `src/adapters/` | application, domain, ports | other adapters directly |
+| Infrastructure | `src/infrastructure/` | application (for DI wiring) | domain logic |
+
+**Code Quality Metrics**:
+
+| Metric | Limit | Enforcement |
+|--------|-------|-------------|
+| Cyclomatic complexity | ≤10 per function | Linter rule in CI |
+| Function parameters | ≤5 (use models for more) | Code review |
+| File length | ≤300 lines SHOULD, ≤500 MUST | Code review |
+| Nesting depth | ≤4 levels | Code review |
+
+**Enforcement**:
+- Linter complexity rule configured with `max-complexity = 10` (CI blocks on violation)
+- Project structure enforces separation: `domain/`, `application/`, `adapters/`
+- Code review MUST reject PRs that mix layers inappropriately
+- Type checker strict mode catches type leakage across boundaries
+
+**Testability**:
+- Pass: All imports respect layer rules, complexity ≤10, no layer violations
+- Fail: Any import from inner to outer layer OR complexity >10
+
+**Rationale**: Clear boundaries make code easier to test, understand, and modify. Mixed responsibilities compound complexity over time.
+```
+
+Example (codebase has external service integrations):
+```markdown
+### VII. Dependency Discipline & Port Interfaces
+
+External dependencies MUST be justified and isolated behind port interfaces.
+
+- New dependencies MUST solve a problem that cannot be reasonably solved in-house
+- External service calls MUST be isolated behind port interfaces (enable swapping)
+- Version pins MUST be explicit in lock files
+- Dependency updates MUST be intentional, not automatic
+
+**Port Interface Requirements**:
+
+All external service calls MUST go through port interfaces:
+
+| External Service | Port Interface Location | Adapter Location |
+|------------------|------------------------|------------------|
+| AI Providers | `application/ports/outbound/ai_provider.py` | `adapters/outbound/ai/` |
+| Storage | `application/ports/outbound/storage.py` | `adapters/outbound/storage/` |
+| Database | `application/ports/outbound/repository.py` | `adapters/outbound/persistence/` |
+| External APIs | `application/ports/outbound/[service].py` | `adapters/outbound/[service]/` |
+
+**Port Design Rules**:
+- Port interfaces MUST be defined as `Protocol` or `ABC` classes
+- Port interfaces MUST use domain types in signatures, not SDK types
+- Adapters MUST implement port interfaces, not extend them
+- One port per logical capability (not per provider)
+- Async methods for all I/O operations
+
+**Enforcement**:
+- Security scanner blocks merge on known vulnerabilities
+- Lock file committed to repo ensures reproducible builds
+- Code review MUST justify new dependencies in PR description
+- Code review MUST verify external calls use port interfaces
+
+**Testability**:
+- Pass: All external calls through ports, no direct SDK usage in domain/application
+- Fail: Any external SDK imported in domain layer OR direct HTTP call without port
+
+**Rationale**: Each dependency is a liability—maintenance burden, security surface, potential breaking changes. Isolation via ports enables evolution without rewrite and makes the codebase testable without hitting real external services.
 ```
 
 ### Brownfield Constitution Structure

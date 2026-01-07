@@ -3,30 +3,32 @@ SYNC IMPACT REPORT
 ==================
 Version change: (none) → 1.0.0 (MAJOR: Initial constitution)
 
-Rationale for bump:
-- Initial ratification of project constitution
-- Establishes core principles for development governance
+Modified principles: N/A (initial version)
 
-Modified Sections: N/A (initial version)
-
-Added Sections:
+Added sections:
 - Core Principles
 - Technology Stack
 - Quality Gates
 - Governance
 - CLAUDE.md Synchronization
 
-Removed Sections: None
+Removed sections: None
 
-Templates Alignment:
-- ⚠️ CLAUDE.md: Requires sync after constitution creation
-- ⚠️ Other templates: Review for constitution compliance
+Configuration changes: N/A (initial version)
+
+Templates requiring updates:
+- CLAUDE.md: Requires sync after constitution creation ⚠️
 
 Follow-up TODOs:
 - Sync CLAUDE.md with constitution content
 - Review existing code for constitution compliance
 
-Previous Reports: None (initial version)
+Previous reports: None (initial version)
+
+INSTRUCTION: Maintain version history in this section. After each amendment, add
+the previous version to "Previous reports" with a one-line summary. Example:
+  - 1.0.0 (YYYY-MM-DD): Initial constitution with 5 core principles
+  - 1.1.0 (YYYY-MM-DD): Added API Consistency principle
 -->
 
 # [PROJECT_NAME] Constitution
@@ -282,22 +284,29 @@ When a principle cannot be followed, approved exceptions MUST be recorded in `do
 
 The `CLAUDE.md` file at repository root MUST remain synchronized with this constitution. It serves as the primary instruction file for AI coding assistants and MUST contain accurate governance information.
 
-### Mandatory Sync Mapping
+### Mandatory Sync Artifacts
+
+<!--
+INSTRUCTION: This table defines what MUST be replicated in CLAUDE.md.
+Add rows for any constitution sections that AI agents need to follow.
+-->
 
 | Constitution Section | CLAUDE.md Section | Sync Rule |
 |---------------------|-------------------|-----------|
-| Core Principles | Principles Summary | MUST list all principles with enforcement keywords |
+| Core Principles (I-X) | Principles Summary | MUST list all principles with enforcement keywords |
+| Layer Import Rules | Architecture section | MUST replicate MAY/MUST NOT import rules |
 | Technology Stack | Technical Stack | MUST match exactly |
 | Quality Gates | Quality Gates | MUST match exactly |
 | Project Structure | Project Structure | MUST match if present |
-| Governance | Development Workflow | MUST include versioning and commit rules |
+| Development Workflow | Development Workflow | MUST match branch/review rules |
+| Governance | Governance section | MUST include versioning and commit rules |
 
 ### Synchronization Process
 
 When amending this constitution:
 
 1. Update constitution version and content
-2. Update CLAUDE.md to reflect all changes in the Mandatory Sync Mapping table
+2. Update CLAUDE.md to reflect all changes in the Mandatory Sync Artifacts table
 3. Verify CLAUDE.md version matches constitution version
 4. Include both files in the same commit
 5. PR description MUST note "Constitution sync: CLAUDE.md updated"
@@ -307,6 +316,8 @@ When amending this constitution:
 - Code review MUST verify CLAUDE.md is updated when constitution changes
 - CLAUDE.md MUST display the same version number as the constitution
 - Sync drift between files is a blocking issue for PRs that modify either file
+
+**Rationale**: If CLAUDE.md diverges from the constitution, agents will operate with outdated or incorrect guidance, undermining the governance this constitution establishes.
 
 ---
 
