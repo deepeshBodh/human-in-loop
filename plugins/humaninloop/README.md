@@ -168,7 +168,7 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 
 | Agent | Purpose |
 |-------|---------|
-| **Principal Architect** | Senior technical leader who creates enforceable project constitutions with governance judgment. In brownfield mode, analyzes existing codebase for essential floor coverage, produces codebase-analysis.md, and generates evolution-roadmap.md with prioritized gaps. Uses skills: `analysis-codebase`, `authoring-constitution`, `syncing-claude-md`, `authoring-roadmap` |
+| **Principal Architect** | Senior technical leader who creates enforceable project constitutions with governance judgment. In brownfield mode, analyzes existing codebase for essential floor coverage, produces codebase-analysis.md, and generates evolution-roadmap.md with prioritized gaps. Uses skills: `analysis-codebase`, `authoring-constitution`, `brownfield-constitution`, `validation-constitution`, `syncing-claude-md`, `authoring-roadmap` |
 
 ### Specify Workflow Agents
 

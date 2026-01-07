@@ -150,7 +150,7 @@ human-in-loop/
 
 | Plugin | Description | Commands | Skills |
 |--------|-------------|----------|--------|
-| `humaninloop` | Specification-driven development workflow | `/humaninloop:setup`, `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:audit`, `/humaninloop:implement` | `authoring-requirements`, `authoring-user-stories`, `authoring-constitution`, `analysis-codebase`, `syncing-claude-md`, `analysis-iterative` |
+| `humaninloop` | Specification-driven development workflow | `/humaninloop:setup`, `/humaninloop:specify`, `/humaninloop:plan`, `/humaninloop:tasks`, `/humaninloop:audit`, `/humaninloop:implement` | `authoring-requirements`, `authoring-user-stories`, `authoring-constitution`, `brownfield-constitution`, `validation-constitution`, `analysis-codebase`, `syncing-claude-md`, `analysis-iterative` |
 
 ## Common Commands
 
