@@ -6,6 +6,32 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.7.6] - 2026-01-07
+
+Constitution generation fixes and pattern strengthening from real-world usage feedback (#26).
+
+### humaninloop 0.7.6
+
+#### Fixed
+- **Placeholder syndrome** - Constitution generation now produces actual tool names and commands instead of `[PLACEHOLDER]` syntax
+- **Coverage thresholds** - Now uses numeric values (e.g., "≥80% warning, ≥60% blocking") instead of `[THRESHOLD]%`
+- **Security tools** - Names specific tools (e.g., "Trivy + Snyk") instead of `[SECURITY_COMMAND]`
+
+#### Added
+- **Emergent Ceiling patterns** - 10+ new examples: Code Quality, Clean Architecture, Port Interfaces, Error Handling, Observability, Product Analytics, Naming Conventions
+- **Mobile/frontend patterns** - Constitution patterns tailored for mobile and frontend codebases
+- **CODEOWNERS detection** - Enhanced brownfield analysis detects CODEOWNERS files for governance
+- **Version history tracking** - SYNC IMPACT REPORT now maintains rolling log of previous versions
+
+#### Changed
+- **authoring-constitution skill** - Major expansion with detailed Essential Floor requirements and Emergent Ceiling pattern examples
+- **analysis-codebase skill** - Added CODEOWNERS detection and improved governance docs checklist
+- **constitution-template** - Updated Quality Gates with realistic defaults, added Approvers section
+- **setup command** - Added critical instructions to populate from analysis instead of using placeholders
+- **CLAUDE.md sync mandate** - Enhanced with explicit synchronization process and enforcement rules
+
+---
+
 ## [0.7.5] - 2026-01-07
 
 Brownfield setup improvements for existing codebases (#23).
