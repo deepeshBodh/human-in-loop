@@ -7,15 +7,17 @@
 | Round | 1 |
 | Date Collected | 2025-01-07 |
 | Plugin Version | v0.7.4 |
-| User Count | 2 |
-| Item Count | 15 |
+| User Count | 4 |
+| Item Count | 18 |
 
 ## User Aliases
 
 | Alias | Items | Notes |
 |-------|-------|-------|
-| User TJ | 14 | Primary feedback provider |
-| User Le | 1 | Single high-level feedback |
+| User TJ | 14 | Software engineer, primary feedback provider |
+| User Le | 2 | Software engineer, security reviewer |
+| User Dh | 2 | Creator of HumanInLoop, observed User Sn |
+| User Sn | 1 | Non-technical user (not an engineer), corroborated [F1] |
 
 ---
 
@@ -23,33 +25,36 @@
 
 ### P1 - High Pain (Address First)
 
-| # | Feedback | Type | Phase | Pain | Effort | Source |
-|---|----------|------|-------|------|--------|--------|
-| 1 | Plan takes too long to run | `performance` | `phase:plan` | High | Medium | User TJ |
-| 2 | Time could be improved in every iteration | `performance` | `phase:cross-cutting` | High | High | User TJ |
-| 3 | Brownfield file structure/logic understanding - AI plugins should understand existing codebase structure; this info isn't present in Claude as agents typically handle this | `feature-request` | `phase:cross-cutting` | High | High | User TJ |
+| ID | Feedback | Type | Phase | Pain | Effort | Source |
+|----|----------|------|-------|------|--------|--------|
+| [F1] | Plan takes too long to run (User Sn corroborated but values devil's advocate rigor) | `performance` | `phase:plan` | High | Medium | User TJ, User Sn |
+| [F2] | Time could be improved in every iteration | `performance` | `phase:cross-cutting` | High | High | User TJ |
+| [F3] | Brownfield file structure/logic understanding - AI plugins should understand existing codebase structure; this info isn't present in Claude as agents typically handle this | `feature-request` | `phase:cross-cutting` | High | High | User TJ |
 
 ### P2 - Medium Priority
 
-| # | Feedback | Type | Phase | Pain | Effort | Source |
-|---|----------|------|-------|------|--------|--------|
-| 4 | Branch name random/inconsistent | `bug` | `phase:cross-cutting` | Medium | Low | User TJ |
-| 5 | Constitution not up to scratch (quality issues) | `enhancement` | `phase:setup` | Medium | Medium | User TJ |
-| 6 | Picks up random response times and numbers in output | `bug` | `phase:cross-cutting` | Medium | Low | User TJ |
-| 7 | Retrospective view of earlier phases - feedback in planning phase should reflect back in spec phase | `feature-request` | `phase:cross-cutting` | Medium | Medium | User TJ |
-| 8 | Human feedback should be taken before devil's advocate to reduce cycle time and iterations | `enhancement` | `phase:specify` | Medium | Low | User TJ |
-| 9 | Devil's advocate should research and critique both human feedback and other agent personalities, not just specs | `enhancement` | `phase:specify` | Medium | Medium | User TJ |
-| 10 | Function-level modularity needed, not file-level - initial simplicity led to multiple files but granularity is wrong | `enhancement` | `phase:tasks` | Medium | Medium | User TJ |
-| 11 | PR too long | `enhancement` | `phase:implement` | Medium | Medium | User Le |
+| ID | Feedback | Type | Phase | Pain | Effort | Source |
+|----|----------|------|-------|------|--------|--------|
+| [F4] | Branch name random/inconsistent | `bug` | `phase:cross-cutting` | Medium | Low | User TJ |
+| [F5] | Constitution not up to scratch (quality issues) | `enhancement` | `phase:setup` | Medium | Medium | User TJ |
+| [F6] | Picks up random response times and numbers in output | `bug` | `phase:cross-cutting` | Medium | Low | User TJ |
+| [F7] | Retrospective view of earlier phases - feedback in planning phase should reflect back in spec phase | `feature-request` | `phase:cross-cutting` | Medium | Medium | User TJ |
+| [F8] | Human feedback should be taken before devil's advocate to reduce cycle time and iterations | `enhancement` | `phase:specify` | Medium | Low | User TJ |
+| [F9] | Devil's advocate should research and critique both human feedback and other agent personalities, not just specs | `enhancement` | `phase:specify` | Medium | Medium | User TJ |
+| [F10] | Function-level modularity needed, not file-level - initial simplicity led to multiple files but granularity is wrong | `enhancement` | `phase:tasks` | Medium | Medium | User TJ |
+| [F11] | PR too long | `enhancement` | `phase:implement` | Medium | Medium | User Le |
+| [F16] | Non-technical users may clone repo instead of plugin install, polluting branch with humaninloop codebase | `bug` | `phase:cross-cutting` | Medium | Medium | User Dh (observing Sn) |
+| [F17] | Shell script security concerns: (a) eval with untrusted get_feature_paths output risks arbitrary code execution, (b) source.sh replacement attack vector, (c) no input sanitization, (d) unsafe ls for directory checks | `bug` | `phase:cross-cutting` | Medium | Medium | User Le |
+| [F18] | Constitution created with humaninloop plugin codebase info instead of user's project (consequence of cloning repo vs plugin install, relates to [F16]) | `bug` | `phase:setup` | Medium | Medium | User Dh (observing Sn) |
 
 ### P3 - Backlog
 
-| # | Feedback | Type | Phase | Pain | Effort | Source |
-|---|----------|------|-------|------|--------|--------|
-| 12 | Web search surface area restriction - enterprise feature, good to have | `feature-request` | `phase:cross-cutting` | Low | High | User TJ |
-| 13 | Gold standard pydantic can be in inner layer of hex architecture | `enhancement` | `phase:cross-cutting` | Low | Medium | User TJ |
-| 14 | Code generated by task list not necessarily required - implement phase handles actual code | `enhancement` | `phase:tasks` | Low | Low | User TJ |
-| 15 | Simple questioner initially asking user preferences for type of design and principles to follow | `feature-request` | `phase:setup` | Low | Medium | User TJ |
+| ID | Feedback | Type | Phase | Pain | Effort | Source |
+|----|----------|------|-------|------|--------|--------|
+| [F12] | Web search surface area restriction - enterprise feature, good to have | `feature-request` | `phase:cross-cutting` | Low | High | User TJ |
+| [F13] | Gold standard pydantic can be in inner layer of hex architecture | `enhancement` | `phase:cross-cutting` | Low | Medium | User TJ |
+| [F14] | Code generated by task list not necessarily required - implement phase handles actual code | `enhancement` | `phase:tasks` | Low | Low | User TJ |
+| [F15] | Simple questioner initially asking user preferences for type of design and principles to follow | `feature-request` | `phase:setup` | Low | Medium | User TJ |
 
 ---
 
@@ -57,9 +62,9 @@
 
 Low-effort items to tackle first for momentum:
 
-1. **Branch name random** (#4) - Likely a simple fix in branch naming logic
-2. **Random response times/numbers** (#6) - Likely a template or prompt adjustment
-3. **Human feedback before devil's advocate** (#8) - Workflow reordering, minimal code change
+1. **Branch name random** ([F4]) - Likely a simple fix in branch naming logic
+2. **Random response times/numbers** ([F6]) - Likely a template or prompt adjustment
+3. **Human feedback before devil's advocate** ([F8]) - Workflow reordering, minimal code change
 
 ---
 
@@ -70,7 +75,7 @@ Copy the content below to create the tracking issue:
 ```markdown
 ## Plugin Feedback Round 1
 
-Feedback collected from User TJ and User Le.
+Feedback collected from User TJ, User Le, User Dh, and User Sn.
 
 **Collected**: 2025-01-07
 **Plugin Version**: v0.7.4
@@ -86,27 +91,30 @@ Feedback collected from User TJ and User Le.
 
 ### P1 - High Pain
 
-- [ ] #1 Plan takes too long to run (`performance`, `phase:plan`)
-- [ ] #2 Time improvements across all iterations (`performance`, `phase:cross-cutting`)
-- [ ] #3 Brownfield file structure understanding (`feature-request`, `phase:cross-cutting`)
+- [ ] [F1] Plan takes too long to run (`performance`, `phase:plan`)
+- [ ] [F2] Time improvements across all iterations (`performance`, `phase:cross-cutting`)
+- [ ] [F3] Brownfield file structure understanding (`feature-request`, `phase:cross-cutting`)
 
 ### P2 - Medium Priority
 
-- [ ] #4 Branch name random (`bug`, `phase:cross-cutting`) ⚡
-- [ ] #5 Constitution quality improvements (`enhancement`, `phase:setup`)
-- [ ] #6 Random response times/numbers in output (`bug`, `phase:cross-cutting`) ⚡
-- [ ] #7 Retrospective view of earlier phases (`feature-request`, `phase:cross-cutting`)
-- [ ] #8 Human feedback before devil's advocate (`enhancement`, `phase:specify`) ⚡
-- [ ] #9 Devil's advocate critiques all perspectives (`enhancement`, `phase:specify`)
-- [ ] #10 Function-level modularity vs file-level (`enhancement`, `phase:tasks`)
-- [ ] #11 PR output too long (`enhancement`, `phase:implement`)
+- [ ] [F4] Branch name random (`bug`, `phase:cross-cutting`) ⚡
+- [ ] [F5] Constitution quality improvements (`enhancement`, `phase:setup`)
+- [ ] [F6] Random response times/numbers in output (`bug`, `phase:cross-cutting`) ⚡
+- [ ] [F7] Retrospective view of earlier phases (`feature-request`, `phase:cross-cutting`)
+- [ ] [F8] Human feedback before devil's advocate (`enhancement`, `phase:specify`) ⚡
+- [ ] [F9] Devil's advocate critiques all perspectives (`enhancement`, `phase:specify`)
+- [ ] [F10] Function-level modularity vs file-level (`enhancement`, `phase:tasks`)
+- [ ] [F11] PR output too long (`enhancement`, `phase:implement`)
+- [ ] [F16] Installation confusion for non-technical users (`bug`, `phase:cross-cutting`)
+- [ ] [F17] Shell script security hardening (`bug`, `phase:cross-cutting`)
+- [ ] [F18] Constitution polluted with plugin codebase info (`bug`, `phase:setup`)
 
 ### P3 - Backlog
 
-- [ ] #12 Enterprise: web search surface area restriction (`feature-request`, `phase:cross-cutting`)
-- [ ] #13 Pydantic in hex architecture inner layer (`enhancement`, `phase:cross-cutting`)
-- [ ] #14 Remove code generation from task list (`enhancement`, `phase:tasks`)
-- [ ] #15 Initial questioner for design preferences (`feature-request`, `phase:setup`)
+- [ ] [F12] Enterprise: web search surface area restriction (`feature-request`, `phase:cross-cutting`)
+- [ ] [F13] Pydantic in hex architecture inner layer (`enhancement`, `phase:cross-cutting`)
+- [ ] [F14] Remove code generation from task list (`enhancement`, `phase:tasks`)
+- [ ] [F15] Initial questioner for design preferences (`feature-request`, `phase:setup`)
 
 ---
 
@@ -119,15 +127,18 @@ Feedback collected from User TJ and User Le.
 
 ## Post-Round Notes
 
-- Performance is a recurring theme (3 items: #1, #2, #3 relate to speed/efficiency)
-- Workflow ordering suggestions (#7, #8) indicate users want more control over the process
+- Performance is a recurring theme (3 items: [F1], [F2], [F3] relate to speed/efficiency)
+- Workflow ordering suggestions ([F7], [F8]) indicate users want more control over the process
 - User TJ provided comprehensive feedback across all phases
-- User Le's feedback (#11 PR too long) aligns with general verbosity concerns
+- User Le's feedback ([F11] PR too long) aligns with general verbosity concerns
+- **User diversity**: Feedback spans software engineers (TJ, Le) and non-technical users (Sn)
+- **Positive signal**: User Sn found planning slow but valued the devil's advocate rigor - suggests the thoroughness is appreciated even when it takes time
+- **Installation UX gap**: Non-technical users may struggle with plugin installation vs repo cloning ([F16])
 
 ---
 
 ## Resolution Tracking
 
-| # | Item | Resolution | Date | PR/Issue |
-|---|------|------------|------|----------|
+| ID | Item | Resolution | Date | PR/Issue |
+|----|------|------------|------|----------|
 | | | | | |

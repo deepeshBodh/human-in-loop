@@ -81,7 +81,7 @@ Each command produces artifacts you review before the next step. You stay in con
 ### 6 Commands
 The full specify → plan → tasks → implement lifecycle.
 
-### 13 Skills
+### 14 Skills
 Claude automatically invokes these when relevant—authoring requirements, analyzing codebases, designing APIs, and more.
 
 ### 5 Specialized Agents

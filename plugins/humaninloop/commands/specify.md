@@ -135,25 +135,12 @@ Before starting, check for interrupted workflows:
 
 ## Phase 1: Initialize
 
-### 1.1 Generate Short Name
-
-Generate a concise short name (2-4 words) for the branch:
-- Analyze the feature description and extract the most meaningful keywords
-- Use action-noun format when possible (e.g., "user-auth", "payment-flow")
-- Preserve technical terms and acronyms (OAuth2, API, JWT, etc.)
-- Keep it concise but descriptive enough to understand the feature at a glance
-
-Examples:
-- "I want to add user authentication" → `user-auth`
-- "Implement OAuth2 integration for the API" → `oauth2-api-integration`
-- "Create a dashboard for analytics" → `analytics-dashboard`
-
-### 1.2 Create Feature Branch and Directory
+### 1.1 Create Feature Branch and Directory
 
 Run the `create-new-feature.sh` script to create the branch and initialize the spec:
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/scripts/create-new-feature.sh --json --short-name "<short-name>" "<feature description>"
+${CLAUDE_PLUGIN_ROOT}/scripts/create-new-feature.sh --json "<feature description>"
 ```
 
 The script will:
@@ -162,9 +149,10 @@ The script will:
    - Remote branches matching `###-*` pattern
    - Local branches matching `###-*` pattern
    - Existing `specs/###-*` directories
-3. Create branch `{NNN}-{short-name}` (e.g., `001-user-auth`)
-4. Create directory `specs/{NNN}-{short-name}/`
-5. Copy spec template to `specs/{NNN}-{short-name}/spec.md`
+3. Generate a short name from the description (filters stop words, keeps meaningful keywords)
+4. Create branch `{NNN}-{short-name}` (e.g., `001-user-auth`)
+5. Create directory `specs/{NNN}-{short-name}/`
+6. Copy spec template to `specs/{NNN}-{short-name}/spec.md`
 
 **Parse JSON output** to get:
 - `BRANCH_NAME`: The created branch name (e.g., `001-user-auth`)
@@ -173,13 +161,13 @@ The script will:
 
 Use `BRANCH_NAME` as the `{feature-id}` for all subsequent steps.
 
-### 1.3 Create Workflow Directory
+### 1.2 Create Workflow Directory
 
 ```bash
 mkdir -p specs/{feature-id}/.workflow
 ```
 
-### 1.4 Create Context
+### 1.3 Create Context
 
 Use the template at `${CLAUDE_PLUGIN_ROOT}/templates/context-template.md`.
 
@@ -204,7 +192,7 @@ Write to `specs/{feature-id}/.workflow/context.md` with these values:
 | `{{supervisor_instructions}}` | See Phase 2 for initial analyst instructions |
 | `{{clarification_log}}` | Empty on first iteration |
 
-### 1.5 Create Spec File
+### 1.4 Create Spec File
 
 Use the template at `${CLAUDE_PLUGIN_ROOT}/templates/spec-template.md`.
 

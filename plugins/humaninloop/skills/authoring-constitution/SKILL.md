@@ -299,3 +299,131 @@ Before finalizing a constitution, verify:
 | **Cargo-cult rule** | Rule copied without understanding | Add rationale explaining the "why" |
 | **Over-engineering** | 50 principles for a 3-person team | Start with 5-7 core principles |
 | **No escape hatch** | No exception process | Define exception registry |
+
+## Brownfield Mode
+
+When writing constitutions for existing codebases, use the **Essential Floor + Emergent Ceiling** approach.
+
+### Essential Floor (NON-NEGOTIABLE)
+
+Every constitution MUST include principles for these four categories, regardless of codebase state:
+
+| Category | Minimum Requirements | Default Enforcement |
+|----------|---------------------|---------------------|
+| **Security** | Auth at boundaries, secrets from env, input validation | Integration tests, code review, secret scanning |
+| **Testing** | Automated tests exist, coverage measured | CI test gate, coverage threshold (≥80% default) |
+| **Error Handling** | Explicit handling, context for debugging, status codes | Tests verify error responses, code review |
+| **Observability** | Structured logging, correlation IDs, no PII in logs | Config verification, log audit |
+
+**Writing Essential Floor Principles:**
+
+- If codebase **has** the capability → Principle codifies existing pattern with enforcement
+- If codebase **lacks** the capability → Principle states "MUST implement" with roadmap gap
+
+Example (codebase has partial testing):
+```markdown
+### II. Testing Discipline
+
+All production code MUST have automated tests.
+
+- New functionality MUST have accompanying tests before merge
+- Test coverage MUST be measured and reported
+- Coverage threshold SHOULD be ≥80% (current: 65%)
+
+**Enforcement**:
+- CI runs `pytest` and blocks merge on failure
+- Coverage report generated on every PR
+- Coverage gate: warning at <80%, blocking at <60%
+
+**Testability**:
+- Pass: All tests pass, coverage ≥80%
+- Fail: Any test fails OR coverage <60%
+
+**Rationale**: Tests enable confident refactoring and catch regressions early. The 80% threshold balances coverage with pragmatism.
+
+> Note: Current coverage is 65%. See GAP-002 in evolution-roadmap.md for improvement plan.
+```
+
+### Emergent Ceiling (FROM CODEBASE)
+
+Beyond the essential floor, identify **existing good patterns** worth codifying:
+
+1. **Read codebase analysis** - Look for "Strengths to Preserve" section
+2. **Identify patterns** - Naming conventions, architecture patterns, error formats
+3. **Codify as principles** - With enforcement mechanisms
+
+Example (codebase has consistent error format):
+```markdown
+### V. Error Response Format
+
+API error responses MUST follow the established format.
+
+- Error responses MUST include `code`, `message`, and `details` fields
+- Error codes MUST use the `ERR_DOMAIN_ACTION` naming convention
+- Stack traces MUST NOT be exposed in production responses
+
+**Enforcement**:
+- Schema validation in API tests
+- Code review checklist item
+
+**Testability**:
+- Pass: All error responses match schema
+- Fail: Any error response missing required fields
+
+**Rationale**: Consistent error format enables client-side error handling and debugging. Pattern established in existing codebase and proven effective.
+```
+
+### Brownfield Constitution Structure
+
+```markdown
+# [Project] Constitution
+
+<!-- SYNC IMPACT REPORT -->
+
+## Core Principles
+
+### Essential Floor Principles
+I. Security by Default
+II. Testing Discipline
+III. Error Handling Standards
+IV. Observability Requirements
+
+### Emergent Ceiling Principles
+V. [Pattern from codebase]
+VI. [Pattern from codebase]
+...
+
+## Technology Stack
+[From codebase analysis]
+
+## Quality Gates
+[From codebase analysis + essential floor requirements]
+
+## Governance
+[Standard governance section]
+
+## Evolution Notes
+
+This constitution was created from brownfield analysis.
+
+**Essential Floor Status** (from codebase-analysis.md):
+| Category | Status | Gap |
+|----------|--------|-----|
+| Security | partial | GAP-001 |
+| Testing | partial | GAP-002 |
+| Error Handling | present | - |
+| Observability | absent | GAP-003 |
+
+See `.humaninloop/memory/evolution-roadmap.md` for improvement plan.
+```
+
+### Brownfield Quality Checklist
+
+Additional checks for brownfield constitutions:
+
+- [ ] All four essential floor categories have principles
+- [ ] Existing good patterns identified and codified
+- [ ] Gap references included where codebase lacks capability
+- [ ] Technology stack matches codebase analysis
+- [ ] Quality gates reflect current + target state
+- [ ] Evolution Notes section documents brownfield context

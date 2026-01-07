@@ -6,6 +6,41 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.7.5] - 2026-01-07
+
+Brownfield setup improvements for existing codebases (#23).
+
+### humaninloop 0.7.5
+
+#### New Skill
+- **authoring-roadmap** - Create evolution roadmaps with prioritized gap cards for brownfield projects
+  - Triggered by: "roadmap", "gap analysis", "evolution plan", "brownfield gaps"
+  - Produces gap cards with P1/P2/P3 priorities and dependency graphs
+
+#### New Templates
+- **codebase-analysis-template.md** - Structure for brownfield codebase analysis (inventory + assessment)
+- **evolution-roadmap-template.md** - Structure for gap analysis between current state and constitution
+
+#### Changed
+- **/humaninloop:setup** - Major rewrite with 5-phase brownfield-aware workflow
+  - Phase 0: Brownfield detection with user confirmation
+  - Phase 1: Codebase analysis producing `codebase-analysis.md`
+  - Phase 2: Analysis checkpoint for user review
+  - Phase 3: Constitution generation (greenfield/brownfield/amend modes)
+  - Phase 4: Evolution roadmap producing `evolution-roadmap.md`
+  - Phase 5: Finalize with mode-specific output
+- **principal-architect agent** - Added Essential Floor knowledge and `authoring-roadmap` skill reference
+- **plan-architect agent** - Added brownfield context file awareness
+- **task-architect agent** - Added brownfield markers (`[GAP:XXX]`) and context file reading
+- **analysis-codebase skill** - Added `setup-brownfield` mode with Essential Floor assessment (Security, Testing, Error Handling, Observability)
+- **authoring-constitution skill** - Added brownfield mode with Essential Floor + Emergent Ceiling pattern
+
+#### Documentation
+- Updated plugin README with brownfield workflow documentation
+- Added output structure for project-level brownfield artefacts
+
+---
+
 ## [0.7.4] - 2026-01-05
 
 Script bug fixes discovered during dogfooding.

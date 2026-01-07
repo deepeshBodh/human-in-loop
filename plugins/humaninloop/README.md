@@ -34,26 +34,46 @@ Then proceed with the specification workflow for your first feature.
 
 ### `/humaninloop:setup`
 
-Create or amend your project constitution with enforceable governance principles.
+Create or amend your project constitution with enforceable governance principles. Supports both greenfield and brownfield projects.
 
 ```
 /humaninloop:setup
 ```
 
-**Workflow:**
-1. Detect project context (tech stack, conventions, architecture)
-2. Principal Architect drafts constitution with principles
-3. User answers clarifying questions
-4. Constitution finalized with enforcement mechanisms
-5. CLAUDE.md synchronized with constitution
+**Modes:**
 
-**Output:** `.humaninloop/memory/constitution.md`
+| Mode | When to Use | Artefacts |
+|------|-------------|-----------|
+| **Brownfield** | Existing codebase (>5 source files) | `codebase-analysis.md`, `constitution.md`, `evolution-roadmap.md` |
+| **Greenfield** | New project | `constitution.md` only |
+| **Amend** | Update existing constitution | `constitution.md` (updated) |
+
+**Brownfield Workflow:**
+1. **Detection**: Analyze codebase for framework, entities, patterns
+2. **Analysis**: Principal Architect produces `codebase-analysis.md` with:
+   - Project inventory (factual): structure, patterns, entities
+   - Assessment (judgment): strengths, inconsistencies, essential floor status
+3. **Checkpoint**: User reviews and confirms analysis accuracy
+4. **Constitution**: Create with essential floor + emergent ceiling (existing good patterns)
+5. **Roadmap**: Generate `evolution-roadmap.md` with gap cards (P1/P2/P3 priorities)
+
+**Essential Floor** (always included in constitution):
+- **Security**: Auth at boundaries, secrets from env, input validation
+- **Testing**: Automated tests, coverage measurement
+- **Error Handling**: Explicit handling, context for debugging
+- **Observability**: Structured logging, correlation IDs
+
+**Output:**
+- `.humaninloop/memory/constitution.md` - Project governance
+- `.humaninloop/memory/codebase-analysis.md` - Codebase inventory (brownfield only)
+- `.humaninloop/memory/evolution-roadmap.md` - Gap cards for improvement (brownfield only)
 
 **Features:**
 - Three-Part Principle Rule (Enforcement, Testability, Rationale)
 - RFC 2119 keywords (MUST, SHOULD, MAY)
 - Automatic CLAUDE.md synchronization
-- Support for amending existing constitutions
+- Brownfield analysis with checkpoint for user confirmation
+- Evolution roadmap with prioritized gap cards and dependency graph
 
 ### `/humaninloop:specify <description>`
 
@@ -148,7 +168,7 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 
 | Agent | Purpose |
 |-------|---------|
-| **Principal Architect** | Senior technical leader who creates enforceable project constitutions with governance judgment |
+| **Principal Architect** | Senior technical leader who creates enforceable project constitutions with governance judgment. In brownfield mode, analyzes existing codebase for essential floor coverage, produces codebase-analysis.md, and generates evolution-roadmap.md with prioritized gaps. Uses skills: `analysis-codebase`, `authoring-constitution`, `syncing-claude-md`, `authoring-roadmap` |
 
 ### Specify Workflow Agents
 
@@ -182,6 +202,17 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 
 ## Output Structure
 
+**Project-Level (from setup):**
+```
+.humaninloop/memory/
+├── constitution.md            # Project governance principles
+├── codebase-analysis.md       # Codebase inventory and assessment (brownfield)
+├── evolution-roadmap.md       # Gap cards for improvement (brownfield)
+├── setup-context-*.md         # Setup workflow context (temporary)
+└── architect-report.md        # Principal Architect report (temporary)
+```
+
+**Feature-Level (from specify → plan → tasks):**
 ```
 specs/<###-feature-name>/
 ├── spec.md                    # Feature specification
