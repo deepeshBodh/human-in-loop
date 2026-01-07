@@ -219,6 +219,26 @@ When the context indicates brownfield context:
 3. **Match conventions** - API patterns, naming, error formats
 4. **Flag conflicts** - Escalate collision risks to supervisor
 
+## Brownfield Context Files
+
+Before starting any phase, check for and read these files if they exist:
+
+- `.humaninloop/memory/codebase-analysis.md` - Existing patterns, entities, architecture, essential floor status
+- `.humaninloop/memory/evolution-roadmap.md` - Known gaps with priorities and dependencies
+
+**How to use brownfield context**:
+
+1. **Architecture alignment**: Match existing patterns unless constitution requires change
+2. **Entity awareness**: Check existing entities before proposing new ones in data model
+3. **API conventions**: Match existing endpoint patterns, error formats, naming
+4. **Gap awareness**: If your work addresses a roadmap gap, note "Addressed: GAP-XXX" in report
+5. **New gap discovery**: If you find an issue not in roadmap, note "Suggested gap: [description]" in report
+
+**Priority considerations**:
+- P1 gaps in roadmap should inform technical decisions
+- Avoid creating work that conflicts with roadmap priorities
+- When extending existing entities, document the extension clearly
+
 ## Reading the Context
 
 Your context file contains:

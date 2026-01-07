@@ -7,10 +7,11 @@ description: Analyze existing codebases for tech stack, conventions, entities, a
 
 ## Purpose
 
-Systematically analyze existing codebases to extract structural information. Supports two modes:
+Systematically analyze existing codebases to extract structural information. Supports three modes:
 
 1. **Context Mode**: Gather project characteristics to inform constitution authoring
 2. **Brownfield Mode**: Extract entities, endpoints, and collision risks for planning
+3. **Setup-Brownfield Mode**: Comprehensive analysis for `/humaninloop:setup` producing codebase-analysis.md
 
 ## Mode Selection
 
@@ -18,6 +19,7 @@ Systematically analyze existing codebases to extract structural information. Sup
 |------|-------------|--------|
 | **Context** | Setting up constitution, understanding project DNA | Markdown report for humans |
 | **Brownfield** | Planning new features against existing code | JSON inventory with collision risks |
+| **Setup-Brownfield** | `/humaninloop:setup` on existing codebase | `codebase-analysis.md` with inventory + assessment |
 
 ## Project Type Detection
 
@@ -98,6 +100,118 @@ For planning - extract structural details for collision detection.
 
 See [BROWNFIELD-ANALYSIS.md](BROWNFIELD-ANALYSIS.md) for detailed guidance.
 
+## Mode: Setup Brownfield
+
+For `/humaninloop:setup` - comprehensive analysis combining Context + Brownfield with Essential Floor assessment.
+
+**What to Extract:**
+- Everything from Context mode (tech stack, conventions, architecture)
+- Everything from Brownfield mode (entities, relationships)
+- Essential Floor assessment (Security, Testing, Error Handling, Observability)
+- Inconsistencies and strengths assessment
+
+**Output**: `.humaninloop/memory/codebase-analysis.md` following `codebase-analysis-template.md`
+
+### Essential Floor Analysis
+
+Assess each of the four essential floor categories:
+
+#### Security Assessment
+
+| Check | How to Detect | Status Values |
+|-------|---------------|---------------|
+| Auth at boundaries | Middleware patterns (`authenticate`, `authorize`, `requireAuth`) | present/partial/absent |
+| Secrets from env | `.env.example` exists, no hardcoded credentials in code | present/partial/absent |
+| Input validation | Schema validation libraries, input checking patterns | present/partial/absent |
+
+**Indicators to search:**
+```bash
+# Auth middleware
+grep -r "authenticate\|authorize\|requireAuth\|isAuthenticated" src/ 2>/dev/null
+
+# Environment variables
+ls .env.example .env.sample 2>/dev/null
+grep -r "process.env\|os.environ\|os.Getenv" src/ 2>/dev/null
+
+# Validation
+grep -r "zod\|yup\|joi\|pydantic\|validator" package.json pyproject.toml 2>/dev/null
+```
+
+#### Testing Assessment
+
+| Check | How to Detect | Status Values |
+|-------|---------------|---------------|
+| Test framework configured | Config files (`jest.config.*`, `pytest.ini`, `vitest.config.*`) | present/partial/absent |
+| Test files present | Files matching `*.test.*`, `*_test.*`, `test_*.*` | present/partial/absent |
+| CI runs tests | Test commands in workflow files | present/partial/absent |
+
+**Indicators to search:**
+```bash
+# Test config
+ls jest.config.* vitest.config.* pytest.ini pyproject.toml 2>/dev/null
+
+# Test files
+find . -name "*.test.*" -o -name "*_test.*" -o -name "test_*.*" 2>/dev/null | head -5
+
+# CI test commands
+grep -r "npm test\|yarn test\|pytest\|go test" .github/workflows/ 2>/dev/null
+```
+
+#### Error Handling Assessment
+
+| Check | How to Detect | Status Values |
+|-------|---------------|---------------|
+| Explicit error types | Custom error classes/types defined | present/partial/absent |
+| Context preservation | Error messages include context, stack traces logged | present/partial/absent |
+| Appropriate status codes | API responses use correct HTTP status codes | present/partial/absent |
+
+**Indicators to search:**
+```bash
+# Custom errors
+grep -r "class.*Error\|extends Error\|Exception" src/ 2>/dev/null | head -5
+
+# Error logging
+grep -r "error.*context\|error.*stack\|logger.error" src/ 2>/dev/null | head -3
+
+# Status codes
+grep -r "status(4\|status(5\|HttpStatus\|status_code" src/ 2>/dev/null | head -3
+```
+
+#### Observability Assessment
+
+| Check | How to Detect | Status Values |
+|-------|---------------|---------------|
+| Structured logging | Logger config (winston, pino, structlog, logrus) | present/partial/absent |
+| Correlation IDs | Request ID middleware, trace ID patterns | present/partial/absent |
+| No PII in logs | Log sanitization, no email/password in log statements | present/partial/absent |
+
+**Indicators to search:**
+```bash
+# Logger config
+grep -r "winston\|pino\|structlog\|logrus\|zap" package.json pyproject.toml go.mod 2>/dev/null
+
+# Correlation IDs
+grep -r "requestId\|correlationId\|traceId\|x-request-id" src/ 2>/dev/null | head -3
+
+# PII check (negative - should NOT find these in logs)
+grep -r "logger.*email\|logger.*password\|log.*password" src/ 2>/dev/null
+```
+
+### Setup-Brownfield Quality Checklist
+
+Before finalizing setup-brownfield analysis:
+
+- [ ] Project identity complete (name, language, framework, entry points)
+- [ ] Directory structure documented with purposes
+- [ ] Architecture pattern identified with evidence
+- [ ] Naming conventions documented (files, variables, functions, classes)
+- [ ] All four Essential Floor categories assessed
+- [ ] Domain entities extracted with relationships
+- [ ] External dependencies documented
+- [ ] Strengths to preserve identified (minimum 2-3)
+- [ ] Inconsistencies documented with severity
+- [ ] Recommendations provided for constitution focus
+
 ## Detection Script
 
 Run the automated detection script for fast, deterministic stack identification:
@@ -171,6 +285,12 @@ Before finalizing analysis:
 - [ ] All entity directories scanned
 - [ ] All route directories scanned
 - [ ] Collision risks classified by severity
+
+**Setup-Brownfield Mode:**
+- [ ] All Context Mode checks completed
+- [ ] All four Essential Floor categories assessed
+- [ ] Strengths and inconsistencies documented
+- [ ] Output written to `.humaninloop/memory/codebase-analysis.md`
 
 ## Anti-Patterns
 

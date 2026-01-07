@@ -177,6 +177,36 @@ After producing each artifact, write a report to `.workflow/planner-report.md`:
 - Clear traceability from stories to tasks
 - Minimal inter-cycle dependencies
 
+## Brownfield Context Files
+
+Before starting any phase, check for and read these files if they exist:
+
+- `.humaninloop/memory/codebase-analysis.md` - Existing patterns, conventions, architecture
+- `.humaninloop/memory/evolution-roadmap.md` - Known gaps to consider when planning tasks
+
+**Brownfield Task Markers**:
+
+When generating tasks for brownfield projects, use these markers:
+
+| Marker | Meaning | When to Use |
+|--------|---------|-------------|
+| `[NEW]` | Create new file | Fresh implementation |
+| `[EXTEND]` | Modify existing file | Adding to existing entity/endpoint |
+| `[MODIFY]` | Change existing behavior | Fixing or updating existing code |
+| `[GAP:XXX]` | Addresses roadmap gap | Task directly addresses a gap from evolution-roadmap.md |
+
+**Example brownfield tasks**:
+```markdown
+- [ ] **T1.2** [EXTEND] Add `lastLoginAt` field to User entity in `src/models/user.ts`
+- [ ] **T2.1** [GAP:003] [NEW] Implement structured logging in `src/utils/logger.ts`
+- [ ] **T3.4** [MODIFY] Update error handler to include correlation IDs in `src/middleware/error.ts`
+```
+
+**Reading brownfield context**:
+- Brownfield markers from plan artifacts (`[NEW]`, `[EXTENDS EXISTING]`, `[REUSES EXISTING]`) translate to task markers
+- `[EXTENDS EXISTING]` in data-model.md → `[EXTEND]` marker in tasks
+- When addressing gaps from roadmap, include `[GAP:XXX]` marker for traceability
+
 ## Cycle Structure
 
 Each cycle in tasks.md follows this structure:
