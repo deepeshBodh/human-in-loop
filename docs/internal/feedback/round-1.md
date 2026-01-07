@@ -8,7 +8,7 @@
 | Date Collected | 2025-01-07 |
 | Plugin Version | v0.7.4 |
 | User Count | 4 |
-| Item Count | 17 |
+| Item Count | 18 |
 
 ## User Aliases
 
@@ -16,7 +16,7 @@
 |-------|-------|-------|
 | User TJ | 14 | Software engineer, primary feedback provider |
 | User Le | 2 | Software engineer, security reviewer |
-| User Dh | 1 | Creator of HumanInLoop, observed User Sn |
+| User Dh | 2 | Creator of HumanInLoop, observed User Sn |
 | User Sn | 1 | Non-technical user (not an engineer), corroborated [F1] |
 
 ---
@@ -45,6 +45,7 @@
 | [F11] | PR too long | `enhancement` | `phase:implement` | Medium | Medium | User Le |
 | [F16] | Non-technical users may clone repo instead of plugin install, polluting branch with humaninloop codebase | `bug` | `phase:cross-cutting` | Medium | Medium | User Dh (observing Sn) |
 | [F17] | Shell script security concerns: (a) eval with untrusted get_feature_paths output risks arbitrary code execution, (b) source.sh replacement attack vector, (c) no input sanitization, (d) unsafe ls for directory checks | `bug` | `phase:cross-cutting` | Medium | Medium | User Le |
+| [F18] | Constitution created with humaninloop plugin codebase info instead of user's project (consequence of cloning repo vs plugin install, relates to [F16]) | `bug` | `phase:setup` | Medium | Medium | User Dh (observing Sn) |
 
 ### P3 - Backlog
 
@@ -106,6 +107,7 @@ Feedback collected from User TJ, User Le, User Dh, and User Sn.
 - [ ] [F11] PR output too long (`enhancement`, `phase:implement`)
 - [ ] [F16] Installation confusion for non-technical users (`bug`, `phase:cross-cutting`)
 - [ ] [F17] Shell script security hardening (`bug`, `phase:cross-cutting`)
+- [ ] [F18] Constitution polluted with plugin codebase info (`bug`, `phase:setup`)
 
 ### P3 - Backlog
 
