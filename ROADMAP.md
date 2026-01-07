@@ -10,7 +10,7 @@ The humaninloop plugin enforces specification-driven development—ensuring arch
 
 ---
 
-## Current State (v0.7.6)
+## Current State (v0.7.7)
 
 The core specify → plan → tasks → implement workflow is complete and functional.
 
@@ -22,7 +22,7 @@ The core specify → plan → tasks → implement workflow is complete and funct
 - `/humaninloop:audit` - Analyze artifacts for quality and consistency
 - `/humaninloop:implement` - Execute implementation with progress tracking
 
-**14 Skills** that Claude invokes automatically when relevant (authoring, analysis, patterns, validation)
+**16 Skills** that Claude invokes automatically when relevant (authoring, analysis, patterns, validation)
 
 **5 Specialized Agents** with focused responsibilities
 

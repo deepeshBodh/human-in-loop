@@ -6,6 +6,34 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.7.7] - 2026-01-07
+
+Constitution skill modularization for better separation of concerns (#27).
+
+### humaninloop 0.7.7
+
+#### Changed
+- **authoring-constitution skill** - Refactored into three modular skills for isolated changeability:
+  - `authoring-constitution` (core) - Principle grammar, section templates, RFC 2119 keywords
+  - `validation-constitution` (new) - Quality validation, checklists, anti-patterns
+  - `brownfield-constitution` (new) - Essential Floor + Emergent Ceiling approach
+
+#### New Skills
+- **validation-constitution** - Validate constitution quality with checklists, anti-pattern detection, and version bump rules
+  - Triggered by: "constitution review", "quality check", "version bump", "anti-patterns", "constitution audit"
+  - Bundled resources: QUALITY-CHECKLIST.md, ANTI-PATTERNS.md
+- **brownfield-constitution** - Write constitutions for existing codebases using Essential Floor + Emergent Ceiling
+  - Triggered by: "brownfield", "existing codebase", "essential floor", "emergent ceiling", "evolution roadmap"
+  - Extends authoring-constitution skill with cross-skill references
+  - Bundled resources: ESSENTIAL-FLOOR.md, EMERGENT-CEILING-PATTERNS.md
+
+#### Documentation
+- Cross-skill references enable skill composition (brownfield extends authoring)
+- Related Skills sections added to all three constitution skills
+- Principal Architect agent updated with new skill references
+
+---
+
 ## [0.7.6] - 2026-01-07
 
 Constitution generation fixes and pattern strengthening from real-world usage feedback (#26).
