@@ -276,12 +276,20 @@ Before finalizing a constitution, verify:
 
 **Structure Quality**:
 - [ ] SYNC IMPACT REPORT present as HTML comment
+- [ ] Overview section with project description
 - [ ] Core Principles numbered with Roman numerals
 - [ ] Technology Stack table complete with rationale
 - [ ] Quality Gates table with measurement commands
 - [ ] Governance section with amendment process
 - [ ] CLAUDE.md Sync Mandate with mapping table
 - [ ] Version footer with dates in ISO format
+
+**No Placeholders Rule**:
+- [ ] Technology Stack has NO `[PLACEHOLDER]` syntax - all actual tool names
+- [ ] Quality Gates has NO `[COMMAND]` placeholders - all actual commands
+- [ ] Coverage thresholds are numeric (e.g., "≥80%", NOT "[THRESHOLD]%")
+- [ ] Security tools are named (e.g., "Trivy + Snyk", NOT "[SECURITY_COMMAND]")
+- [ ] Test commands are complete (e.g., "`pytest --cov`", NOT "`[TEST_COMMAND]`")
 
 **Governance Quality**:
 - [ ] Version follows semantic versioning
@@ -299,6 +307,9 @@ Before finalizing a constitution, verify:
 | **Cargo-cult rule** | Rule copied without understanding | Add rationale explaining the "why" |
 | **Over-engineering** | 50 principles for a 3-person team | Start with 5-7 core principles |
 | **No escape hatch** | No exception process | Define exception registry |
+| **Placeholder syndrome** | `[COMMAND]` instead of actual tool | Use detected tools or industry defaults |
+| **Generic thresholds** | "Coverage MUST be measured" | Specify numeric values: "≥80% warning, ≥60% blocking" |
+| **Missing secret management** | "Secrets from env" only | Specify secret managers, scanning tools, .gitignore rules |
 
 ## Brownfield Mode
 
@@ -310,36 +321,92 @@ Every constitution MUST include principles for these four categories, regardless
 
 | Category | Minimum Requirements | Default Enforcement |
 |----------|---------------------|---------------------|
-| **Security** | Auth at boundaries, secrets from env, input validation | Integration tests, code review, secret scanning |
-| **Testing** | Automated tests exist, coverage measured | CI test gate, coverage threshold (≥80% default) |
-| **Error Handling** | Explicit handling, context for debugging, status codes | Tests verify error responses, code review |
-| **Observability** | Structured logging, correlation IDs, no PII in logs | Config verification, log audit |
+| **Security** | Auth at boundaries, secrets via env/secret managers, input validation, secret scanning in CI | Integration tests, code review, secret scanning tools |
+| **Testing** | Automated tests exist, coverage ≥80% (configurable), ratchet rule (coverage MUST NOT decrease) | CI test gate, coverage threshold with warning/blocking levels |
+| **Error Handling** | Explicit handling, RFC 7807 Problem Details format, correlation IDs in responses | Schema validation in tests, code review |
+| **Observability** | Structured logging, correlation IDs, APM integration, no PII in logs | Config verification, log audit, APM dashboards |
+
+#### Essential Floor Detail Requirements
+
+When writing Essential Floor principles, include these specifics:
+
+**Security Principle MUST address:**
+- Secret management: Environment variables OR cloud secret managers (AWS Secrets Manager, Azure Key Vault, HashiCorp Vault, etc.)
+- Secret scanning: CI MUST run secret scanning tools (e.g., Trivy, Snyk, git-secrets, gitleaks)
+- Config file exclusion: Sensitive config files (e.g., `*.local.*`, `appsettings.*.json` with secrets) MUST be in `.gitignore`
+- Input validation: All external inputs MUST be validated before processing
+
+**Testing Principle MUST address:**
+- Coverage thresholds: Specify numeric values (e.g., warning at <80%, blocking at <60%)
+- Ratchet rule: "Coverage baseline MUST NOT decrease" - prevents coverage regression
+- Test file conventions: Naming patterns for test files (e.g., `*_test.py`, `*.spec.ts`, `*Test.java`)
+- Test organization: How tests mirror source structure
+
+**Error Handling Principle MUST address:**
+- Response format: RFC 7807 Problem Details (preferred) or consistent JSON schema
+- Error codes: Naming convention (e.g., `ERR_DOMAIN_ACTION`)
+- Stack traces: MUST NOT be exposed in production responses
+- Correlation: Error responses MUST include correlation/trace IDs
+
+**Observability Principle MUST address:**
+- Logging format: Structured JSON logging with standard fields
+- APM tools: Name specific tools if detected (e.g., Application Insights, Datadog, New Relic)
+- Health checks: Endpoint path and what it validates
+- PII prohibition: Logs MUST NOT contain personally identifiable information
 
 **Writing Essential Floor Principles:**
 
 - If codebase **has** the capability → Principle codifies existing pattern with enforcement
 - If codebase **lacks** the capability → Principle states "MUST implement" with roadmap gap
 
+Example (Security principle with proper secret management):
+```markdown
+### I. Security by Default (NON-NEGOTIABLE)
+
+All code MUST follow security-first principles.
+
+- Authentication MUST be enforced at API boundaries
+- Secrets MUST be loaded from environment variables or AWS Secrets Manager
+- Sensitive config files (`appsettings.*.json`, `.env.local`) MUST be in `.gitignore`
+- All external inputs MUST be validated before processing
+- CI MUST run secret scanning on every push
+
+**Enforcement**:
+- CI runs `trivy fs --scanners secret .` and blocks merge on findings
+- CI runs `snyk test` for dependency vulnerabilities
+- Code review checklist includes auth verification
+- Pre-commit hook runs `gitleaks protect`
+
+**Testability**:
+- Pass: Zero secrets in codebase, zero high/critical vulnerabilities, auth on all endpoints
+- Fail: Any secret detected OR critical vulnerability OR unauthenticated endpoint
+
+**Rationale**: Security breaches are expensive and damage trust. Defense in depth with automated scanning catches issues before they reach production.
+```
+
 Example (codebase has partial testing):
 ```markdown
-### II. Testing Discipline
+### II. Testing Discipline (NON-NEGOTIABLE)
 
 All production code MUST have automated tests.
 
 - New functionality MUST have accompanying tests before merge
-- Test coverage MUST be measured and reported
-- Coverage threshold SHOULD be ≥80% (current: 65%)
+- Test coverage MUST be ≥80% (warning) and ≥60% (blocking)
+- Coverage baseline MUST NOT decrease (ratchet rule)
+- Test files MUST follow naming convention: `*_test.py` or `test_*.py`
+- Tests MUST mirror source structure in `tests/` directory
 
 **Enforcement**:
-- CI runs `pytest` and blocks merge on failure
-- Coverage report generated on every PR
-- Coverage gate: warning at <80%, blocking at <60%
+- CI runs `pytest --cov --cov-fail-under=60` and blocks merge on failure
+- Coverage report generated on every PR via `pytest-cov`
+- Pre-commit hook runs `pytest tests/unit/` for fast feedback
+- Coverage ratchet enforced by comparing to baseline in CI
 
 **Testability**:
-- Pass: All tests pass, coverage ≥80%
-- Fail: Any test fails OR coverage <60%
+- Pass: All tests pass AND coverage ≥60% AND coverage ≥ previous baseline
+- Fail: Any test fails OR coverage <60% OR coverage decreased
 
-**Rationale**: Tests enable confident refactoring and catch regressions early. The 80% threshold balances coverage with pragmatism.
+**Rationale**: Tests enable confident refactoring and catch regressions early. The 80% warning/60% blocking thresholds balance coverage with pragmatism. The ratchet rule prevents coverage erosion over time.
 
 > Note: Current coverage is 65%. See GAP-002 in evolution-roadmap.md for improvement plan.
 ```

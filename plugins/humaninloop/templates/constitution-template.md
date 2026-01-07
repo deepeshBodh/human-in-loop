@@ -31,6 +31,19 @@ Previous Reports: None (initial version)
 
 # [PROJECT_NAME] Constitution
 
+## Overview
+
+<!--
+INSTRUCTION: Brief project description (2-3 sentences) and purpose of this constitution.
+Include: What the project does, primary technology, and governance goals.
+-->
+
+[PROJECT_DESCRIPTION]
+
+This constitution establishes enforceable development standards for [PROJECT_NAME]. It codifies principles that protect quality, security, and maintainability while enabling rapid, confident delivery.
+
+---
+
 ## Core Principles
 
 <!--
@@ -153,15 +166,27 @@ This section MUST match exactly in CLAUDE.md.
 <!--
 INSTRUCTION: Define automated checks that block merge.
 This section MUST match exactly in CLAUDE.md.
+
+CRITICAL: Replace ALL placeholders with actual tool names and commands.
+- Use tools detected in codebase analysis
+- Use industry-standard defaults if not detected
+- NEVER leave [PLACEHOLDER] syntax in final constitution
+
+Examples by stack:
+- Python: `ruff check .`, `pytest --cov-fail-under=80`, `pip-audit`
+- Node.js: `eslint .`, `npm test -- --coverage`, `npm audit`
+- .NET: `dotnet build --warnaserror`, `dotnet test /p:CollectCoverage=true`, `dotnet list package --vulnerable`
+- Go: `golangci-lint run`, `go test -coverprofile=coverage.out`, `govulncheck ./...`
 -->
 
 | Gate | Requirement | Measurement | Enforcement |
 |------|-------------|-------------|-------------|
-| Static Analysis | Zero errors | `[LINT_COMMAND]` | CI automated |
-| Type Checking | Zero errors | `[TYPE_CHECK_COMMAND]` | CI automated |
-| Test Suite | All tests pass | `[TEST_COMMAND]` | CI automated |
-| Test Coverage | ≥[COVERAGE_THRESHOLD]% | `[COVERAGE_COMMAND]` | CI automated |
-| Security Scan | No vulnerabilities | `[SECURITY_COMMAND]` | CI automated |
+| Static Analysis | Zero errors | `[actual lint command]` | CI automated |
+| Type Checking | Zero errors | `[actual type check command]` | CI automated |
+| Test Suite | All tests pass | `[actual test command]` | CI automated |
+| Test Coverage | ≥80% (warning), ≥60% (blocking) | `[actual coverage command]` | CI automated |
+| Security Scan | No high/critical vulnerabilities | `[actual security tool, e.g., Trivy, Snyk]` | CI automated |
+| Secret Scan | No secrets in code | `[actual secret scanner, e.g., gitleaks, Trivy]` | CI automated |
 | Code Review | ≥1 approval | PR status | Branch protection |
 
 ## Project Structure
