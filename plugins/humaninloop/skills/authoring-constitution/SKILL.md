@@ -149,11 +149,11 @@ Example from mature constitution:
 ```html
 <!--
 Previous reports:
-  - 3.1.0 (2025-12-24): Added CLAUDE.md synchronization mandate
-  - 3.0.0 (2025-12-20): Hexagonal Architecture adoption, Strategic Abstraction principle
-  - 2.1.0 (2025-12-19): Added Unification Trigger to Principle VII
-  - 2.0.0 (2025-12-19): Added Principle X - API Consistency
-  - 1.8.0 (2025-12-19): Added Exception Registry and Process
+  - 3.1.0 (YYYY-MM-DD): Added CLAUDE.md synchronization mandate
+  - 3.0.0 (YYYY-MM-DD): Adopted hexagonal architecture, added strategic abstraction principle
+  - 2.1.0 (YYYY-MM-DD): Added unification trigger to API consistency principle
+  - 2.0.0 (YYYY-MM-DD): Added API consistency principle
+  - 1.8.0 (YYYY-MM-DD): Added exception registry and process
 -->
 ```
 
@@ -473,6 +473,10 @@ Look for these patterns in brownfield analysis and codify if present:
 | **Authorization** | Role-based access, permission checks | "All endpoints MUST validate user permissions" |
 | **Resilience** | Retry policies, circuit breakers, timeouts | "External calls MUST use retry with exponential backoff" |
 | **Configuration** | Strongly-typed options, feature flags | "Configuration MUST use strongly-typed options pattern" |
+| **Error Handling** | Error display guidelines, data resilience, user-friendly messages | "Users MUST see actionable error messages, never stack traces" |
+| **Observability** | Log levels, context requirements, crash reporting | "Errors MUST be logged with context sufficient for debugging" |
+| **Product Analytics** | Event categories, naming conventions, funnel tracking | "Events MUST follow `{object}_{action}` naming in snake_case" |
+| **Naming Conventions** | File/class/variable naming, directory structure | "Files MUST use snake_case, classes MUST use PascalCase" |
 
 Example (codebase has Code Quality standards):
 ```markdown
@@ -602,6 +606,176 @@ All external service calls MUST go through port interfaces:
 - Fail: Any external SDK imported in domain layer OR direct HTTP call without port
 
 **Rationale**: Each dependency is a liability—maintenance burden, security surface, potential breaking changes. Isolation via ports enables evolution without rewrite and makes the codebase testable without hitting real external services.
+```
+
+Example (codebase has error handling patterns):
+```markdown
+### VIII. Error Handling & Resilience
+
+All code MUST handle errors gracefully. Failures MUST NOT crash the app or lose user data.
+
+- All external calls (network, file system, database) MUST be wrapped in try/catch
+- Errors MUST be logged with sufficient context for debugging
+- Users MUST see friendly error messages, never stack traces or technical jargon
+- Users MUST have a path forward (retry, alternative action, support contact)
+- Critical user data MUST survive crashes (persist early, persist often)
+- Async operations MUST show loading states
+- Timeouts MUST be configured for all network operations (default: 30 seconds)
+- Circuit breakers MUST be implemented for external APIs with historical uptime <99.5%
+
+**Error Display Guidelines**:
+- Error messages MUST be actionable ("Could not save. Tap to retry." not "Error 500")
+- Transient errors MUST offer automatic or manual retry
+- Permanent errors MUST explain what the user can do next
+
+**Data Resilience**:
+- User input MUST be preserved across navigation and app restarts
+- Draft/unsaved state MUST be recoverable after crashes
+- Sync conflicts MUST be handled with user notification, not silent data loss
+
+**Enforcement**:
+- Integration tests MUST verify error responses
+- Code review MUST verify try/catch blocks around external service calls
+- Error scenarios MUST be tested explicitly
+
+**Testability**:
+- Pass: All external calls have error handling, user-friendly messages for all error states
+- Fail: Unhandled exception OR technical error shown to user OR data loss on error
+
+**Rationale**: Users judge software quality by how it handles the unhappy path. Graceful degradation and clear communication build trust and reduce support burden.
+```
+
+Example (codebase has observability):
+```markdown
+### IX. Observability
+
+The app MUST be observable. When something goes wrong in production, there MUST be enough information to diagnose and fix it without requiring reproduction.
+
+- Crashes MUST be reported automatically with full stack traces
+- Errors MUST be logged with context (user action, app state, device info)
+- Logs MUST have appropriate levels (debug, info, warning, error)
+- Logs MUST NOT contain sensitive data (PII, tokens, passwords)
+- Key user flows MUST have analytics events for funnel analysis
+- Performance metrics MUST be tracked (startup time, screen load times)
+- Debug builds MUST have verbose logging; release builds MUST NOT
+
+**Log Levels**:
+
+| Level | Use For | Example |
+|-------|---------|---------|
+| `error` | Failures requiring attention | API call failed, database write error |
+| `warning` | Recoverable issues | Retry succeeded, fallback used |
+| `info` | Significant state changes | User logged in, sync completed |
+| `debug` | Development diagnostics | Request/response bodies, state dumps |
+
+**Context Requirements**:
+- User ID (anonymized) for session correlation
+- Device info (model, OS version, app version)
+- Current screen/route at time of error
+- Recent user actions (breadcrumbs)
+- Relevant state that led to the error
+
+**Enforcement**:
+- Crash reporting tool configured and verified in CI
+- Structured logging with required fields enforced by wrapper
+- Code review MUST verify no PII in log statements
+
+**Testability**:
+- Pass: All errors logged with context, no PII in logs, crash reporting active
+- Fail: Silent failures OR PII in logs OR missing context
+
+**Rationale**: You cannot fix what you cannot see. Production issues without observability become guessing games. Good observability reduces mean time to resolution.
+```
+
+Example (codebase has product analytics):
+```markdown
+### X. Product Analytics
+
+Product analytics MUST be systematic, consistent, and actionable. Every feature MUST be instrumented to measure adoption, engagement, and conversion.
+
+**Mandatory Event Categories**:
+
+| Category | Description | When to Track |
+|----------|-------------|---------------|
+| Screen View | User navigates to a screen | Every screen entry |
+| User Action | Intentional user interaction | Taps, clicks with business meaning |
+| Conversion | Funnel milestone achieved | Signup, onboarding, first value |
+| Error | User-facing error occurred | Errors shown to user (not crashes) |
+| Feature | Feature-specific engagement | Feature used meaningfully |
+
+**Event Naming Convention**:
+
+All events MUST follow the `{object}_{action}` pattern in `snake_case`:
+
+| Pattern | Format | Examples |
+|---------|--------|----------|
+| Screen views | `screen_viewed` | Differentiate via properties |
+| User actions | `{element}_{action}` | `continue_button_tapped`, `item_selected` |
+| Conversions | `{milestone}_completed` | `onboarding_completed`, `signup_completed` |
+| Features | `{feature}_{action}` | `ai_suggestion_accepted`, `photo_uploaded` |
+
+**Required Event Properties**:
+
+All events MUST include:
+- `timestamp` - Event occurrence time
+- `user_id` - Anonymized user identifier
+- `session_id` - Current session identifier
+- `app_version` - Semantic version
+- `platform` - Platform identifier
+
+**Funnel Tracking Requirements**:
+- Each funnel MUST be defined in feature specification before implementation
+- Funnel steps MUST have paired `{step}_started` and `{step}_completed` events
+- Drop-off points MUST be identifiable in analytics dashboards
+
+**Analytics Privacy & Compliance**:
+- Event properties MUST NOT contain PII (names, emails, phone numbers)
+- User IDs MUST be anonymized
+- Location data MUST be coarse (city/region, not exact coordinates)
+
+**Enforcement**:
+- Specs MUST include "Analytics Events" section with event tables
+- Code review MUST verify events match specification
+- No PII in any event properties (automated scan if possible)
+
+**Testability**:
+- Pass: All specified events firing, properties complete, no PII
+- Fail: Missing events OR incomplete properties OR PII detected
+
+**Rationale**: Product analytics enables data-driven decisions about feature development and user experience optimization. Consistent naming enables cross-feature analysis.
+```
+
+Example (codebase has naming conventions):
+```markdown
+### XI. Naming Conventions
+
+All code artifacts MUST follow consistent naming conventions for discoverability and maintainability.
+
+| Item | Convention | Example |
+|------|------------|---------|
+| Files | snake_case | `user_provider.dart`, `auth_service.py` |
+| Classes | PascalCase | `UserProvider`, `AuthService` |
+| Variables/functions | camelCase | `getUserById()`, `isAuthenticated` |
+| Constants | SCREAMING_SNAKE or camelCase | `MAX_RETRIES`, `apiTimeout` |
+| Interfaces/Protocols | IPascalCase or PascalCase | `IUserRepository`, `UserRepository` |
+| Test files | {source}_test.{ext} | `user_service_test.dart` |
+| Config files | kebab-case or snake_case | `app-config.yaml`, `database_config.py` |
+
+**Directory Naming**:
+- Feature directories: `kebab-case` or `snake_case` (consistent within project)
+- Layer directories: lowercase (`domain/`, `application/`, `adapters/`)
+- Test directories mirror source: `test/unit/services/` → `src/services/`
+
+**Enforcement**:
+- Linter rules configured for naming violations
+- Code review MUST reject non-compliant names
+- New developers MUST be onboarded to conventions
+
+**Testability**:
+- Pass: All names follow conventions, test files mirror source structure
+- Fail: Any naming violation OR test file in wrong location
+
+**Rationale**: Consistent naming enables quick navigation, reduces cognitive load, and makes codebase searchable. Developers can predict file locations without searching.
 ```
 
 ### Brownfield Constitution Structure
