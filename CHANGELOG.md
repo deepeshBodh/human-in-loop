@@ -6,6 +6,35 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.7.8] - 2026-01-13
+
+Plan command performance optimization (#28) - 33-40% faster execution through codebase analysis reuse and incremental validation.
+
+### humaninloop 0.7.8
+
+#### Performance
+- **Codebase analysis reuse** - Plan now reads cached analysis from `/humaninloop:setup` instead of re-running `analysis-codebase` 3x per planning session (~3-5 min saved)
+- **Incremental validation** - Devil's Advocate uses full review only for new artifacts, consistency check for previous (~2-4 min saved)
+- **Expected improvement**: Best case 38% faster, typical 33% faster, worst case 40% faster
+
+#### New Features
+- **Brownfield entry gate** - Plan command validates brownfield projects have required codebase analysis
+- **Staleness warning** - Alerts if codebase analysis is >14 days old (visibility without blocking)
+- **`project_type` field** - Constitution now records `brownfield` or `greenfield` for explicit workflow control
+
+#### New Templates
+- **cross-artifact-checklist.md** - Lightweight consistency checklist for incremental validation (entity names, requirement IDs, decision alignment)
+
+#### Changed
+- **plan.md** - Added brownfield check, updated advocate sections from "cumulative" to "incremental"
+- **plan-architect.md** - Removed `analysis-codebase` skill invocation, reads cached file instead
+- **devils-advocate.md** - Added incremental validation protocol with time budgets
+- **validation-plan-artifacts/SKILL.md** - Added incremental review mode with report format
+- **plan-context-template.md** - Added `project_type`, `codebase_analysis_path`, `codebase_analysis_age` fields
+- **setup.md** - Added `project_type` field to constitution output
+
+---
+
 ## [0.7.7] - 2026-01-07
 
 Constitution skill modularization for better separation of concerns (#27).
