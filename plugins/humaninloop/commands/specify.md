@@ -12,6 +12,24 @@ You are the **Supervisor** orchestrating a two-agent specification workflow. You
 $ARGUMENTS
 ```
 
+### Argument Parsing
+
+Parse `$ARGUMENTS` for flags before processing:
+
+1. **Extract `--skip-brainstorm` flag**:
+   - If present, set `skip_brainstorm = true` and remove flag from input
+   - Otherwise, set `skip_brainstorm = false`
+
+2. **Extract clean user input**:
+   ```
+   user_input = $ARGUMENTS.replace("--skip-brainstorm", "").trim()
+   ```
+
+3. **Track original input** for context (before any enrichment):
+   ```
+   original_input = user_input
+   ```
+
 If `$ARGUMENTS` is empty or appears literally, check for resume state first, then ask for a feature description.
 
 ### Empty Input Check
@@ -133,6 +151,72 @@ Before starting, check for interrupted workflows:
 
 ---
 
+## Phase 0.5: Input Guidance and Enrichment
+
+This phase detects under-specified input and routes through the `analysis-iterative` skill for enrichment when needed.
+
+### 0.5.1 Display Inline Hint
+
+```
+AskUserQuestion(
+  questions: [{
+    question: "**Tip**: Good feature descriptions include who needs it, what problem it solves, and how you'll know it works.\n\nYour input:\n> {user_input}\n\nProceed with this input?",
+    header: "Feature Input",
+    options: [
+      {label: "Proceed", description: "This description is sufficient"},
+      {label: "Enrich input", description: "Help me think through this more"}
+    ],
+    multiSelect: false
+  }]
+)
+```
+
+**Routing**:
+- "Enrich input" → Skip to 0.5.3 (invoke skill)
+- "Proceed" + `skip_brainstorm == true` → Skip to Phase 1
+- "Proceed" + `skip_brainstorm == false` → Continue to 0.5.2
+
+### 0.5.2 Semantic Detection
+
+Analyze input for Who + Problem + Value triad:
+
+```
+Analyze: "{user_input}"
+
+Return JSON: {
+  "verdict": "sufficient" | "sparse",
+  "missing": ["who", "problem", "value"]  // only missing elements
+}
+```
+
+**Routing**:
+- `verdict == "sufficient"` → Set `input_source = "direct"`, skip to Phase 1
+- `verdict == "sparse"` → Continue to 0.5.3
+
+### 0.5.3 Invoke Enrichment Skill
+
+Invoke the `analysis-iterative` skill in specification-input mode:
+
+```
+Skill(
+  skill: "analysis-iterative",
+  args: "mode:specification-input missing:[{missing}] original:\"{original_input}\""
+)
+```
+
+The skill will:
+1. Ask focused questions (WHO/PROBLEM/VALUE) for missing elements only
+2. Use one-at-a-time questioning with options and recommendations
+3. Generate enriched description using ENRICHMENT.md template
+4. Return the enriched feature description
+
+**After skill completes**:
+- Set `user_input = enriched_output`
+- Set `input_source = "enriched"`
+- Continue to Phase 1
+
+---
+
 ## Phase 1: Initialize
 
 ### 1.1 Create Feature Branch and Directory
@@ -178,9 +262,11 @@ Write to `specs/{feature-id}/.workflow/context.md` with these values:
 | `{{status}}` | `awaiting-analyst` |
 | `{{iteration}}` | `1` |
 | `{{feature_id}}` | Generated feature ID |
+| `{{input_source}}` | `"direct"` if no brainstorm, `"enriched"` if brainstorm used |
 | `{{created}}` | ISO date |
 | `{{updated}}` | ISO date |
-| `{{user_input}}` | Original user input from $ARGUMENTS |
+| `{{user_input}}` | Enriched input (if brainstorm used) or original $ARGUMENTS |
+| `{{original_input}}` | Original $ARGUMENTS before any enrichment |
 | `{{project_name}}` | Detected from package.json, etc. |
 | `{{tech_stack}}` | Detected |
 | `{{constitution_path}}` | Path if exists, or "not configured" |
