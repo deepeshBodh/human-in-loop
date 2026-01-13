@@ -1,6 +1,6 @@
 ---
 name: analysis-iterative
-description: This skill should be used when the user says "brainstorm", "deep analysis", "let's think through", "analyze this with me", or "help me think through". Provides progressive deep analysis through one-by-one questioning with 2-3 options per question and clear recommendations. Challenges disagreement to strengthen thinking and concludes with a synthesis document.
+description: This skill should be used when the user says "brainstorm", "deep analysis", "let's think through", "analyze this with me", or "help me think through". Also used by /humaninloop:specify for input enrichment when feature descriptions lack Who/Problem/Value clarity. Provides progressive deep analysis through one-by-one questioning with 2-3 options per question and clear recommendations. Challenges disagreement to strengthen thinking and concludes with a synthesis document.
 ---
 
 # Iterative Analysis
@@ -161,3 +161,13 @@ This actually opens up our next question about data freshness expectations...
 - Asking questions that don't build on previous answers
 - Rushing to conclusion before core decisions are made
 - Making the synthesis before explicitly transitioning
+
+---
+
+## Modes
+
+This skill supports specialized modes for specific use cases.
+
+### Specification Input Enrichment
+
+When invoked with `mode:specification-input`, this skill runs a focused variant for enriching sparse feature descriptions. See [SPECIFICATION-INPUT.md](SPECIFICATION-INPUT.md) for details.

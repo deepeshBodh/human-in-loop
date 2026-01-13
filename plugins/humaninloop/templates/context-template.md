@@ -3,6 +3,7 @@ type: specification-request
 status: {{status}}
 iteration: {{iteration}}
 feature_id: {{feature_id}}
+input_source: {{input_source}}
 created: {{created}}
 updated: {{updated}}
 ---
@@ -12,6 +13,13 @@ updated: {{updated}}
 ## User Input
 
 {{user_input}}
+
+## Input Enrichment
+
+| Aspect | Value |
+|--------|-------|
+| Source | {{input_source}} |
+| Original Input | {{original_input}} |
 
 ## Project Context
 
