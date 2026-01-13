@@ -6,10 +6,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This repository contains the HumanInLoop (HIL) Claude Code Plugin Marketplace - a platform for discovering, sharing, and managing Claude Code plugins for the company HumanInLoop (humaninloop.dev).
 
-## Related Repositories
-
-- **human-in-loop-experiments** (`deepeshBodh/human-in-loop-experiments`): Experimental repository where plugin adaptations are developed and tested before being imported into this marketplace. This is the staging ground for new features and migrations.
-
 ## Reference Artefacts (docs/speckit-artefacts/)
 
 The `docs/speckit-artefacts/` folder contains a snapshot of the original **speckit** toolkit - the inspiration for the humaninloop plugins.
@@ -43,27 +39,95 @@ docs/speckit-artefacts/
     └── templates/
 ```
 
+## Constitution
+
+This project is governed by a constitution at `.humaninloop/memory/constitution.md` (v1.0.0). All development MUST comply with its principles.
+
 ## Development Guidelines
+
+These guidelines derive from the project constitution. RFC 2119 keywords (MUST, SHOULD, MAY) define requirement levels.
+
+### General
 
 - Use `gh` CLI for all GitHub-related tasks (viewing repos, issues, PRs, etc.)
 
+### Security (Constitution Principle I)
+
+- Secrets MUST NOT be committed to the repository
+- `.gitignore` MUST exclude sensitive patterns (*.env, *.pem, credentials, secrets)
+- Input validation MUST be present in all Python validators before processing user-provided file paths
+- Shell scripts MUST validate arguments before processing
+
+### Testing (Constitution Principle II)
+
+- All Python validation scripts MUST have automated tests with pytest
+- Test files MUST follow `test_*.py` naming convention
+- Coverage MUST NOT fall below 60% (blocking threshold)
+- Coverage SHOULD be >= 80% (warning threshold)
+- New validators MUST include tests in the same PR
+
+### Error Handling (Constitution Principle III)
+
+- Python validators MUST return structured JSON output with `checks`, `summary`, and `issues` fields
+- Python validators MUST exit with code 0 on success, code 1 on validation failure or error
+- Shell scripts MUST use `set -e` or explicit error checking
+- Error messages MUST include file path, line number (when applicable), and check name
+
+### Observability (Constitution Principle IV)
+
+- Python validators MUST output JSON to stdout (not stderr)
+- Validation results MUST include check name, pass/fail status, and issue list
+- Output MUST be parseable by `jq`
+
+### Validator Script Pattern (Constitution Principle V)
+
+- Validators MUST have a docstring header with description, checks list, usage, and output format
+- Validators MUST define a `validate_file(file_path: str) -> dict` entry function
+- Validators MUST use `if __name__ == '__main__':` pattern for CLI invocation
+- Reference implementation: `plugins/humaninloop/skills/authoring-requirements/scripts/validate-requirements.py`
+
+### ADR Discipline (Constitution Principle VI)
+
+- Architectural decisions MUST be documented in `docs/decisions/`
+- ADRs MUST follow Context/Decision/Rationale/Consequences format
+- ADR numbers MUST be sequential (001, 002, 003...)
+
+### Skill Structure (Constitution Principle VII)
+
+- Skills MUST have a `SKILL.md` entry point file under 200 lines
+- Skill directories MUST use kebab-case naming with category prefix (`authoring-*`, `validation-*`, `patterns-*`, `analysis-*`)
+- Skills with validation logic MUST include scripts in a `scripts/` subdirectory
+
 ## Development Workflow
 
-### Commit Conventions
+### Commit Conventions (Constitution Principle VIII)
 
-Use [Conventional Commits](https://www.conventionalcommits.org/):
+All commits MUST follow [Conventional Commits](https://www.conventionalcommits.org/) with scope.
 
-- `feat(plugin): description` - New features
-- `fix(plugin): description` - Bug fixes
-- `docs: description` - Documentation changes
-- `refactor(plugin): description` - Code restructuring
-- `chore: description` - Maintenance tasks
+**Format**: `type(scope): description`
 
-Examples:
+**Valid types**:
+- `feat` - New features
+- `fix` - Bug fixes
+- `docs` - Documentation changes
+- `refactor` - Code restructuring
+- `chore` - Maintenance tasks
+- `test` - Adding or modifying tests
+- `ci` - CI/CD configuration changes
+
+**Rules**:
+- Scope MUST identify affected plugin or area (e.g., `humaninloop`, `constitution`, `spec`)
+- Description MUST be imperative mood, lowercase, no period
+- Breaking changes MUST include `BREAKING CHANGE:` footer or `!` after type
+
+**Examples**:
 ```
 feat(humaninloop): add /tasks command
 fix(constitution): correct handoff agent reference
 docs: add ADR for multi-agent architecture
+test(validators): add unit tests for validate-requirements
+ci: add GitHub Actions workflow for pytest
+feat(humaninloop)!: change skill loading mechanism
 ```
 
 ### Feature Development
@@ -99,8 +163,33 @@ See `docs/internal/feedback/methodology.md` for full process details.
 
 See [RELEASES.md](RELEASES.md) for release process. Update [CHANGELOG.md](CHANGELOG.md) with each release.
 
+### Constitution Amendment
+
+When amending `.humaninloop/memory/constitution.md`:
+
+1. Propose change via PR to constitution file
+2. Document rationale for change in PR description
+3. Update version per semantic versioning (MAJOR: principle removal, MINOR: new principle, PATCH: clarification)
+4. Update this CLAUDE.md to reflect changes
+5. Include both files in the same commit
+6. PR description MUST note "Constitution sync: CLAUDE.md updated"
+
+## Quality Gates
+
+| Gate | Requirement | Command | Enforcement |
+|------|-------------|---------|-------------|
+| Validator Syntax | Valid Python | `python -m py_compile <file>` | CI (when configured) |
+| Shell Script Syntax | Valid Bash | `bash -n <file>` | CI (when configured) |
+| Validator Tests | All pass | `pytest plugins/ --tb=short` | CI (when configured) |
+| Validator Coverage | >= 60% | `pytest --cov --cov-fail-under=60` | CI (blocking) |
+| Validator Coverage | >= 80% | `pytest --cov` | CI (warning) |
+| JSON Schema | Valid output | `python <validator> <input> \| jq .` | CI (when configured) |
+| Commit Format | Conventional | Pattern match | Code review |
+| ADR Presence | Required for arch changes | Manual review | Code review |
+
 ## Documentation
 
+- **[.humaninloop/memory/constitution.md](.humaninloop/memory/constitution.md)**: Project constitution (v1.0.0) - governance principles, quality gates, and enforcement mechanisms.
 - **[docs/claude-plugin-documentation.md](docs/claude-plugin-documentation.md)**: Primary reference for Claude Code plugin development. Contains comprehensive technical details on plugin architecture, commands, skills, hooks, MCP integrations, and more.
 - **[docs/agent-skills-documentation.md](docs/agent-skills-documentation.md)**: Complete technical reference for Agent Skills. Covers SKILL.md schema, progressive disclosure, triggering mechanism, description optimization, bundled resources, and the agentskills.io ecosystem.
 - **[RELEASES.md](RELEASES.md)**: Release philosophy and versioning strategy for the marketplace.
