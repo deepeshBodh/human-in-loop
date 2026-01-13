@@ -18,6 +18,8 @@ updated: {{updated}}
 | Spec Status | {{spec_status}} |
 | Current Phase | {{phase}} |
 | Constitution | {{constitution_path}} |
+| Project Type | {{project_type}} |
+| Codebase Analysis | {{codebase_analysis_path}} |
 
 ## File Paths
 
@@ -35,6 +37,12 @@ updated: {{updated}}
 {{constitution_principles}}
 
 ## Codebase Context
+
+| Field | Value |
+|-------|-------|
+| Project Type | {{project_type}} |
+| Analysis Path | {{codebase_analysis_path}} |
+| Analysis Age | {{codebase_analysis_age}} |
 
 {{codebase_context}}
 

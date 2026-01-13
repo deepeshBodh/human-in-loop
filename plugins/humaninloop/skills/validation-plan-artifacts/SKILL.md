@@ -66,6 +66,67 @@ For each check in the phase-specific checklist:
 - Provide specific, actionable suggestions
 - Acknowledge what was done well
 
+## Incremental Review Mode
+
+For phases after the first artifact (data-model, contracts), use incremental review to optimize time while preserving rigor.
+
+### Full Review (New Artifact Only)
+
+- Execute ALL phase-specific checks from PHASE-CHECKLISTS.md
+- Document issues with full evidence
+- This is your primary focus—no shortcuts here
+
+### Consistency Check (Previous Artifacts)
+
+- Use the cross-artifact checklist at `${CLAUDE_PLUGIN_ROOT}/templates/cross-artifact-checklist.md`
+- Do NOT re-read previous artifacts in full
+- Spot-check: entity names, requirement IDs, decision references
+- Flag only inconsistencies between artifacts
+- **Time budget**: 1-2 minutes per previous artifact
+
+### When to Escalate to Full Re-Review
+
+- If 2+ consistency issues found → re-read that specific artifact
+- If contradictions detected → flag for supervisor
+- If unsure → note uncertainty in report, recommend targeted review
+
+### Report Format (Incremental Mode)
+
+```markdown
+## Review Summary
+
+| Aspect | Status |
+|--------|--------|
+| **New Artifact** | {artifact} - FULL REVIEW |
+| **Previous Artifacts** | CONSISTENCY CHECK ONLY |
+
+## New Artifact Issues
+
+{Full issue documentation with evidence}
+
+## Cross-Artifact Consistency
+
+| Check | Status | Notes |
+|-------|--------|-------|
+| Entity names | Pass/Fail | {any mismatches} |
+| Requirement IDs | Pass/Fail | {any gaps} |
+| Decision alignment | Pass/Fail | {any contradictions} |
+
+## Verdict
+
+{ready / needs-revision / critical-gaps}
+```
+
+### Phase Application
+
+| Phase | Full Review | Consistency Check |
+|-------|-------------|-------------------|
+| B0 (Research) | research.md | — (first artifact) |
+| B1 (Data Model) | data-model.md | research.md (1-2 min) |
+| B2 (Contracts) | contracts/, quickstart.md | research.md + data-model.md (2-3 min) |
+
+---
+
 ## Verdict Criteria
 
 | Verdict | Criteria |

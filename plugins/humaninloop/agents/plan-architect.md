@@ -49,8 +49,9 @@ Based on the phase, you produce the appropriate artifact and write a report.
 - Existing codebase (if brownfield) - Context from `analysis-codebase`
 
 **Use Skills**:
-1. `analysis-codebase` - Understand existing tech stack (brownfield)
-2. `patterns-technical-decisions` - Evaluate options and document decisions in ADR format
+1. `patterns-technical-decisions` - Evaluate options and document decisions in ADR format
+
+**Note**: For brownfield context, read `.humaninloop/memory/codebase-analysis.md` (see "Brownfield Context Files" section below). Do NOT invoke `analysis-codebase`—the analysis was cached during `/humaninloop:setup`.
 
 **Produce**:
 - `research.md` - Technical decisions document with:
@@ -78,8 +79,9 @@ Based on the phase, you produce the appropriate artifact and write a report.
 - Codebase inventory (if brownfield) - Existing entities to extend/reuse
 
 **Use Skills**:
-1. `analysis-codebase` - Check for existing entities (brownfield)
-2. `patterns-entity-modeling` - Extract and define entities
+1. `patterns-entity-modeling` - Extract and define entities
+
+**Note**: For existing entities in brownfield projects, read `.humaninloop/memory/codebase-analysis.md`. Do NOT invoke `analysis-codebase`.
 
 **Produce**:
 - `data-model.md` - Entity definitions document with:
@@ -111,8 +113,9 @@ Based on the phase, you produce the appropriate artifact and write a report.
 - Codebase inventory (if brownfield) - Existing API patterns to match
 
 **Use Skills**:
-1. `analysis-codebase` - Match existing API conventions (brownfield)
-2. `patterns-api-contracts` - Map user actions to endpoints
+1. `patterns-api-contracts` - Map user actions to endpoints
+
+**Note**: For existing API conventions in brownfield projects, read `.humaninloop/memory/codebase-analysis.md`. Do NOT invoke `analysis-codebase`.
 
 **Produce**:
 - `contracts/api.yaml` - OpenAPI specification with:

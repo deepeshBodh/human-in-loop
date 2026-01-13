@@ -234,6 +234,7 @@ This supervisor follows a multi-phase architecture for brownfield-aware constitu
    - Use RFC 2119 keywords (MUST, SHOULD, MAY)
 
    **CRITICAL - Populate from Analysis**:
+   - **project_type**: Add `project_type: brownfield` to constitution frontmatter or metadata section
    - Technology Stack: Use ACTUAL tools/versions from codebase-analysis.md, NOT placeholders
    - Quality Gates: Use ACTUAL commands from codebase-analysis.md (e.g., if analysis found "pytest", write `pytest --cov`, NOT `[TEST_COMMAND]`)
    - Coverage thresholds: Use numeric values from analysis OR sensible defaults (warning <80%, blocking <60%)
@@ -266,6 +267,7 @@ This supervisor follows a multi-phase architecture for brownfield-aware constitu
    - Use RFC 2119 keywords (MUST, SHOULD, MAY)
 
    **CRITICAL - No Placeholders**:
+   - **project_type**: Add `project_type: greenfield` to constitution frontmatter or metadata section
    - Technology Stack: Use detected language/framework from Phase 0, or ask user
    - Quality Gates: Use concrete commands appropriate for the detected stack (e.g., `npm test`, `pytest`, `dotnet test`)
    - Coverage thresholds: Use numeric defaults (warning <80%, blocking <60%)

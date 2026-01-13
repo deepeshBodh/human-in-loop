@@ -111,7 +111,54 @@ Before starting, verify the specification workflow is complete:
      )
      ```
 
-4. **If entry gate passes**: Continue to Resume Detection
+4. **If entry gate passes**: Continue to Brownfield Check
+
+---
+
+## Pre-Execution: Brownfield Check
+
+Before proceeding, verify brownfield projects have required analysis:
+
+1. **Read constitution**: `.humaninloop/memory/constitution.md`
+   - Extract `project_type` field (brownfield or greenfield)
+
+2. **If `project_type: brownfield`**:
+
+   a. **Check for codebase analysis**:
+      ```bash
+      test -f .humaninloop/memory/codebase-analysis.md
+      ```
+
+   b. **If NOT found**: Block and direct user to setup
+      ```
+      AskUserQuestion(
+        questions: [{
+          question: "This is a brownfield project but codebase analysis is missing.\n\nThe plan command requires `.humaninloop/memory/codebase-analysis.md` which is created by `/humaninloop:setup` in brownfield mode.\n\nHow would you like to proceed?",
+          header: "Missing Analysis",
+          options: [
+            {label: "Run setup first", description: "Exit and run /humaninloop:setup in brownfield mode"},
+            {label: "Treat as greenfield", description: "Proceed without brownfield context (not recommended)"}
+          ],
+          multiSelect: false
+        }]
+      )
+      ```
+      - If "Run setup first" → Exit with instruction to run `/humaninloop:setup`
+      - If "Treat as greenfield" → Proceed but log warning
+
+   c. **If found**: Check staleness and log
+      ```bash
+      # Get analysis file age in days
+      analysis_age=$(( ($(date +%s) - $(stat -f %m .humaninloop/memory/codebase-analysis.md)) / 86400 ))
+      ```
+      - If age > 14 days: Log warning to user:
+        ```
+        ⚠️ Codebase analysis is {age} days old. Consider re-running /humaninloop:setup if the codebase has changed significantly.
+        ```
+      - Proceed to Resume Detection
+
+3. **If `project_type: greenfield`** (or field missing):
+   - Proceed to Resume Detection (no brownfield analysis needed)
 
 ---
 
@@ -200,8 +247,11 @@ Create technical research document resolving all unknowns from the specification
 - Report: `specs/{feature-id}/.workflow/planner-report.md`
 
 **Use Skills**:
-- `analysis-codebase` (if brownfield)
 - `patterns-technical-decisions`
+
+**Brownfield Context** (if `project_type: brownfield`):
+- Read existing analysis from `.humaninloop/memory/codebase-analysis.md`
+- Do NOT invoke `analysis-codebase` skill—use the cached results from setup
 
 **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/planner-report-template.md`
 ```
@@ -307,8 +357,11 @@ Create data model document extracting entities, relationships, and validation ru
 - Report: `specs/{feature-id}/.workflow/planner-report.md`
 
 **Use Skills**:
-- `analysis-codebase` (if brownfield, for existing entities)
 - `patterns-entity-modeling`
+
+**Brownfield Context** (if `project_type: brownfield`):
+- Read existing entities from `.humaninloop/memory/codebase-analysis.md`
+- Do NOT invoke `analysis-codebase` skill—use the cached results from setup
 
 **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/planner-report-template.md`
 ```
@@ -336,31 +389,42 @@ Task(
 
 Confirm: `specs/{feature-id}/data-model.md`
 
-### 3.5 Advocate Review (Cumulative)
+### 3.5 Advocate Review (Incremental)
 
 Update context for advocate:
 
 ```markdown
-**Phase**: Data Model Review
+**Phase**: Data Model Review (INCREMENTAL MODE)
 
-Review the data model for completeness and consistency with spec + research.
+**Full Review** the data model for completeness and quality.
+**Consistency Check** research.md using cross-artifact checklist.
 
-**Read**:
-- Spec: `specs/{feature-id}/spec.md`
-- Research: `specs/{feature-id}/research.md`
+**Full Review**:
 - Data Model: `specs/{feature-id}/data-model.md`
 - Planner report: `specs/{feature-id}/.workflow/planner-report.md`
+
+**Consistency Check Only** (1-2 min max):
+- Research: `specs/{feature-id}/research.md` (entity names, decision references)
 
 **Write**:
 - Report: `specs/{feature-id}/.workflow/advocate-report.md`
 
 **Use Skills**:
-- `validation-plan-artifacts` (phase: datamodel)
+- `validation-plan-artifacts` (phase: datamodel, mode: incremental)
 
-**Check**:
+**Full Review Checks**:
 - Entity coverage (all nouns from requirements)
 - Relationship completeness
-- Consistency with research decisions
+- Attribute definitions
+
+**Consistency Checks**:
+- Entity names match research decisions
+- Technology choices honored
+- Requirement IDs trace correctly
+
+**Time Budget**:
+- Data model full review: unlimited
+- Research consistency check: 1-2 minutes max
 ```
 
 Invoke advocate and route based on verdict (same as Phase 2).
@@ -392,8 +456,11 @@ Create API contracts and integration guide.
 - Report: `specs/{feature-id}/.workflow/planner-report.md`
 
 **Use Skills**:
-- `analysis-codebase` (if brownfield, for existing API patterns)
 - `patterns-api-contracts`
+
+**Brownfield Context** (if `project_type: brownfield`):
+- Read existing API patterns from `.humaninloop/memory/codebase-analysis.md`
+- Do NOT invoke `analysis-codebase` skill—use the cached results from setup
 
 **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/planner-report-template.md`
 ```
@@ -423,34 +490,45 @@ Confirm:
 - `specs/{feature-id}/contracts/api.yaml`
 - `specs/{feature-id}/quickstart.md`
 
-### 4.5 Advocate Review (Cumulative)
+### 4.5 Advocate Review (Incremental)
 
 Update context for advocate:
 
 ```markdown
-**Phase**: Contracts Review
+**Phase**: Contracts Review (INCREMENTAL MODE)
 
-Review API contracts for completeness and consistency with all previous artifacts.
+**Full Review** API contracts for completeness and consistency with data model.
+**Consistency Check** previous artifacts using cross-artifact checklist.
 
-**Read**:
-- Spec: `specs/{feature-id}/spec.md`
-- Research: `specs/{feature-id}/research.md`
-- Data Model: `specs/{feature-id}/data-model.md`
+**Full Review**:
 - Contracts: `specs/{feature-id}/contracts/api.yaml`
 - Quickstart: `specs/{feature-id}/quickstart.md`
 - Planner report: `specs/{feature-id}/.workflow/planner-report.md`
+
+**Consistency Check Only** (2-3 min total):
+- Research: `specs/{feature-id}/research.md` (1-2 min)
+- Data Model: `specs/{feature-id}/data-model.md` (1-2 min)
 
 **Write**:
 - Report: `specs/{feature-id}/.workflow/advocate-report.md`
 
 **Use Skills**:
-- `validation-plan-artifacts` (phase: contracts)
+- `validation-plan-artifacts` (phase: contracts, mode: incremental)
 
-**Check**:
+**Full Review Checks**:
 - Endpoint coverage (all user actions mapped)
 - Schema consistency with data model
 - Error handling completeness
-- Cross-artifact consistency
+- OpenAPI spec validity
+
+**Consistency Checks**:
+- Entity names match data model exactly
+- API patterns match research decisions
+- Requirement IDs trace correctly
+
+**Time Budget**:
+- Contracts full review: unlimited
+- Previous artifacts consistency check: 2-3 minutes total
 ```
 
 Invoke advocate and route based on verdict.
