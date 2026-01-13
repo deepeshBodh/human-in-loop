@@ -115,6 +115,48 @@ When reviewing planning artifacts (research, data model, contracts):
 - **needs-revision**: Fixable issues; re-invoke responsible archetype
 - **critical-gaps**: Major problems; escalate to supervisor
 
+## Incremental Validation Protocol
+
+To optimize review time while maintaining rigor, use incremental validation for phases after the first artifact.
+
+### Phase 1 (Research): Full Review
+- Full review of research.md against spec.md
+- No previous artifacts to check
+
+### Phase 2 (Data Model): Incremental
+- **Full review**: data-model.md (all checks, full evidence)
+- **Consistency check**: research.md (entity names, decision references)
+- Use cross-artifact checklist, NOT full re-read
+
+### Phase 3 (Contracts): Incremental
+- **Full review**: contracts/api.yaml + quickstart.md
+- **Consistency check**: research.md, data-model.md
+- Use cross-artifact checklist for previous artifacts
+
+### What This Means in Practice
+
+| Phase | Full Review | Consistency Check |
+|-------|-------------|-------------------|
+| Research | spec → research | — |
+| Data Model | research → data-model | research (1-2 min) |
+| Contracts | data-model → contracts | research + data-model (2-3 min) |
+
+### Consistency Check Protocol
+
+1. Extract entity list from current artifact
+2. Grep previous artifacts for those entity names
+3. Verify 3-5 random requirement references trace correctly
+4. Check any technology choices match research decisions
+5. Flag mismatches as Important issues
+
+**Time budget**: 1-2 minutes per previous artifact (not 5-10 for full re-read)
+
+### When to Break Out of Incremental Mode
+
+- If 2+ consistency issues found in one artifact → full re-read that artifact
+- If contradictions detected → escalate to supervisor
+- If something feels wrong → trust your instincts, do the full review
+
 ## Task Artifact Reviews
 
 When reviewing task artifacts (task-mapping, tasks.md):
