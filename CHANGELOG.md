@@ -6,6 +6,27 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.7.9] - 2026-01-14
+
+Smart input detection and brainstorm pre-processor for /specify command (#37).
+
+### humaninloop 0.7.9
+
+#### New Features
+- **Smart input detection** - /specify now analyzes input for Who/Problem/Value triad completeness
+- **Brainstorm pre-processor** - Sparse inputs automatically routed to `analysis-iterative` skill for enrichment
+- **`--skip-brainstorm` flag** - Bypass automatic enrichment when input is known to be complete
+
+#### New Skill Resources
+- **SPECIFICATION-INPUT.md** - Focused mode for input enrichment in `analysis-iterative` skill
+- **ENRICHMENT.md** - Template for enriched feature descriptions
+
+#### Changed
+- **/humaninloop:specify** - Added Phase 0.5 for input guidance and enrichment
+- **analysis-iterative skill** - Extended description to include /specify integration
+
+---
+
 ## [0.7.8] - 2026-01-13
 
 Plan command performance optimization (#28) - 33-40% faster execution through codebase analysis reuse and incremental validation.
@@ -678,6 +699,11 @@ Initial marketplace scaffold.
 
 ---
 
+[0.7.9]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.9
+[0.7.8]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.8
+[0.7.7]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.7
+[0.7.6]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.6
+[0.7.5]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.5
 [0.7.4]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.4
 [0.7.3]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.3
 [0.7.2]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.2
