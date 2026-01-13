@@ -221,6 +221,9 @@ Write to `specs/{feature-id}/.workflow/plan-context.md` with these values:
 | `{{contracts_status}}` | `pending` |
 | `{{planner_report_path}}` | `specs/{feature-id}/.workflow/planner-report.md` |
 | `{{advocate_report_path}}` | `specs/{feature-id}/.workflow/advocate-report.md` |
+| `{{project_type}}` | `brownfield` or `greenfield` (from constitution) |
+| `{{codebase_analysis_path}}` | `.humaninloop/memory/codebase-analysis.md` (if brownfield) |
+| `{{codebase_analysis_age}}` | Age in days (if brownfield) |
 | `{{codebase_context}}` | Empty (filled by planner if brownfield) |
 | `{{supervisor_instructions}}` | See Phase 2 for initial instructions |
 | `{{clarification_log}}` | Empty on first iteration |
@@ -775,4 +778,4 @@ Resume logic based on `phase` and `status` fields:
 - Always use Task tool to invoke agents
 - Agents have NO workflow knowledge—all context via context file
 - Supervisor owns ALL routing and state decisions
-- Advocate reviews are cumulative (check against all previous artifacts)
+- Advocate reviews use incremental validation (full review for new artifact, consistency check for previous)
