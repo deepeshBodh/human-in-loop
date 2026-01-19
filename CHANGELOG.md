@@ -6,6 +6,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.7.10] - 2026-01-20
+
+Greenfield constitution enhancements with recommended architectural patterns.
+
+### humaninloop 0.7.10
+
+#### New Resources
+- **RECOMMENDED-PATTERNS.md** - Architectural patterns guide for greenfield constitutions
+  - Hexagonal Architecture (Ports & Adapters)
+  - Single Responsibility & Module Boundaries
+  - Dependency Discipline
+  - Stack-specific tooling guidance (Python, TypeScript, Go, Rust, Java)
+
+#### Changed
+- **/humaninloop:setup** - Greenfield mode now recommends architectural principles (V-VII) beyond the Essential Floor (I-IV)
+- **authoring-constitution skill** - Added Greenfield Recommendation section with architectural pattern references
+- **Constitution output** - Greenfield reports now include "Architectural Principles" section
+
+---
+
 ## [0.7.9] - 2026-01-14
 
 Smart input detection and brainstorm pre-processor for /specify command (#37).
@@ -699,6 +719,7 @@ Initial marketplace scaffold.
 
 ---
 
+[0.7.10]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.10
 [0.7.9]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.9
 [0.7.8]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.8
 [0.7.7]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.7

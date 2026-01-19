@@ -262,9 +262,15 @@ This supervisor follows a multi-phase architecture for brownfield-aware constitu
    Create project constitution with opinionated defaults.
 
    **Requirements**:
-   - Essential floor principles with industry-standard defaults
+   - Essential floor principles (I-IV): Security, Testing, Error Handling, Observability
+   - Recommended architectural principles (V-VII): Hexagonal Architecture, Single Responsibility, Dependency Discipline
    - Each principle: Statement, Enforcement, Testability, Rationale
    - Use RFC 2119 keywords (MUST, SHOULD, MAY)
+
+   **Architectural Principles** (from RECOMMENDED-PATTERNS.md):
+   - **V. Hexagonal Architecture**: Layer rules (domain → application → adapters), port interfaces for external services
+   - **VI. Single Responsibility**: Module boundaries, complexity limits (≤10 cyclomatic), no mixed concerns
+   - **VII. Dependency Discipline**: Justify new deps, pin versions, isolate behind ports
 
    **CRITICAL - No Placeholders**:
    - **project_type**: Add `project_type: greenfield` to constitution frontmatter or metadata section
@@ -280,7 +286,8 @@ This supervisor follows a multi-phase architecture for brownfield-aware constitu
 
    **Report format**:
    - ## What I Created - Constitution version, principle count
-   - ## Essential Floor Principles - List the 4
+   - ## Essential Floor Principles - List the 4 (I-IV)
+   - ## Architectural Principles - List the 3 (V-VII)
    - ## CLAUDE.md Sync Status - What was synced
    - ## Clarifications Needed - Questions (if any)
    - ## Assumptions Made - Decisions made when ambiguous
@@ -455,7 +462,8 @@ This supervisor follows a multi-phase architecture for brownfield-aware constitu
 
    ### Summary
    - Principles defined: [count from report]
-   - Essential floor: All four categories covered with defaults
+   - Essential floor (I-IV): Security, Testing, Error Handling, Observability
+   - Architectural principles (V-VII): Hexagonal Architecture, Single Responsibility, Dependency Discipline
 
    ### Suggested Commit
    ```

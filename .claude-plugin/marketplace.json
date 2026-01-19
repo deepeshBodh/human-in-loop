@@ -1,6 +1,6 @@
 {
   "name": "humaninloop-plugins",
-  "version": "0.7.9",
+  "version": "0.7.10",
   "description": "Multi-agent workflow plugins for specification-driven development",
   "owner": {
     "name": "HumanInLoop",

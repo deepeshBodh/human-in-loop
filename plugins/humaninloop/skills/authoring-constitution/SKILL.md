@@ -179,6 +179,14 @@ Numbered principles (I, II, III...) with Enforcement/Testability/Rationale.
 | **Operations** | Observability, Error Handling, Performance |
 | **Governance** | Versioning, Dependencies, Exceptions |
 
+**Greenfield Recommendation**: Beyond the Essential Floor (I-IV: Security, Testing, Error Handling, Observability), greenfield constitutions SHOULD include architectural principles. See [RECOMMENDED-PATTERNS.md](RECOMMENDED-PATTERNS.md) for:
+
+- **Hexagonal Architecture** (Ports & Adapters) - Layer rules, dependency flow, port interfaces
+- **Single Responsibility & Module Boundaries** - Complexity limits, separation of concerns
+- **Dependency Discipline** - Justification, isolation, vulnerability scanning
+
+These patterns establish good foundations from day one. It's easier to start with architectural discipline than to retrofit it later.
+
 ### 3. Technology Stack
 
 Document mandated technology choices with rationale:
@@ -285,5 +293,6 @@ See [syncing-claude-md skill](../syncing-claude-md/SKILL.md) for implementation.
 
 ## Related Skills
 
+- **For architectural patterns**: See [RECOMMENDED-PATTERNS.md](RECOMMENDED-PATTERNS.md) for hexagonal architecture, single responsibility, and dependency discipline principles
 - **For brownfield projects**: Use [brownfield-constitution](../brownfield-constitution/SKILL.md) which extends this skill with Essential Floor + Emergent Ceiling approach
 - **For validation**: Use [validation-constitution](../validation-constitution/SKILL.md) after authoring to verify quality
