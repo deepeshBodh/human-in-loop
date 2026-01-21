@@ -6,6 +6,32 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.7.11] - 2026-01-21
+
+Relax hexagonal architecture constraints to allow approved gold standard libraries in domain layer (#40).
+
+### humaninloop 0.7.11
+
+#### New Resources
+- **approved-domain-deps.md** - Registry template for approved domain layer dependencies
+  - Qualification criteria (>80% ubiquity + domain-relevance)
+  - Libraries by language: Python (pydantic, attrs), TypeScript (zod, decimal.js, uuid), Go, Rust, Java
+  - Addition process and linter enforcement guidance
+
+#### Changed
+- **RECOMMENDED-PATTERNS.md** - Updated hexagonal architecture layer rules
+  - Domain layer now allows "Standard library + approved domain deps" (was "Standard library only")
+  - Added "Approved Domain Dependencies" section with qualification criteria
+  - Updated enforcement with domain allowlist and CI blocking rules
+  - Added "Domain Allowlist Config" column to tooling table
+- **EMERGENT-CEILING-PATTERNS.md** - Updated brownfield patterns for consistency
+  - Domain layer now allows "stdlib + approved domain deps"
+  - Added "Domain Layer Dependencies" subsection with cross-reference
+  - Updated testability criteria for registry validation
+- **constitution-template.md** - Added domain layer note referencing registry template
+
+---
+
 ## [0.7.10] - 2026-01-20
 
 Greenfield constitution enhancements with recommended architectural patterns.
@@ -719,6 +745,7 @@ Initial marketplace scaffold.
 
 ---
 
+[0.7.11]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.11
 [0.7.10]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.10
 [0.7.9]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.9
 [0.7.8]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.8

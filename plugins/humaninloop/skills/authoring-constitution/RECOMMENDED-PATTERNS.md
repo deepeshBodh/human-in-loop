@@ -24,10 +24,28 @@ The application core MUST be isolated from external concerns. Dependencies flow 
 
 | Layer | Purpose | Location | MAY Import | MUST NOT Import |
 |-------|---------|----------|------------|-----------------|
-| **Domain** | Business logic, entities, value objects | `src/domain/` | Standard library only | application, adapters, infrastructure |
+| **Domain** | Business logic, entities, value objects | `src/domain/` | Standard library + approved domain deps | application, adapters, infrastructure |
 | **Application** | Use cases, orchestration, port definitions | `src/application/` | domain, port interfaces | adapters, infrastructure |
 | **Adapters** | External system integration (DB, APIs, UI) | `src/adapters/` | application, domain, ports | other adapters directly |
 | **Infrastructure** | DI wiring, configuration, entry points | `src/infrastructure/` | all layers (for wiring) | domain logic directly |
+
+**Approved Domain Dependencies**:
+
+The domain layer MAY import libraries from the approved domain dependencies registry when they meet qualification criteria:
+
+1. **Ubiquity (>80% adoption)**: Effectively a standard in the ecosystem
+2. **Domain-relevance**: Provides domain modeling capabilities without I/O
+
+Common approved libraries by language:
+
+| Language | Approved Libraries | Purpose |
+|----------|-------------------|---------|
+| Python | `pydantic`, `attrs` | Data validation, immutable models |
+| TypeScript | `zod`, `decimal.js`, `uuid` | Schema validation, precise arithmetic, identifiers |
+| Go | `go-playground/validator`, `shopspring/decimal`, `google/uuid` | Struct validation, decimals, identifiers |
+| Rust | `serde`, `rust_decimal`, `uuid` | Serialization, decimals, identifiers |
+
+See full registry at `${CLAUDE_PLUGIN_ROOT}/templates/approved-domain-deps.md`.
 
 **Port Interface Requirements**:
 
@@ -61,13 +79,17 @@ src/
 **Enforcement**:
 - Import linter rules configured to detect layer violations (e.g., `import-linter` for Python, ESLint import rules for TypeScript)
 - CI blocks merge on any import from inner to outer layer
+- Domain layer allowlist derived from approved-domain-deps.md registry
+- CI blocks merge on domain imports not in approved registry
 - Code review MUST verify new code respects layer boundaries
+- Code review MUST verify domain dependency additions meet qualification criteria
 - Type checker strict mode catches type leakage across boundaries
 
 **Testability**:
-- Pass: All imports respect layer rules, domain has zero external dependencies
+- Pass: All imports respect layer rules, domain imports only approved dependencies
 - Pass: All use cases testable with mock adapters (no real DB/API needed)
 - Fail: Domain imports from adapters OR application imports infrastructure
+- Fail: Domain imports unapproved library not in registry
 
 **Rationale**: Hexagonal architecture isolates business logic from infrastructure concerns. This enables testing without real databases or APIs, swapping implementations (e.g., switching from PostgreSQL to MongoDB), and reasoning about business rules without infrastructure noise. The cost is additional abstraction; the benefit is long-term maintainability.
 
@@ -159,13 +181,13 @@ When including these in a constitution:
 
 These patterns apply universally but implementation details vary:
 
-| Stack | Import Linter | Complexity Checker | Dependency Audit |
-|-------|---------------|-------------------|------------------|
-| Python | `import-linter` | `ruff` (C901) | `pip-audit` |
-| TypeScript | ESLint `import/no-restricted-paths` | ESLint `complexity` | `npm audit` |
-| Go | `go-cleanarch` | `gocyclo` | `govulncheck` |
-| Rust | Custom clippy rules | `clippy` | `cargo audit` |
-| Java | ArchUnit | SonarQube | OWASP Dependency-Check |
+| Stack | Import Linter | Complexity Checker | Dependency Audit | Domain Allowlist Config |
+|-------|---------------|-------------------|------------------|------------------------|
+| Python | `import-linter` | `ruff` (C901) | `pip-audit` | `pyproject.toml` contracts |
+| TypeScript | ESLint `import/no-restricted-paths` | ESLint `complexity` | `npm audit` | `.eslintrc` zones |
+| Go | `go-cleanarch` | `gocyclo` | `govulncheck` | `.go-cleanarch.yaml` |
+| Rust | Custom clippy rules | `clippy` | `cargo audit` | `clippy.toml` |
+| Java | ArchUnit | SonarQube | OWASP Dependency-Check | ArchUnit rules |
 
 ---
 

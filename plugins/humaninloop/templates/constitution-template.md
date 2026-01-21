@@ -222,6 +222,8 @@ INSTRUCTION: Define dependency rules if using layered architecture.
 | [LAYER_2] | [Allowed layers] | [Prohibited layers] |
 | [LAYER_3] | [Allowed layers] | [Prohibited layers] |
 
+**Domain Layer Note**: The domain layer MAY import libraries listed in the project's approved domain dependencies registry. See template at `${CLAUDE_PLUGIN_ROOT}/templates/approved-domain-deps.md`.
+
 ## Governance
 
 <!--

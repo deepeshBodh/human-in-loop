@@ -86,7 +86,7 @@ Dependencies MUST flow inward—outer layers depend on inner layers, never rever
 
 | Layer | Location | MAY import | MUST NOT import |
 |-------|----------|------------|-----------------|
-| Domain | `src/domain/` | Python stdlib only | application, adapters, infrastructure |
+| Domain | `src/domain/` | stdlib + approved domain deps | application, adapters, infrastructure |
 | Application | `src/application/` | domain, port interfaces | adapters, infrastructure |
 | Adapters | `src/adapters/` | application, domain, ports | other adapters directly |
 | Infrastructure | `src/infrastructure/` | application (for DI wiring) | domain logic |
@@ -123,6 +123,10 @@ External dependencies MUST be justified and isolated behind port interfaces.
 - Version pins MUST be explicit in lock files
 - Dependency updates MUST be intentional, not automatic
 
+**Domain Layer Dependencies**:
+
+The domain layer MAY import libraries from the approved domain dependencies registry. These are gold standard libraries (>80% ecosystem adoption) that provide domain modeling capabilities without I/O coupling. See `authoring-constitution/RECOMMENDED-PATTERNS.md` for qualification criteria and the full registry at `${CLAUDE_PLUGIN_ROOT}/templates/approved-domain-deps.md`.
+
 **Port Interface Requirements**:
 
 All external service calls MUST go through port interfaces:
@@ -149,7 +153,9 @@ All external service calls MUST go through port interfaces:
 
 **Testability**:
 - Pass: All external calls through ports, no direct SDK usage in domain/application
+- Pass: Approved domain dependencies registry maintained and linter configured
 - Fail: Any external SDK imported in domain layer OR direct HTTP call without port
+- Fail: Domain imports library not in approved registry
 
 **Rationale**: Each dependency is a liability—maintenance burden, security surface, potential breaking changes. Isolation via ports enables evolution without rewrite and makes the codebase testable without hitting real external services.
 
