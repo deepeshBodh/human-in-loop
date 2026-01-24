@@ -81,11 +81,11 @@ Each command produces artifacts you review before the next step. You stay in con
 ### 6 Commands
 The full specify → plan → tasks → implement lifecycle.
 
-### 14 Skills
-Claude automatically invokes these when relevant—authoring requirements, analyzing codebases, designing APIs, and more.
+### 17 Skills
+Claude automatically invokes these when relevant—authoring requirements, analyzing codebases, designing APIs, running verification tests, and more.
 
-### 5 Specialized Agents
-Focused responsibilities: requirements analyst, devil's advocate, plan architect, principal architect, task architect.
+### 6 Specialized Agents
+Focused responsibilities: requirements analyst, devil's advocate, plan architect, principal architect, task architect, testing agent.
 
 See the [plugin documentation](./plugins/humaninloop/README.md) for full details.
 
