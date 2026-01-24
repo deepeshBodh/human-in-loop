@@ -1,6 +1,6 @@
 ---
 name: syncing-claude-md
-description: Ensure CLAUDE.md mirrors constitution sections per explicit mapping. Use when synchronizing CLAUDE.md with constitution, validating alignment, or when you see "CLAUDE.md sync", "agent instructions", or need to propagate constitution changes to CLAUDE.md.
+description: This skill should be used when the user asks to "sync CLAUDE.md", "update agent instructions", "propagate constitution changes", or mentions "CLAUDE.md sync", "agent instructions", or "constitution alignment". Ensures CLAUDE.md mirrors constitution sections per explicit mapping rules.
 ---
 
 # Syncing CLAUDE.md

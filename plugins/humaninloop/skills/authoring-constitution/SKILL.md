@@ -1,6 +1,6 @@
 ---
 name: authoring-constitution
-description: Write enforceable, testable constitution content with proper principle structure, section templates, and RFC 2119 keywords. Use when creating constitutions, writing principles, defining governance, or when you see "constitution", "governance", "principles", "enforcement", or "amendment process". Core skill for greenfield projects.
+description: This skill should be used when the user asks to "create constitution", "write principles", "define governance", or mentions "constitution", "governance", "principles", "enforcement", or "amendment process". Core skill for greenfield projects. Produces enforceable, testable constitution content with RFC 2119 keywords.
 ---
 
 # Authoring Constitution

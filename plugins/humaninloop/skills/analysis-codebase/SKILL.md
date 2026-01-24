@@ -1,6 +1,6 @@
 ---
 name: analysis-codebase
-description: Analyze existing codebases for tech stack, conventions, entities, and patterns. Use when scanning projects for context, brownfield analysis, or when you see "tech stack", "codebase analysis", "existing code", "collision risk", "brownfield", or "project context".
+description: This skill should be used when the user asks to "analyze codebase", "scan project", "detect tech stack", or mentions "codebase analysis", "existing code", "collision risk", "brownfield", or "project context". Provides systematic extraction of tech stack, conventions, entities, and patterns from existing codebases.
 ---
 
 # Analyzing Codebase

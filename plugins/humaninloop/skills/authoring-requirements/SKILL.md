@@ -1,6 +1,6 @@
 ---
 name: authoring-requirements
-description: Write functional requirements using FR-XXX format with RFC 2119 keywords (MUST, SHOULD, MAY), success criteria (SC-XXX), and edge case identification. Use when writing requirements, specifications, success criteria, or when you see "functional requirements", "FR-", "SC-", "RFC 2119", "MUST SHOULD MAY", or "edge cases".
+description: This skill should be used when the user asks to "write requirements", "define success criteria", "identify edge cases", or mentions "functional requirements", "FR-", "SC-", "RFC 2119", "MUST SHOULD MAY", or "edge cases". Produces technology-agnostic requirements in FR-XXX format with measurable success criteria.
 ---
 
 # Authoring Requirements

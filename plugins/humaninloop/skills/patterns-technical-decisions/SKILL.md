@@ -1,6 +1,6 @@
 ---
 name: patterns-technical-decisions
-description: Evaluate technology alternatives and document decisions in ADR format. Use when making technology choices, comparing options, documenting decisions, or when you see "technology choice", "alternatives", "trade-offs", "decision record", "rationale", "why we chose", or "NEEDS CLARIFICATION".
+description: This skill should be used when the user asks to "evaluate alternatives", "make technology choice", "document decision", or mentions "technology choice", "alternatives", "trade-offs", "decision record", "rationale", "why we chose", or "NEEDS CLARIFICATION". Provides evaluation framework and ADR documentation format.
 ---
 
 # Making Technical Decisions
