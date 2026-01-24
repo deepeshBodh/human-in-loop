@@ -188,6 +188,47 @@ AskUserQuestion(
    - Subsequent tasks implement code to make tests pass
    - Final task in cycle is typically "Demo and verify"
 
+   **Verification Task Detection and Routing**:
+
+   When encountering a task with `**TEST:VERIFY**` or `**TEST:CONTRACT**` markers:
+
+   **Detection**:
+   - If task contains `**TEST:VERIFY**`: Route to testing-agent
+   - If task contains `**TEST:CONTRACT**`: Route to testing-agent
+   - If task contains `**HUMAN VERIFICATION**`: Manual execution (existing behavior)
+
+   **Routing to Testing Agent**:
+   ```
+   Task(
+     subagent_type: "humaninloop:testing-agent",
+     prompt: "Execute verification task {TASK_ID} from {FEATURE_DIR}/tasks.md. Parse the TEST:VERIFY markers, execute Setup/Action/Assert steps, capture evidence, and present checkpoint for human approval.",
+     description: "Execute TEST:VERIFY task"
+   )
+   ```
+
+   **Checkpoint Presentation**:
+   After testing-agent returns, present the evidence report to the user:
+   ```
+   AskUserQuestion(
+     questions: [{
+       question: "{evidence_summary}\n\nRecommendation: {recommendation}",
+       header: "Checkpoint: {TASK_ID}",
+       options: [
+         {label: "Approve", description: "Proceed to next task"},
+         {label: "Reject", description: "Investigate failure"},
+         {label: "Retry", description: "Re-run with adjustments"}
+       ],
+       multiSelect: false
+     }]
+   )
+   ```
+
+   **Gate Behavior**:
+   - Cycle is NOT complete until human approves checkpoint
+   - If human selects "Reject": Stop cycle, report failure
+   - If human selects "Retry": Re-run testing-agent with same task
+   - If human selects "Approve": Mark task complete, proceed
+
    **Checkpoints**:
    - Each cycle ends with a `**Checkpoint**:` statement
    - Verify checkpoint criteria before marking cycle complete
