@@ -202,6 +202,31 @@ Verify versions are consistent across all manifest files:
 | `CHANGELOG.md` | Latest `## [X.Y.Z]` | Git tag being created |
 | `ROADMAP.md` | `## Current State (vX.Y.Z)` | marketplace.json version |
 
+#### Post-Tag Commit Detection (CRITICAL)
+Before validating version consistency, check if a new version is needed:
+
+```bash
+# Get latest tag and check for commits after it
+git tag --sort=-v:refname | head -1  # e.g., v0.7.11
+git log v0.7.11..HEAD --oneline      # commits since tag
+```
+
+**Validation rules**:
+- [ ] Run `git log v{latest-tag}..HEAD --oneline`
+- [ ] If commits exist after the latest tag → **version bump required before release**
+- [ ] Analyze commit types to determine bump level:
+  - `feat:` commits → minor bump (0.X.0)
+  - `fix:`, `docs:`, `chore:`, `refactor:` → patch bump (0.0.X)
+  - `BREAKING CHANGE:` in footer or `!` after type → major bump (X.0.0)
+- [ ] **FAIL** if manifest versions match latest tag but untagged commits exist
+- [ ] Recommend new version number based on commit analysis
+
+**Example failure scenario**:
+- Latest tag: `v0.7.11`
+- Commits since tag: `fix: standardize skill descriptions`
+- All manifests show: `0.7.11`
+- **Result**: FAIL - must bump to `0.7.12` before release
+
 **Cross-checks**:
 - [ ] marketplace.json version ≥ highest plugin version
 - [ ] Each plugin mentioned in CHANGELOG has matching version in its plugin.json
@@ -383,33 +408,34 @@ When invoked, follow this systematic approach:
 ### Phase 1: Critical Checks (Block release if failed)
 1. **Identify Target**: Determine which plugin(s) to audit (ask if not specified)
 2. **Load Specifications**: Read `docs/claude-plugin-documentation.md` and `docs/agent-skills-documentation.md`
-3. **Version Check**: Validate version consistency across all manifest files
-4. **Skill YAML Validation**: Check all SKILL.md files for single-line descriptions (CRITICAL)
-5. **Speckit Reference Detection**: Search for legacy `.specify/` and `speckit` references
-6. **Internal Doc Reference Detection**: Search for ADR-XXX, docs/decisions/, and other internal-only references in shipped code
+3. **Post-Tag Commit Detection**: Check `git log v{latest-tag}..HEAD` - if commits exist, version bump is required
+4. **Version Check**: Validate version consistency across all manifest files (must reflect new version if commits exist)
+5. **Skill YAML Validation**: Check all SKILL.md files for single-line descriptions (CRITICAL)
+6. **Speckit Reference Detection**: Search for legacy `.specify/` and `speckit` references
+7. **Internal Doc Reference Detection**: Search for ADR-XXX, docs/decisions/, and other internal-only references in shipped code
 
 ### Phase 2: Structural Validation
-7. **Structural Scan**: Map the plugin's file structure including agents/, skills/, check-modules/, hooks/
-8. **Agent Validation**: Verify agent frontmatter, name matching, and skill references
-9. **Command Validation**: Verify command frontmatter and argument handling
-10. **Script Validation**: Check executability, shebangs, and path usage
-11. **Hooks Validation**: If hooks present, validate JSON structure and event names
+8. **Structural Scan**: Map the plugin's file structure including agents/, skills/, check-modules/, hooks/
+9. **Agent Validation**: Verify agent frontmatter, name matching, and skill references
+10. **Command Validation**: Verify command frontmatter and argument handling
+11. **Script Validation**: Check executability, shebangs, and path usage
+12. **Hooks Validation**: If hooks present, validate JSON structure and event names
 
 ### Phase 3: Consistency Checks
-12. **Check Module Validation**: Validate check-module format, IDs, and tiers
-13. **Marketplace Manifest**: Validate marketplace.json structure and plugin references
-14. **Cross-Artifact Consistency**: Verify README ↔ plugin.json ↔ commands ↔ agents alignment
-15. **Dependency Check**: Verify plugin dependencies are properly declared and documented
+13. **Check Module Validation**: Validate check-module format, IDs, and tiers
+14. **Marketplace Manifest**: Validate marketplace.json structure and plugin references
+15. **Cross-Artifact Consistency**: Verify README ↔ plugin.json ↔ commands ↔ agents alignment
+16. **Dependency Check**: Verify plugin dependencies are properly declared and documented
 
 ### Phase 4: Compatibility & Documentation
-16. **Claude Code Compatibility**: Verify workarounds for known bugs (empty input, YAML parsing)
-17. **CHANGELOG Validation**: Verify Keep a Changelog format compliance
-18. **Release Notes Format**: Validate planned release notes follow RELEASES.md format
-19. **Reference Integrity**: Validate all internal and external file references
-20. **Documentation Review**: Audit README, command docs, and cross-references
+17. **Claude Code Compatibility**: Verify workarounds for known bugs (empty input, YAML parsing)
+18. **CHANGELOG Validation**: Verify Keep a Changelog format compliance
+19. **Release Notes Format**: Validate planned release notes follow RELEASES.md format
+20. **Reference Integrity**: Validate all internal and external file references
+21. **Documentation Review**: Audit README, command docs, and cross-references
 
 ### Phase 5: Report Generation
-21. **Generate Report**: Produce comprehensive release readiness report with all findings
+22. **Generate Report**: Produce comprehensive release readiness report with all findings
 
 ## Output Format
 

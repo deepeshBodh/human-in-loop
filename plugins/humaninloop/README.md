@@ -181,7 +181,7 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 
 | Agent | Purpose |
 |-------|---------|
-| **Plan Architect** | Senior architect who transforms specifications into implementation plans through research, domain modeling, and API contract design. Uses skills: `analysis-codebase`, `patterns-technical-decisions`, `patterns-entity-modeling`, `patterns-api-contracts` |
+| **Plan Architect** | Senior architect who transforms specifications into implementation plans through research, domain modeling, and API contract design. Uses skills: `patterns-technical-decisions`, `patterns-entity-modeling`, `patterns-api-contracts` |
 | **Devil's Advocate** | Reviews plan artifacts for gaps and quality. Uses skill: `validation-plan-artifacts` |
 
 ### Tasks Workflow Agents

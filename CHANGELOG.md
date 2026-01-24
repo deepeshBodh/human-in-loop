@@ -6,6 +6,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.7.12] - 2026-01-24
+
+Housekeeping release: skill description format standardization and documentation sync.
+
+### humaninloop 0.7.12
+
+#### Changed
+- **All skills** - Standardized descriptions to third-person format for consistency
+- **README.md** - Removed stale `analysis-codebase` reference from plan-architect (per 0.7.8 optimization)
+
+#### Fixed
+- **marketplace.json** - Version now syncs correctly with plugin.json
+
+---
+
 ## [0.7.11] - 2026-01-21
 
 Relax hexagonal architecture constraints to allow approved gold standard libraries in domain layer (#40).
