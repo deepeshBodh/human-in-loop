@@ -42,19 +42,16 @@ Testing agent with human verification gate for test-driven implementation cycles
 
 ## [0.7.12] - 2026-01-24
 
-Human verification gate for task workflow cycles.
+Housekeeping release: skill description format standardization and documentation sync.
 
 ### humaninloop 0.7.12
 
 #### Changed
-- **task-architect.md** - Added human verification task requirements to cycle structure
-  - Final task of each cycle MUST be human verification with real infrastructure
-  - Explicit steps format: Setup, Action, Verify, Human confirms
-  - Gates cycle completion on human sign-off
-- **CYCLE-STRUCTURE.md** - Added Human Verification Task Requirements section
-  - Real infrastructure requirement (not mocks)
-  - Good vs bad verification task examples
-  - Rationale for why human verification matters
+- **All skills** - Standardized descriptions to third-person format for consistency
+- **README.md** - Removed stale `analysis-codebase` reference from plan-architect (per 0.7.8 optimization)
+
+#### Fixed
+- **marketplace.json** - Version now syncs correctly with plugin.json
 
 ---
 
