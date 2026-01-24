@@ -46,11 +46,13 @@ If NO to any: the cycle may need restructuring.
 | Cycle coverage | Does every cycle from mapping have tasks? | Critical |
 | TDD structure | Does each cycle have test-first task ordering? | Critical |
 | File paths | Does every task have a specific file path? | Critical |
+| Human verification | Does each cycle end with a HUMAN VERIFICATION task? | Critical |
+| Real infrastructure | Do human verification tasks use real infrastructure (not mocks)? | Critical |
 | Task IDs | Are task IDs properly formatted (TN.X)? | Important |
 | Story labels | Are tasks linked to stories where appropriate? | Important |
 | Brownfield markers | Are [EXTEND]/[MODIFY] markers correctly applied? | Important |
 | Parallel markers | Are [P] markers correctly applied to feature cycles? | Important |
-| Checkpoints | Does each cycle have a clear checkpoint? | Important |
+| Checkpoints | Does each cycle have a human-verifiable checkpoint? | Important |
 | Dependencies | Are dependencies between cycles correctly documented? | Important |
 
 ### Key Questions
@@ -61,16 +63,46 @@ If NO to any: the cycle may need restructuring.
 - Do the task IDs follow the T{cycle}.{seq} format?
 - Are feature cycles properly marked as parallel-eligible?
 - Do checkpoints describe observable, testable outcomes?
+- **Does every cycle end with a HUMAN VERIFICATION task?**
+- **Do human verification tasks specify concrete steps with real infrastructure?**
+- **Would a human be able to see/verify the behavior without running automated tests?**
 
 ### TDD Structure Validation
 
 For each cycle, verify task ordering:
-1. **First task**: Write failing test (T N.1)
-2. **Middle tasks**: Implementation (T N.2, T N.3, ...)
-3. **Near-last task**: Refactor and verify
-4. **Last task**: Demo and validate
+1. **First task**: Write failing test (TN.1)
+2. **Middle tasks**: Implementation (TN.2, TN.3, ...)
+3. **Near-last task**: Refactor and verify automated tests pass
+4. **Last task**: **HUMAN VERIFICATION** with real infrastructure
 
 If this order is violated: Critical issue.
+
+### Human Verification Validation
+
+For each cycle's final task, verify:
+
+1. **Is it labeled "HUMAN VERIFICATION"?** If it just says "Demo" or "Verify", it may be vague.
+2. **Does it specify real infrastructure?** Look for concrete paths, commands, or UI actions.
+3. **Does it have explicit steps?** Setup, Action, Verify format with specific commands.
+4. **Does it have observable outcomes?** What the human should see when it works.
+5. **Does it include a sign-off?** "Human confirms: ..." statement.
+
+**Good Human Verification Task:**
+```markdown
+- [ ] **T2.12**: **HUMAN VERIFICATION** - File watcher detects real files
+  - Setup: `mkdir /tmp/test-dir`
+  - Action: Run watcher, then `touch /tmp/test-dir/test.jsonl`
+  - Verify: Console outputs "FileWatchEvent: created ..."
+  - **Human confirms**: Events appear in real time ✓
+```
+
+**Bad Human Verification Task (REJECT):**
+```markdown
+- [ ] **T2.12**: Demo: Verify file watching infrastructure is functional
+  - Checkpoint: PathValidator correctly rejects symlinks outside scope
+```
+
+Why bad? No concrete steps, no real files created, "checkpoint" describes what tests verify, not what human sees.
 
 ---
 
@@ -128,8 +160,12 @@ If any link is broken: Critical issue.
 | Missing cycle | Critical | Add tasks for cycle |
 | No test task first | Critical | Reorder to test-first |
 | Vague file paths | Critical | Specify exact paths |
+| Missing human verification | Critical | Add HUMAN VERIFICATION task as final task |
+| Mock-only verification | Critical | Rewrite with real infrastructure steps |
+| Vague demo task | Critical | Add concrete Setup/Action/Verify steps |
 | Wrong task ID format | Important | Fix to TN.X format |
-| Missing checkpoint | Important | Add observable outcome |
+| Missing checkpoint | Important | Add human-verifiable outcome |
+| Test-only checkpoint | Important | Rewrite as human-observable behavior |
 | Missing [P] marker | Minor | Add if parallel-eligible |
 
 ---
@@ -149,7 +185,7 @@ If any link is broken: Critical issue.
 
 ## Issues Found
 
-### Critical (1)
+### Critical (2)
 
 **Issue T-001**: Cycle 3 missing test-first structure
 
@@ -157,19 +193,32 @@ If any link is broken: Critical issue.
 - **Impact**: Violates TDD discipline, tests may be afterthought
 - **Suggested Fix**: Reorder T3.1 to be test, T3.2+ to be implementation
 
+**Issue T-002**: Cycle 2 has mock-only human verification task
+
+- **Evidence**: T2.12 says "Demo: Verify file watching infrastructure is functional" with checkpoint "PathValidator correctly rejects symlinks outside scope"
+- **Impact**: No real infrastructure tested. All tests could pass while feature doesn't work in production. Human cannot verify behavior without reading test output.
+- **Suggested Fix**: Rewrite as HUMAN VERIFICATION with real infrastructure:
+  ```
+  - [ ] **T2.12**: **HUMAN VERIFICATION** - File watcher detects real files
+    - Setup: `mkdir /tmp/watcher-test`
+    - Action: Run watcher, then `touch /tmp/watcher-test/test.jsonl`
+    - Verify: Console outputs "FileWatchEvent: created ..."
+    - **Human confirms**: Events appear within 1 second ✓
+  ```
+
 ### Important (2)
 
-**Issue T-002**: Task T4.3 has vague file path
+**Issue T-003**: Task T4.3 has vague file path
 
 - **Evidence**: "Update relevant service files"
 - **Impact**: Unclear which files will be modified
 - **Suggested Fix**: Specify exact path: "src/services/task_service.py"
 
-**Issue T-003**: Cycle 5 missing checkpoint
+**Issue T-004**: Cycle 5 checkpoint is test-only
 
-- **Evidence**: No checkpoint statement after tasks
-- **Impact**: Unclear when cycle is "done"
-- **Suggested Fix**: Add: "**Checkpoint**: Can filter tasks by priority via API"
+- **Evidence**: Checkpoint says "State updates reactively from file events"
+- **Impact**: Describes what tests verify, not what human observes
+- **Suggested Fix**: Rewrite as: "Human sees session appear in UI within 1 second of creating file"
 
 ### Minor (0)
 
@@ -184,6 +233,7 @@ None
 
 ## Verdict
 
-**needs-revision**: 1 Critical issue (TDD ordering) and 2 Important issues.
+**needs-revision**: 2 Critical issues (TDD ordering, mock-only verification) and 2 Important issues.
+The mock-only verification is the most severe—without real infrastructure testing, the entire feature could be broken despite all tests passing.
 Fixable in one iteration by the Task Architect.
 ```

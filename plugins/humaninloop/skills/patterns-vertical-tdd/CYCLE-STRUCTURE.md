@@ -177,20 +177,98 @@ Checkpoints should be:
 1. **Observable**: Something you can see or demonstrate
 2. **Testable**: Automated tests should verify this
 3. **Concrete**: Specific behavior, not abstract quality
+4. **Human-Verifiable**: A human MUST see the behavior in a real environment, not just in test output
 
-### Good Checkpoints
+### Good Checkpoints (Human-Verifiable)
 
-- "Can create a task via API and retrieve it"
-- "Login returns valid JWT token"
-- "Filtered task list shows only matching items"
-- "Exported CSV contains all task fields"
+- "Human launched app and created task via UI, task appears in list"
+- "Human called POST /api/tasks via curl, received 201 response with task ID"
+- "Human ran CLI export command, CSV file created with correct data"
+- "Human created file in watched directory, event appeared in console output"
 
-### Bad Checkpoints
+### Bad Checkpoints (Test-Only)
 
 - "Task model is complete" (not observable)
 - "Code is clean" (subjective)
 - "Service layer works" (too vague)
 - "Ready for integration" (not testable)
+- "All unit tests pass" (automated only, not human-verified)
+- "PathValidator correctly rejects symlinks" (tested via mocks, not real files)
+- "State updates reactively" (vague, likely tested via mocks)
+
+---
+
+## Human Verification Task Requirements
+
+The final task of each cycle (typically TN.4) is the **Human Verification** task. This is NOT just another automated test—it is the gate that ensures the cycle delivers real, working functionality.
+
+### What Human Verification MUST Include
+
+1. **Real Infrastructure**: Use real file systems, real databases, real APIs—NOT mocks
+2. **Tangible Output**: Something a human can see, click, or receive (UI, file, response)
+3. **Explicit Steps**: Concrete commands or actions the human performs
+4. **Observable Outcome**: What the human should see when it works
+5. **Sign-off Gate**: Cycle does not complete until human confirms behavior
+
+### Human Verification Task Format
+
+```markdown
+- [ ] **TN.4**: **HUMAN VERIFICATION** - [Brief description of what to verify]
+  - Setup: [Any prerequisites or test data to create]
+  - Action: [Specific command or UI action to perform]
+  - Verify: [What the human should observe]
+  - Cleanup: [Optional cleanup steps]
+  - **Human confirms**: [Checkbox or explicit sign-off]
+```
+
+### Good Human Verification Tasks
+
+```markdown
+- [ ] **T2.12**: **HUMAN VERIFICATION** - File watcher detects real file changes
+  - Setup: Create test directory `mkdir /tmp/watcher-test`
+  - Action: Run `dart run bin/watcher.dart /tmp/watcher-test`
+  - Action: In another terminal, `touch /tmp/watcher-test/session.jsonl`
+  - Verify: Console outputs "FileWatchEvent: created /tmp/watcher-test/session.jsonl"
+  - Action: `rm /tmp/watcher-test/session.jsonl`
+  - Verify: Console outputs "FileWatchEvent: deleted ..."
+  - **Human confirms**: Events appear in real time ✓
+```
+
+```markdown
+- [ ] **T4.16**: **HUMAN VERIFICATION** - Sessions appear in UI from real files
+  - Setup: Build app with `flutter build macos`
+  - Setup: Create test session file in Claude sessions directory
+  - Action: Launch the built application
+  - Verify: Session appears in list within 1 second
+  - Verify: Session shows correct project path with ~ alias
+  - Action: Delete the session file
+  - Verify: Session disappears from list within 1 second
+  - **Human confirms**: Full session lifecycle works ✓
+```
+
+### Bad Human Verification Tasks
+
+```markdown
+# BAD: Just re-running automated tests
+- [ ] **T2.12**: Demo: Verify file watching infrastructure is functional
+  - Checkpoint: PathValidator correctly rejects symlinks outside scope
+
+# BAD: Vague with no concrete steps
+- [ ] **T4.16**: Demo: Verify full user story functionality
+  - Checkpoint: All 5 acceptance scenarios pass
+
+# BAD: Relies on mocked infrastructure
+- [ ] **T3.12**: Demo: Verify state management is functional
+  - Checkpoint: State updates reactively from file events
+```
+
+### Why This Matters
+
+Mocked tests verify that code does what the tests say. Human verification ensures the system does what the user needs. Without human verification:
+
+- All tests can pass while the feature doesn't work
+- Integration issues between real components go undetected
+- The "vertical slice" isn't actually vertical—it stops at the mock boundary
 
 ## Complete Example: Task Management Feature
 

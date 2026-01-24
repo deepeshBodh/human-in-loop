@@ -218,12 +218,37 @@ Each cycle in tasks.md follows this structure:
 > Dependencies: C1, C2 (or "None" for foundation)
 > Type: Foundation | Feature [P]
 
-- [ ] **TN.1**: Write failing E2E test for [behavior] in tests/e2e/test_[name].py
+- [ ] **TN.1**: Write failing test for [behavior] in tests/[path]/test_[name].py
 - [ ] **TN.2**: Implement [component] to pass test in src/[path]/[file].py
-- [ ] **TN.3**: Refactor and verify tests pass
-- [ ] **TN.4**: Demo [behavior], verify acceptance criteria
+- [ ] **TN.3**: Refactor and verify automated tests pass
+- [ ] **TN.4**: **HUMAN VERIFICATION** - [What to verify with real infrastructure]
+  - Setup: [Prerequisites or test data]
+  - Action: [Specific command or UI action]
+  - Verify: [Observable outcome]
+  - **Human confirms**: [Sign-off statement]
 
-**Checkpoint**: [What should be observable/testable after this cycle]
+**Checkpoint**: [Behavior human has verified in real environment]
+```
+
+### Human Verification Task (TN.4) Requirements
+
+The final task of each cycle MUST be a human verification task that:
+
+1. **Uses real infrastructure** - File system, database, API, UI—NOT mocks
+2. **Specifies exact steps** - Concrete commands or actions, not "verify it works"
+3. **Has observable outcome** - What the human should see when it works
+4. **Gates cycle completion** - Cycle is NOT done until human confirms
+
+**CRITICAL**: The human verification task is what makes vertical TDD actually vertical. Without it, the slice stops at the mock boundary and real integration issues go undetected.
+
+Example:
+```markdown
+- [ ] **T2.12**: **HUMAN VERIFICATION** - File watcher detects real file changes
+  - Setup: `mkdir /tmp/watcher-test`
+  - Action: Run `dart run bin/watcher.dart /tmp/watcher-test`
+  - Action: In another terminal, `touch /tmp/watcher-test/test.jsonl`
+  - Verify: Console outputs "FileWatchEvent: created ..."
+  - **Human confirms**: Events appear within 1 second ✓
 ```
 
 ## Reading the Context
