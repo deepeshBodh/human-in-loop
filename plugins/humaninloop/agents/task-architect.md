@@ -251,6 +251,87 @@ Example:
   - **Human confirms**: Events appear within 1 second ✓
 ```
 
+## Testable Verification Task Format
+
+When generating human verification tasks (TN.4), choose between two formats based on what can be automated:
+
+### TEST:VERIFY Format (Preferred)
+
+Use `**TEST:VERIFY**` when the verification can be executed via CLI with measurable outcomes:
+
+```markdown
+- [ ] **TN.4**: **TEST:VERIFY** - {Description}
+  - **Setup**: {Prerequisites} (optional)
+  - **Action**: {Command} (can have multiple)
+  - **Assert**: {Expected outcome} (can have multiple)
+  - **Capture**: {console, screenshot, logs} (optional)
+  - **Human-Review**: {What human should evaluate}
+```
+
+**When to use TEST:VERIFY**:
+- CLI commands with observable output
+- File system operations (create, read, watch)
+- API calls with checkable responses
+- Process startup with console output
+- Any action executable via bash with verifiable results
+
+**Action Modifiers**:
+- `(background)` - Run process in background
+- `(timeout Ns)` - Override default 60s timeout
+- `(in {path})` - Execute in specific directory
+
+**Assert Patterns**:
+- `Console contains "{pattern}"` - Substring match
+- `Console contains "{pattern}" (within Ns)` - With timing
+- `File exists: {path}` - File system check
+- `Response status: {code}` - HTTP status
+
+**Example**:
+```markdown
+- [ ] **T2.12**: **TEST:VERIFY** - File watcher detects real file changes
+  - **Setup**: `mkdir /tmp/watcher-test`
+  - **Action**: `dart run bin/watcher.dart /tmp/watcher-test` (background)
+  - **Action**: `touch /tmp/watcher-test/test.jsonl`
+  - **Assert**: Console contains "FileWatchEvent: created"
+  - **Capture**: console
+  - **Human-Review**: Events appear within 1 second
+```
+
+### HUMAN VERIFICATION Format (Fallback)
+
+Use `**HUMAN VERIFICATION**` when the verification requires:
+- GUI/UI interaction
+- Visual inspection
+- Subjective judgment
+- Actions not executable via CLI
+
+```markdown
+- [ ] **TN.4**: **HUMAN VERIFICATION** - {Description}
+  - Setup: {Prerequisites}
+  - Action: {What to do}
+  - Verify: {What to observe}
+  - **Human confirms**: {Sign-off statement}
+```
+
+**When to use HUMAN VERIFICATION**:
+- Mobile app testing
+- Visual design verification
+- User experience evaluation
+- Complex multi-step UI workflows
+
+### Decision Guide
+
+| Scenario | Format |
+|----------|--------|
+| Start server, check console output | TEST:VERIFY |
+| Call API endpoint, check response | TEST:VERIFY |
+| Create file, verify exists | TEST:VERIFY |
+| Click button, see modal | HUMAN VERIFICATION |
+| Visual layout looks correct | HUMAN VERIFICATION |
+| Multi-step UI wizard | HUMAN VERIFICATION |
+
+**Default to TEST:VERIFY** when possible—it enables automated evidence capture and structured checkpoint presentation.
+
 ## Reading the Context
 
 Your context file contains:

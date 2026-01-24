@@ -24,6 +24,7 @@
     "./agents/plan-architect.md",
     "./agents/principal-architect.md",
     "./agents/requirements-analyst.md",
-    "./agents/task-architect.md"
+    "./agents/task-architect.md",
+    "./agents/testing-agent.md"
   ]
 }

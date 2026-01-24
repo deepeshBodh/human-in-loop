@@ -270,6 +270,106 @@ Mocked tests verify that code does what the tests say. Human verification ensure
 - Integration issues between real components go undetected
 - The "vertical slice" isn't actually vertical—it stops at the mock boundary
 
+---
+
+## Testable Verification Tasks (TEST:VERIFY)
+
+When human verification can be automated via CLI with measurable outcomes, use the `**TEST:VERIFY**` format instead of plain `**HUMAN VERIFICATION**`.
+
+### TEST:VERIFY Format
+
+```markdown
+- [ ] **TN.X**: **TEST:VERIFY** - {Description}
+  - **Setup**: {Prerequisites} (optional)
+  - **Action**: {Command} (can have multiple)
+  - **Assert**: {Expected outcome} (can have multiple)
+  - **Capture**: {console, screenshot, logs} (optional)
+  - **Human-Review**: {What human should evaluate}
+```
+
+### Field Definitions
+
+| Field | Required | Purpose |
+|-------|----------|---------|
+| `**Setup**:` | No | Prerequisites to establish before testing |
+| `**Action**:` | Yes | Commands to execute (can repeat) |
+| `**Assert**:` | Yes | Conditions to verify (can repeat) |
+| `**Capture**:` | No | Evidence types to collect |
+| `**Human-Review**:` | No | What human should specifically evaluate |
+
+### Action Modifiers
+
+| Modifier | Example | Behavior |
+|----------|---------|----------|
+| `(background)` | `npm start (background)` | Run async, track PID |
+| `(timeout Ns)` | `curl ... (timeout 10s)` | Override 60s default |
+| `(in {path})` | `make build (in ./backend)` | Execute in directory |
+
+### Assert Patterns
+
+| Pattern | Verification |
+|---------|--------------|
+| `Console contains "{text}"` | Substring match in output |
+| `Console contains "{text}" (within Ns)` | Timed match |
+| `File exists: {path}` | Check file system |
+| `Response status: {code}` | HTTP status check |
+
+### Example: File Watcher Verification
+
+**Before** (HUMAN VERIFICATION):
+```markdown
+- [ ] **T2.12**: **HUMAN VERIFICATION** - File watcher detects real file changes
+  - Setup: Create test directory `mkdir /tmp/watcher-test`
+  - Action: Run `dart run bin/watcher.dart /tmp/watcher-test`
+  - Action: In another terminal, `touch /tmp/watcher-test/session.jsonl`
+  - Verify: Console outputs "FileWatchEvent: created ..."
+  - **Human confirms**: Events appear in real time ✓
+```
+
+**After** (TEST:VERIFY):
+```markdown
+- [ ] **T2.12**: **TEST:VERIFY** - File watcher detects real file changes
+  - **Setup**: `mkdir /tmp/watcher-test`
+  - **Action**: `dart run bin/watcher.dart /tmp/watcher-test` (background)
+  - **Action**: `sleep 1 && touch /tmp/watcher-test/test.jsonl`
+  - **Assert**: Console contains "FileWatchEvent: created"
+  - **Capture**: console
+  - **Human-Review**: Events appear within 1 second
+```
+
+### Example: API Server Verification
+
+```markdown
+- [ ] **T4.8**: **TEST:VERIFY** - API server responds to health check
+  - **Setup**: Ensure database is running
+  - **Action**: `npm start` (background) (timeout 30s)
+  - **Action**: `sleep 2 && curl -s localhost:3000/health`
+  - **Assert**: Response status: 200
+  - **Assert**: Console contains "Server listening on port 3000"
+  - **Capture**: console
+  - **Human-Review**: Server starts without errors
+```
+
+### When to Use Each Format
+
+| Use TEST:VERIFY | Use HUMAN VERIFICATION |
+|-----------------|------------------------|
+| CLI commands with output | GUI/UI interaction required |
+| API calls checkable via curl | Visual design verification |
+| File operations | Subjective user experience |
+| Process startup with logs | Multi-step UI workflows |
+| Any bash-executable action | Non-CLI-accessible behavior |
+
+### Benefits of TEST:VERIFY
+
+1. **Automated execution**: Testing agent runs commands
+2. **Evidence capture**: Console output saved automatically
+3. **Structured assertions**: Pass/fail clearly defined
+4. **Checkpoint presentation**: Human sees evidence summary
+5. **Retry support**: Can re-run with adjustments
+
+The human still approves—but the execution and evidence collection are automated
+
 ## Complete Example: Task Management Feature
 
 ```markdown
