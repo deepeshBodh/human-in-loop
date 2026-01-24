@@ -1,6 +1,6 @@
 ---
 name: validation-constitution
-description: Validate constitution quality with checklists, anti-pattern detection, and version bump rules. Use after writing constitution content, when reviewing constitutions, or when you see "constitution review", "quality check", "version bump", "anti-patterns", or "constitution audit".
+description: This skill should be used when the user asks to "review constitution", "validate principles", "check quality", or mentions "constitution review", "quality check", "version bump", "anti-patterns", or "constitution audit". Provides checklists, anti-pattern detection, and version bump guidance.
 ---
 
 # Validating Constitution

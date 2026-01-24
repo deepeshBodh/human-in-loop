@@ -1,6 +1,6 @@
 ---
 name: brownfield-constitution
-description: Write constitutions for existing codebases using Essential Floor + Emergent Ceiling approach. Use when creating constitutions for brownfield projects, codifying existing patterns, or when you see "brownfield", "existing codebase", "essential floor", "emergent ceiling", or "evolution roadmap". Extends authoring-constitution skill.
+description: This skill should be used when the user asks to "create constitution for existing codebase", "codify existing patterns", or mentions "brownfield", "existing codebase", "essential floor", "emergent ceiling", or "evolution roadmap". Extends authoring-constitution with Essential Floor + Emergent Ceiling approach.
 ---
 
 # Brownfield Constitution Authoring

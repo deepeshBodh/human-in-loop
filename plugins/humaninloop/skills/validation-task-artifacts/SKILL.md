@@ -1,6 +1,6 @@
 ---
 name: validation-task-artifacts
-description: Review task artifacts (task-mapping, tasks.md) for quality and completeness. Use when reviewing task phase outputs, finding gaps in task planning, or when you see "review mapping", "review tasks", "task quality", or "cycle review".
+description: This skill should be used when the user asks to "review task mapping", "review tasks", "validate cycles", or mentions "task quality", "cycle review", or "TDD structure". Provides phase-specific review criteria for task artifacts with issue classification.
 ---
 
 # Reviewing Task Artifacts

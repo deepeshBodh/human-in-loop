@@ -1,6 +1,6 @@
 ---
 name: analysis-specifications
-description: Review specifications to find gaps and generate clarifying questions. Use when reviewing spec.md, finding missing requirements, identifying ambiguities, or when you see "review spec", "find gaps", "what's missing", or "clarify requirements". Focuses on product decisions, not implementation details.
+description: This skill should be used when the user asks to "review spec", "find gaps", "what's missing", or "clarify requirements", or when reviewing spec.md for completeness. Focuses on product decisions, not implementation details. Generates clarifying questions with concrete options.
 ---
 
 # Reviewing Specifications

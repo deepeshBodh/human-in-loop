@@ -1,6 +1,6 @@
 ---
 name: patterns-entity-modeling
-description: DDD-style entity modeling from requirements including extraction, attributes, relationships, and state machines. Use when extracting entities, defining attributes, modeling relationships, or when you see "entity", "data model", "relationship", "cardinality", "domain model", or "state machine".
+description: This skill should be used when the user asks to "extract entities", "define data model", "model relationships", or mentions "entity", "data model", "relationship", "cardinality", "domain model", or "state machine". Provides DDD-style entity modeling including attributes, relationships, and state machines.
 ---
 
 # Modeling Domain Entities

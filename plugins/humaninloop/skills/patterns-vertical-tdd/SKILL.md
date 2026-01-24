@@ -1,6 +1,6 @@
 ---
 name: patterns-vertical-tdd
-description: Structure implementation tasks using vertical slicing with TDD discipline. Use when creating task mappings, generating implementation tasks, or when you see "vertical slice", "TDD", "test first", "cycle structure", or "testable increment".
+description: This skill should be used when the user asks to "create task mapping", "structure implementation", "define cycles", or mentions "vertical slice", "TDD", "test first", "cycle structure", or "testable increment". Transforms requirements into vertical slices with strict test-first task ordering.
 ---
 
 # Vertical Slicing with TDD

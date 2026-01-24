@@ -1,6 +1,6 @@
 ---
 name: authoring-roadmap
-description: Create evolution roadmaps with prioritized gap cards for brownfield projects. Use when generating gap analysis, identifying improvement priorities, or when you see "roadmap", "gap analysis", "evolution plan", "improvement priorities", or "brownfield gaps".
+description: This skill should be used when the user asks to "create roadmap", "generate gap analysis", "identify improvement priorities", or mentions "roadmap", "gap analysis", "evolution plan", "improvement priorities", or "brownfield gaps". Produces prioritized gap cards with dependencies for incremental codebase improvement.
 ---
 
 # Authoring Evolution Roadmap

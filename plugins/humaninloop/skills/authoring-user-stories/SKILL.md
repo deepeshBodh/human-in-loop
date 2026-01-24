@@ -1,6 +1,6 @@
 ---
 name: authoring-user-stories
-description: Write user stories with P1/P2/P3 priorities, Given/When/Then acceptance scenarios, and independent tests. Use when writing user stories, feature specifications, acceptance criteria, or when you see "user story", "acceptance scenario", "Given When Then", "priority", "P1", "P2", or "P3".
+description: This skill should be used when the user asks to "write user stories", "define acceptance criteria", "prioritize features", or mentions "user story", "acceptance scenario", "Given When Then", "priority", "P1", "P2", or "P3". Produces prioritized user stories with independently testable acceptance scenarios.
 ---
 
 # Authoring User Stories

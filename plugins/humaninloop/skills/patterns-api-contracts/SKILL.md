@@ -1,6 +1,6 @@
 ---
 name: patterns-api-contracts
-description: RESTful API design following best practices with endpoint mapping, schema definition, and error handling. Use when mapping endpoints, defining schemas, or when you see "API", "endpoint", "REST", "OpenAPI", "schema", "contract", or "HTTP".
+description: This skill should be used when the user asks to "design API", "map endpoints", "define schemas", or mentions "API", "endpoint", "REST", "OpenAPI", "schema", "contract", or "HTTP". Provides RESTful API design with endpoint mapping, request/response schemas, and comprehensive error handling.
 ---
 
 # Designing API Contracts
