@@ -6,6 +6,58 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.8.0] - 2026-01-24
+
+Testing agent with human verification gate for test-driven implementation cycles (#43).
+
+### humaninloop 0.8.0
+
+#### New Agent
+- **testing-agent** - Collaborative QA partner that executes verification tasks, captures evidence, and presents checkpoints for human review
+  - Routes `TEST:VERIFY` tasks to automated execution
+  - Captures console output, timing, file states
+  - Generates adaptive reports (minimal for pass, rich for fail)
+  - Presents human checkpoint before cycle completion
+
+#### New Skill
+- **testing-end-user** - End-user verification testing against real infrastructure
+  - Parses `TEST:VERIFY` task format with Setup/Action/Assert/Capture/Human-Review fields
+  - Executes commands with modifiers: `(background)`, `(timeout Ns)`, `(in {path})`
+  - Assert patterns: `Console contains`, `File exists`, `Response status`
+  - Reference files: TASK-PARSING.md, EVIDENCE-CAPTURE.md, REPORT-TEMPLATES.md
+
+#### Changed
+- **task-architect.md** - Added `TEST:VERIFY` task format generation
+  - New testable verification format with field markers
+  - Decision guide for TEST:VERIFY vs HUMAN VERIFICATION selection
+- **CYCLE-STRUCTURE.md** - Added testable verification task documentation
+  - Complete format specification with examples
+  - Action modifiers and assert patterns
+- **implement.md** - Added testing-agent routing for TEST:VERIFY tasks
+  - Detection and routing logic for TEST:* markers
+  - Human approval gates cycle completion
+  - Retry support with adjustments
+
+---
+
+## [0.7.12] - 2026-01-24
+
+Human verification gate for task workflow cycles.
+
+### humaninloop 0.7.12
+
+#### Changed
+- **task-architect.md** - Added human verification task requirements to cycle structure
+  - Final task of each cycle MUST be human verification with real infrastructure
+  - Explicit steps format: Setup, Action, Verify, Human confirms
+  - Gates cycle completion on human sign-off
+- **CYCLE-STRUCTURE.md** - Added Human Verification Task Requirements section
+  - Real infrastructure requirement (not mocks)
+  - Good vs bad verification task examples
+  - Rationale for why human verification matters
+
+---
+
 ## [0.7.11] - 2026-01-21
 
 Relax hexagonal architecture constraints to allow approved gold standard libraries in domain layer (#40).
@@ -745,6 +797,8 @@ Initial marketplace scaffold.
 
 ---
 
+[0.8.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.0
+[0.7.12]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.12
 [0.7.11]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.11
 [0.7.10]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.10
 [0.7.9]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.9

@@ -1,6 +1,6 @@
 ---
 name: testing-end-user
-description: Executes end-user verification tests against real infrastructure. Parses TEST:VERIFY tasks, runs Setup/Action/Assert steps, captures evidence, and generates reports for human review.
+description: Use when executing TEST:VERIFY tasks, running verification tests, capturing test evidence, or when you see "TEST:VERIFY", "TEST:CONTRACT", "execute verification", or "run test task". Executes end-user verification tests against real infrastructure with Setup/Action/Assert steps, captures evidence, and generates reports for human review.
 ---
 
 # End-User Verification Testing

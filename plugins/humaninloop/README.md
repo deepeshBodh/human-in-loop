@@ -191,6 +191,12 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 | **Task Architect** | Senior architect who transforms planning artifacts into implementation tasks through vertical slicing and TDD discipline. Uses skill: `patterns-vertical-tdd` |
 | **Devil's Advocate** | Reviews task artifacts for gaps, validates TDD structure. Uses skill: `validation-task-artifacts` |
 
+### Implement Workflow Agents
+
+| Agent | Purpose |
+|-------|---------|
+| **Testing Agent** | Collaborative QA partner that executes `TEST:VERIFY` verification tasks, captures evidence (console output, timing, file states), and presents checkpoints for human approval. Uses skill: `testing-end-user` |
+
 ### Validation
 
 **Plan Workflow:** Uses `validation-plan-artifacts` skill for phase-specific review criteria.
@@ -272,6 +278,23 @@ Tasks are organized into **cycles** - vertical slices that deliver testable valu
 | `[P]` | Parallel-eligible (feature cycle can run alongside others) |
 | `[EXTEND]` | Extends existing file (brownfield) |
 | `[MODIFY]` | Modifies existing code (brownfield) |
+
+**Verification Task Format (TEST:VERIFY):**
+
+When verification can be automated via CLI, use the `TEST:VERIFY` format:
+
+```markdown
+- [ ] **TN.4**: **TEST:VERIFY** - {Description}
+  - **Setup**: {Prerequisites} (optional)
+  - **Action**: {Command} (can have multiple)
+  - **Assert**: {Expected outcome} (can have multiple)
+  - **Capture**: {console, screenshot, logs} (optional)
+  - **Human-Review**: {What human should evaluate}
+```
+
+Action modifiers: `(background)`, `(timeout Ns)`, `(in {path})`
+
+Assert patterns: `Console contains "{text}"`, `File exists: {path}`, `Response status: {code}`
 
 **Cycle Types:**
 
