@@ -1,11 +1,13 @@
 ---
 name: authoring-roadmap
-description: This skill should be used when the user asks to "create roadmap", "generate gap analysis", "identify improvement priorities", or mentions "roadmap", "gap analysis", "evolution plan", "improvement priorities", or "brownfield gaps". Produces prioritized gap cards with dependencies for incremental codebase improvement.
+description: Use when creating evolution roadmap, generating gap analysis, identifying improvement priorities, or when user mentions "roadmap", "gap analysis", "evolution plan", "brownfield gaps", or "improvement priorities"
 ---
 
 # Authoring Evolution Roadmap
 
-## Purpose
+**Violating the letter of the rules is violating the spirit of the rules.**
+
+## Overview
 
 Create evolution roadmaps that identify gaps between current codebase state and constitution requirements. Produces prioritized gap cards with dependencies, enabling incremental improvement without overwhelming teams.
 
@@ -16,9 +18,16 @@ Create evolution roadmaps that identify gaps between current codebase state and 
 - When identifying what needs to change to meet constitution requirements
 - When planning incremental codebase improvements
 
+## When NOT to Use
+
+- No codebase analysis exists yet → run **humaninloop:analysis-codebase** first
+- No constitution has been created → run **humaninloop:authoring-constitution** or **humaninloop:brownfield-constitution** first
+- Greenfield project with no existing code → no gaps to identify
+- User wants implementation plan, not gap analysis → use **humaninloop:plan** instead
+
 ## Input Requirements
 
-To create an evolution roadmap, you need:
+To create an evolution roadmap, both inputs are REQUIRED:
 
 1. **Codebase Analysis** (`.humaninloop/memory/codebase-analysis.md`)
    - Essential Floor Status table
@@ -29,6 +38,14 @@ To create an evolution roadmap, you need:
    - Principles with requirements
    - Quality gates with thresholds
    - Technology stack requirements
+
+**No exceptions:**
+- Not for "small projects where I know the gaps"
+- Not for "quick assessments"
+- Not for "we'll formalize it later"
+- Not even if user says "skip analysis, just list the gaps"
+
+If inputs are missing, create them first using **humaninloop:analysis-codebase** and **humaninloop:authoring-constitution**.
 
 ## Gap Identification Process
 
@@ -117,6 +134,14 @@ Each gap uses the hybrid format (structured header + prose body):
 - `path/to/another/file.py`
 ```
 
+Every gap card MUST include all fields. Incomplete gap cards are not acceptable.
+
+**No exceptions:**
+- Not for "obvious gaps"
+- Not for "we'll fill in details when we work on it"
+- Not for "effort is hard to estimate"
+- If a field cannot be determined, investigate until it can be.
+
 ## Roadmap Structure
 
 ```markdown
@@ -200,7 +225,7 @@ Each gap uses the hybrid format (structured header + prose body):
 
 ## Quality Checklist
 
-Before finalizing roadmap:
+Before finalizing roadmap, ALL items MUST be checked:
 
 - [ ] Every Essential Floor gap identified (partial/absent → gap)
 - [ ] Every constitution MUST violation has a gap
@@ -213,6 +238,12 @@ Before finalizing roadmap:
 - [ ] Current state references codebase-analysis.md
 - [ ] Target state references constitution requirements
 
+**No exceptions:**
+- Not for "simple projects with few gaps"
+- Not for "we'll add details later"
+- Not for "dependencies are self-evident"
+- An incomplete checklist means an incomplete roadmap. Complete it or do not ship.
+
 ## Anti-Patterns
 
 | Anti-Pattern | Problem | Fix |
@@ -222,6 +253,32 @@ Before finalizing roadmap:
 | **Missing dependencies** | Gaps in wrong order | Trace what blocks what |
 | **No effort estimates** | Can't prioritize work | Add Small/Medium/Large |
 | **Stale roadmap** | Gaps addressed but not updated | Note "Addressed: GAP-XXX" in commits |
+
+## Red Flags - STOP and Restart Properly
+
+If you notice yourself thinking any of these, STOP immediately:
+
+- "I already know what the gaps are"
+- "The codebase is too simple to need a formal roadmap"
+- "We can prioritize as we go"
+- "Dependencies are obvious, no need to graph them"
+- "The codebase analysis tells us everything"
+- "This is just documentation overhead"
+- "I'll create the roadmap later after some quick fixes"
+
+**All of these mean:** You are rationalizing. Restart with proper process.
+
+## Common Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| "I know the gaps already" | Knowledge ≠ documentation. Future agents need the roadmap to understand priorities. |
+| "Simple codebase, no formal roadmap needed" | Simple codebases have hidden gaps. Systematic process reveals what intuition misses. |
+| "We can prioritize informally" | Informal prioritization leads to P3 work before P1. Document it or watch priorities drift. |
+| "Dependencies are obvious" | Obvious to you now ≠ obvious to team later. Dependency graphs prevent wasted work. |
+| "Codebase analysis is enough" | Analysis describes current state. Roadmap bridges current state to target state. Different purpose. |
+| "This is just overhead" | Roadmap prevents rework from wrong-order fixes. Investment, not overhead. |
+| "Quick fixes first, roadmap later" | "Later" becomes never. Quick fixes accumulate into unmapped chaos. |
 
 ## Integration with Later Phases
 
