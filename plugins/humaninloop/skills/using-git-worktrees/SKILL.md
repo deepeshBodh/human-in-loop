@@ -189,7 +189,7 @@ Tests: <N> passing, 0 failures (or "no test suite detected")
 Ready to implement <feature-name>
 ```
 
-After implementation is complete, use `humaninloop:finishing-feature-branch` for proper cleanup.
+After implementation is complete, follow the cleanup workflow in the Multi-Worktree Management section.
 
 ## Quick Reference
 
@@ -278,7 +278,7 @@ git branch -d feature-name
 git worktree prune
 ```
 
-For comprehensive cleanup after feature completion, use `humaninloop:finishing-feature-branch`.
+For comprehensive cleanup after feature completion, follow the steps above.
 
 ### Disk Space Considerations
 

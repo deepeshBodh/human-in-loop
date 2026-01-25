@@ -6,6 +6,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.8.4] - 2026-01-25
+
+New UI/interface design skill.
+
+### humaninloop 0.8.4
+
+#### New Skill
+- **patterns-interface-design** - UI component and interface design patterns
+  - Discovery process: domain exploration, color world, signature element, default replacement
+  - Surface and token architecture with primitive foundation
+  - Dark mode and elevation patterns
+  - Reference files: CRAFT-PRINCIPLES.md, VALIDATION-CHECKS.md
+
+---
+
 ## [0.8.3] - 2026-01-25
 
 New skill and skill rename.
@@ -850,6 +865,7 @@ Initial marketplace scaffold.
 
 ---
 
+[0.8.4]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.4
 [0.8.3]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.3
 [0.8.2]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.2
 [0.8.1]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.1
