@@ -15,6 +15,7 @@ An ADR captures the context, decision, and consequences of an architectural choi
 | [003](./003-brownfield-first.md) | Brownfield-First Design | Accepted |
 | [004](./004-skill-augmented-agents.md) | Skill-Augmented Agents Architecture | Proposed |
 | [005](./005-decoupled-agents-architecture.md) | Decoupled Agents Architecture | Proposed |
+| [006](./006-rfc2119-skill-auto-invocation.md) | RFC 2119 Keywords for Skill Auto-Invocation | Accepted |
 
 ## ADR Template
 

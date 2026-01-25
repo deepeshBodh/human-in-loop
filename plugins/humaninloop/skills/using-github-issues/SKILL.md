@@ -1,6 +1,6 @@
 ---
 name: using-github-issues
-description: Use when creating GitHub issues, managing issue lifecycle, triaging bugs and features, or when user mentions "log issue", "create bug", "feature request", "close stale issues", or needs structured issue tracking.
+description: This skill MUST be invoked when the user says "report a bug", "create issue", "log issue", "file a bug", "raise an issue", "create bug", or "feature request". Use for GitHub issue creation, lifecycle management, triage, and structured issue tracking.
 ---
 
 # GitHub Issues Management
