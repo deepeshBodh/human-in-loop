@@ -81,8 +81,8 @@ Each command produces artifacts you review before the next step. You stay in con
 ### 6 Commands
 The full specify → plan → tasks → implement lifecycle.
 
-### 17 Skills
-Claude automatically invokes these when relevant—authoring requirements, analyzing codebases, designing APIs, running verification tests, and more.
+### 18 Skills
+Claude automatically invokes these when relevant—authoring requirements, analyzing codebases, designing APIs, running verification tests, managing GitHub issues, and more.
 
 ### 6 Specialized Agents
 Focused responsibilities: requirements analyst, devil's advocate, plan architect, principal architect, task architect, testing agent.

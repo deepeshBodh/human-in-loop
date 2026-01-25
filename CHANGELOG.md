@@ -6,6 +6,28 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.8.2] - 2026-01-25
+
+Skills update: new GitHub issues management skill and testing-end-user skill rebuild.
+
+### humaninloop 0.8.2
+
+#### New Skill
+- **tooling-github-issues** - GitHub issue management with quality standards enforcement
+  - Bug report, feature request, task, and security advisory templates
+  - Pre-creation checklist with duplicate and security checks
+  - Lifecycle management (search, triage, status updates, batch operations)
+  - Common rationalizations and red flags sections
+  - Reference: `examples/` and `references/gh-cli-commands.md`
+
+#### Changed
+- **testing-end-user** - Rebuilt for guideline compliance
+  - Restructured with "When NOT to Use", "Common Rationalizations", "Red Flags", "Common Mistakes" sections
+  - Added testing evidence documentation (RED/GREEN/REFACTOR cycle)
+  - Reference files: TASK-PARSING.md, EVIDENCE-CAPTURE.md, REPORT-TEMPLATES.md
+
+---
+
 ## [0.8.1] - 2026-01-25
 
 Skill structure compliance release: bring all constitution-related skills into alignment with SKILL.md guidelines.
@@ -811,6 +833,7 @@ Initial marketplace scaffold.
 
 ---
 
+[0.8.2]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.2
 [0.8.1]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.1
 [0.8.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.0
 [0.7.12]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.12
