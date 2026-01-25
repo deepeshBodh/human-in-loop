@@ -127,7 +127,7 @@ Each module, class, and function MUST have one clear purpose. When a component h
 - Pass: Each class/module testable in isolation
 - Fail: Complexity >10 OR file >500 lines without exception
 
-**Rationale**: Single responsibility makes code easier to test, understand, and modify. Mixed responsibilities compound complexity over time. When you can't name what a module does in one sentence, it's doing too much.
+**Rationale**: Single responsibility makes code easier to test, understand, and modify. Mixed responsibilities compound complexity over time. When a module cannot be named in one sentence, it is doing too much.
 
 ---
 

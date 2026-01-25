@@ -1,13 +1,38 @@
 ---
 name: authoring-constitution
-description: This skill should be used when the user asks to "create constitution", "write principles", "define governance", or mentions "constitution", "governance", "principles", "enforcement", or "amendment process". Core skill for greenfield projects. Produces enforceable, testable constitution content with RFC 2119 keywords.
+description: Use when creating or updating project constitution, when user asks to "write principles", "define governance", or mentions "constitution", "governance", "principles", "enforcement", or "amendment process". Core skill for greenfield projects.
 ---
 
 # Authoring Constitution
 
-## Purpose
+## Overview
 
 Write project constitutions that teams actually follow. Every principle must be enforceable, testable, and justified. Vague aspirations are rejected in favor of actionable constraints with measurable criteria.
+
+## When to Use
+
+- User asks to "create a constitution" or "define governance"
+- Starting a new greenfield project that needs governance
+- User wants to "write principles" or "define constraints"
+- Establishing quality gates and enforcement mechanisms
+- Defining amendment processes and version policies
+
+## When NOT to Use
+
+- **Brownfield projects with existing code**: Use `humaninloop:brownfield-constitution` instead, which provides Essential Floor + Emergent Ceiling approach
+- **Reviewing an existing constitution**: Use `humaninloop:validation-constitution` for quality checks
+- **Syncing CLAUDE.md after constitution changes**: Use `humaninloop:syncing-claude-md` for synchronization
+
+## Common Mistakes
+
+| Mistake | Problem | Fix |
+|---------|---------|-----|
+| Vague principles | "Code should be clean" has no enforcement | Add specific, measurable criteria: "Functions MUST be ≤40 lines" |
+| Missing enforcement | Principles without verification become suggestions | Every principle needs CI automation, code review checklist, or audit process |
+| Untestable criteria | "Good architecture" can't be verified | Define binary pass/fail: "No domain imports from infrastructure layer" |
+| No rationale | Future maintainers don't know why rules exist | Explain the failure mode prevented and success enabled |
+| Skipping SYNC IMPACT | Constitution changes without audit trail | Always update the SYNC IMPACT REPORT header with version changes |
+| CLAUDE.md drift | AI assistants operate with outdated guidance | Include CLAUDE.md Sync Mandate section; update both files together |
 
 ## The Three-Part Principle Rule
 
@@ -35,7 +60,7 @@ How compliance is verified. Without enforcement, a principle is a suggestion.
 
 ### 2. Testability
 
-What pass/fail looks like. If you can't test it, it's not a principle—it's an aspiration.
+What pass/fail looks like. A principle without testable criteria is merely an aspiration.
 
 ```markdown
 **Testability**:
@@ -287,12 +312,12 @@ When amending this constitution:
 outdated or incorrect guidance, undermining the governance this constitution establishes.
 ```
 
-See [syncing-claude-md skill](../syncing-claude-md/SKILL.md) for implementation.
+**OPTIONAL:** Use `humaninloop:syncing-claude-md` for implementation guidance.
 
 ---
 
 ## Related Skills
 
 - **For architectural patterns**: See [RECOMMENDED-PATTERNS.md](RECOMMENDED-PATTERNS.md) for hexagonal architecture, single responsibility, and dependency discipline principles
-- **For brownfield projects**: Use [brownfield-constitution](../brownfield-constitution/SKILL.md) which extends this skill with Essential Floor + Emergent Ceiling approach
-- **For validation**: Use [validation-constitution](../validation-constitution/SKILL.md) after authoring to verify quality
+- **For brownfield projects**: **REQUIRED** alternative - Use `humaninloop:brownfield-constitution` which extends this skill with Essential Floor + Emergent Ceiling approach
+- **For validation**: **OPTIONAL** - Use `humaninloop:validation-constitution` after authoring to verify quality
