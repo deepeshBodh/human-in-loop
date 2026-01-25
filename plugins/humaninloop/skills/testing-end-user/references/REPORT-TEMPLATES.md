@@ -1,8 +1,20 @@
 # Report Templates
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Success Report (Minimal)](#success-report-minimal)
+- [Failure Report (Rich)](#failure-report-rich)
+- [Partial Success Report](#partial-success-report)
+- [Timeout Report](#timeout-report)
+- [Error Report](#error-report)
+- [Checkpoint Presentation](#checkpoint-presentation)
+- [Report Truncation](#report-truncation)
+- [Report Storage](#report-storage)
+
 ## Overview
 
-This document defines report formats for different verification outcomes. Reports are adaptive—minimal for success, rich for failures.
+This document defines report formats for different verification outcomes. Reports are adaptive: minimal for success, rich for failures.
 
 ## Success Report (Minimal)
 
@@ -210,7 +222,7 @@ Reject
 
 ## Checkpoint Presentation
 
-After generating report, present to human:
+After generating report, present to human.
 
 ### All Pass
 

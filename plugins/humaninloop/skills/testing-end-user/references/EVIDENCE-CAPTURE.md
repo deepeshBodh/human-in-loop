@@ -1,5 +1,18 @@
 # Evidence Capture
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Console Capture](#console-capture)
+- [Background Processes](#background-processes)
+- [Timeout Handling](#timeout-handling)
+- [Screenshot Capture](#screenshot-capture)
+- [Log File Capture](#log-file-capture)
+- [File State Capture](#file-state-capture)
+- [Timing Capture](#timing-capture)
+- [Evidence Aggregation](#evidence-aggregation)
+- [Cleanup Protocol](#cleanup-protocol)
+
 ## Overview
 
 This document defines how to capture, store, and manage evidence during test execution.
