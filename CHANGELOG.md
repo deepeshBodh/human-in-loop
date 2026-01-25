@@ -6,6 +6,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.8.1] - 2026-01-25
+
+Skill structure compliance release: bring all constitution-related skills into alignment with SKILL.md guidelines.
+
+### humaninloop 0.8.1
+
+#### Fixed
+- **analysis-codebase** - Added "When NOT to Use" and "Common Mistakes" sections per skill guidelines
+- **authoring-constitution** - Restructured with "When NOT to Use" and "Common Mistakes" sections
+- **authoring-roadmap** - Added "Common Rationalizations" and "Red Flags" sections
+- **brownfield-constitution** - Added "Common Mistakes" section with detailed problem/fix guidance
+- **syncing-claude-md** - Added "Common Mistakes" section per skill guidelines
+- **validation-constitution** - Added "Common Rationalizations" and explicit loophole closures
+- **marketplace README** - Updated stale skill and agent counts
+
+---
+
 ## [0.8.0] - 2026-01-24
 
 Testing agent with human verification gate for test-driven implementation cycles (#43).
@@ -794,6 +811,7 @@ Initial marketplace scaffold.
 
 ---
 
+[0.8.1]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.1
 [0.8.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.0
 [0.7.12]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.12
 [0.7.11]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.7.11

@@ -10,7 +10,7 @@ The humaninloop plugin enforces specification-driven development—ensuring arch
 
 ---
 
-## Current State (v0.8.0)
+## Current State (v0.8.1)
 
 The core specify → plan → tasks → implement workflow is complete and functional.
 
