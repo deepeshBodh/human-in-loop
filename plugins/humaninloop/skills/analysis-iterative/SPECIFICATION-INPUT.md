@@ -1,6 +1,6 @@
-# Specification Input Enrichment Mode
+# Specification Input Mode
 
-Use this mode when invoked by `/humaninloop:specify` to enrich sparse feature descriptions.
+Alias for `mode:depth-quick,output-enrichment`. Use when invoked by `/humaninloop:specify` to enrich sparse feature descriptions.
 
 ## Context
 
@@ -15,15 +15,22 @@ Skill(
 )
 ```
 
+## Configuration
+
+| Setting | Value |
+|---------|-------|
+| Depth | 2-5 questions (triad gaps + key decisions) |
+| Output | `output-enrichment` format |
+
 ## Question Agenda
 
-Follow the standard iterative questioning pattern: ONE question at a time with options and recommendations.
+Follow standard iterative questioning pattern: ONE question at a time with options and recommendations.
 
-### Phase 1: Fill Triad Gaps (conditional)
+### Phase 1: Fill Triad Gaps (Conditional)
 
 Only ask questions for missing elements (parsed from `missing:[]` arg).
 
-#### 1. WHO Question (if `who` in missing)
+#### WHO Question (if `who` in missing)
 
 ```
 **Question**: Who is the primary user of this feature?
@@ -31,12 +38,12 @@ Only ask questions for missing elements (parsed from `missing:[]` arg).
 **Options:**
 - **A) End user / Customer**: External user of the product
 - **B) Internal user / Admin**: Team member or administrator
-- **C) Developer / API consumer**: Technical user integrating with the system
+- **C) Developer / API consumer**: Technical user integrating with system
 
 **My Recommendation**: [Based on context clues in original input]
 ```
 
-#### 2. PROBLEM Question (if `problem` in missing)
+#### PROBLEM Question (if `problem` in missing)
 
 ```
 Based on [actor choice], let's clarify the pain point.
@@ -51,7 +58,7 @@ Based on [actor choice], let's clarify the pain point.
 **My Recommendation**: [Based on context clues]
 ```
 
-#### 3. VALUE Question (if `value` in missing)
+#### VALUE Question (if `value` in missing)
 
 ```
 Now that we know {actor} faces {problem}, let's clarify the value.
@@ -66,11 +73,11 @@ Now that we know {actor} faces {problem}, let's clarify the value.
 **My Recommendation**: [Based on what the problem implies]
 ```
 
-### Phase 2: Key Decisions (always ask)
+### Phase 2: Key Decisions (Always)
 
-These questions are ALWAYS asked, regardless of what was detected in the input.
+These questions are ALWAYS asked, regardless of what was detected in input.
 
-#### 4. SCOPE Question (always)
+#### SCOPE Question
 
 ```
 Let's define boundaries to keep this focused.
@@ -82,10 +89,10 @@ Let's define boundaries to keep this focused.
 - **B) Edge cases**: Handle main flow only, document edge cases for later
 - **C) Integrations**: Skip third-party integrations initially
 
-**My Recommendation**: [Based on feature complexity and what would be MVP]
+**My Recommendation**: [Based on feature complexity and MVP scope]
 ```
 
-#### 5. SUCCESS Question (always)
+#### SUCCESS Question
 
 ```
 Finally, let's define how we'll know this works.
@@ -100,15 +107,27 @@ Finally, let's define how we'll know this works.
 **My Recommendation**: [Based on the problem being solved]
 ```
 
-## Output Format
+## Output
 
-After questions are answered, generate the enriched description using [ENRICHMENT.md](ENRICHMENT.md) template.
+After questions answered, generate enriched description using `output-enrichment` template from [OUTPUT-TEMPLATES.md](OUTPUT-TEMPLATES.md).
 
-## Key Differences from Standard Mode
+## Differences from Standard Mode
 
 | Aspect | Standard Mode | Specification-Input Mode |
 |--------|---------------|--------------------------|
-| Questions | Adaptive, open-ended | Two-phase: Triad gaps (conditional) + Key decisions (always) |
-| Depth | Continue until natural conclusion | 2-5 questions depending on gaps |
-| Output | SYNTHESIS.md format | ENRICHMENT.md format |
+| Questions | Adaptive or configured depth | Two-phase: Triad gaps (conditional) + Key decisions (always) |
+| Depth | 2-10+ depending on mode | 2-5 questions depending on gaps |
+| Output | Configured format | Always enrichment format |
 | Purpose | Explore any topic | Enrich feature descriptions for /specify |
+| Question agenda | Dynamic based on topic | Fixed agenda based on triad |
+
+## Anti-Shortcuts
+
+Do NOT rationalize skipping questions:
+
+| Excuse | Reality |
+|--------|---------|
+| "Actor is obvious from context" | Obvious to you =/= explicit for spec. Ask anyway. |
+| "Problem is stated in the request" | Stated =/= validated. Confirm with options. |
+| "This is a small feature" | Small features grow. Scope it properly now. |
+| "User seems clear on what they want" | Clear desire =/= clear requirement. Enrich anyway. |
