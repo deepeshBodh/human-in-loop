@@ -1,23 +1,45 @@
 ---
 name: brownfield-constitution
-description: This skill should be used when the user asks to "create constitution for existing codebase", "codify existing patterns", or mentions "brownfield", "existing codebase", "essential floor", "emergent ceiling", or "evolution roadmap". Extends authoring-constitution with Essential Floor + Emergent Ceiling approach.
+description: Use when user asks to "create constitution for existing codebase", "codify existing patterns", or mentions "brownfield", "existing codebase", "essential floor", "emergent ceiling", or "evolution roadmap". Extends authoring-constitution with Essential Floor + Emergent Ceiling approach.
 ---
 
 # Brownfield Constitution Authoring
 
+## Overview
+
+Write project constitutions for **existing codebases** using the **Essential Floor + Emergent Ceiling** approach. This skill extends `humaninloop:authoring-constitution` with brownfield-specific guidance that respects existing patterns while establishing governance.
+
+The core insight: existing codebases have implicit conventions worth preserving (Emergent Ceiling) but may lack foundational governance in critical areas (Essential Floor). This skill helps codify both.
+
+## When to Use
+
+Use this skill when:
+
+- Creating a constitution for an **existing codebase** (brownfield project)
+- The codebase has existing patterns, conventions, or architecture worth preserving
+- You need to establish governance without disrupting working code
+- The user mentions "brownfield", "existing codebase", or "legacy project"
+- Codifying implicit conventions into explicit, enforceable principles
+
+## When NOT to Use
+
+Do NOT use this skill when:
+
+- Starting a **new project from scratch** → use `humaninloop:authoring-constitution` directly
+- **Codebase analysis has not been completed** → run `humaninloop:analysis-codebase` first
+- The project is **too small to need formal governance** (single-file scripts, prototypes)
+- You only need to **validate an existing constitution** → use `humaninloop:validation-constitution`
+
 ## Prerequisites
 
-This skill extends the [authoring-constitution](../authoring-constitution/SKILL.md) skill. Before using brownfield mode:
+**REQUIRED:** This skill extends `humaninloop:authoring-constitution`. Before using brownfield mode:
 
-1. **Understand core principles**: Read `authoring-constitution` for the Three-Part Principle Rule (Enforcement, Testability, Rationale)
-2. **Know RFC 2119 keywords**: See [authoring-constitution/RFC-2119-KEYWORDS.md](../authoring-constitution/RFC-2119-KEYWORDS.md)
-3. **Understand SYNC IMPACT format**: See [authoring-constitution/SYNC-IMPACT-FORMAT.md](../authoring-constitution/SYNC-IMPACT-FORMAT.md)
+1. **Understand core principles**: Read `humaninloop:authoring-constitution` for the Three-Part Principle Rule (Enforcement, Testability, Rationale)
+2. **Know RFC 2119 keywords**: See RFC-2119-KEYWORDS.md in `humaninloop:authoring-constitution`
+3. **Understand SYNC IMPACT format**: See SYNC-IMPACT-FORMAT.md in `humaninloop:authoring-constitution`
+4. **Run codebase analysis**: Execute `humaninloop:analysis-codebase` to understand existing patterns
 
-Brownfield constitutions follow all rules from `authoring-constitution`, plus additional guidance for existing codebases.
-
-## Purpose
-
-Write project constitutions for **existing codebases** using the **Essential Floor + Emergent Ceiling** approach.
+Brownfield constitutions follow all rules from `humaninloop:authoring-constitution`, plus additional guidance for existing codebases.
 
 - **Essential Floor**: Four NON-NEGOTIABLE categories every constitution MUST address
 - **Emergent Ceiling**: Good patterns from the codebase worth codifying
@@ -33,7 +55,7 @@ Every constitution MUST include principles for these four categories, regardless
 | **Error Handling** | Explicit handling, RFC 7807 Problem Details format, correlation IDs in responses | Schema validation in tests, code review |
 | **Observability** | Structured logging, correlation IDs, APM integration, no PII in logs | Config verification, log audit, APM dashboards |
 
-See [ESSENTIAL-FLOOR.md](ESSENTIAL-FLOOR.md) for detailed requirements and example principles for each category.
+See [references/ESSENTIAL-FLOOR.md](references/ESSENTIAL-FLOOR.md) for detailed requirements and example principles for each category.
 
 **Writing Essential Floor Principles:**
 
@@ -48,7 +70,7 @@ Beyond the essential floor, identify **existing good patterns** worth codifying:
 2. **Identify patterns** - Naming conventions, architecture patterns, error formats
 3. **Codify as principles** - With enforcement mechanisms
 
-See [EMERGENT-CEILING-PATTERNS.md](EMERGENT-CEILING-PATTERNS.md) for the pattern library with examples.
+See [references/EMERGENT-CEILING-PATTERNS.md](references/EMERGENT-CEILING-PATTERNS.md) for the pattern library with examples.
 
 **Common Pattern Categories:**
 
@@ -120,10 +142,53 @@ Additional checks for brownfield constitutions (beyond standard checklist):
 - [ ] Quality gates reflect current + target state
 - [ ] Evolution Notes section documents brownfield context
 
-After completing brownfield constitution, run validation using [validation-constitution](../validation-constitution/SKILL.md) skill.
+After completing brownfield constitution, run validation using `humaninloop:validation-constitution`.
+
+## Common Mistakes
+
+### Mistake 1: Skipping Essential Floor Categories
+
+**Problem**: Assuming the codebase "doesn't need" security or observability principles because it "seems simple" or "works fine."
+
+**Why it's wrong**: Essential floor categories exist because these are areas where missing governance causes the most damage. A working codebase without security principles will eventually have a security incident.
+
+**Fix**: Always include all four essential floor categories. If the codebase lacks capability in an area, write the principle with "MUST implement" and reference a roadmap gap.
+
+### Mistake 2: Codifying Bad Patterns from the Codebase
+
+**Problem**: Treating all existing patterns as worth preserving. The emergent ceiling captures whatever is in the codebase, including anti-patterns.
+
+**Why it's wrong**: Some patterns in existing codebases are historical accidents, workarounds, or technical debt. Codifying them as principles locks in bad practices.
+
+**Fix**: Only codify patterns that are **intentionally good**. Ask: "Would I recommend this pattern for a new project?" If no, it's technical debt, not an emergent ceiling pattern.
+
+### Mistake 3: Skipping Codebase Analysis
+
+**Problem**: Writing the brownfield constitution without first running `humaninloop:analysis-codebase`.
+
+**Why it's wrong**: Without analysis, you're guessing about existing patterns. You'll miss good patterns worth preserving and may not accurately assess essential floor status.
+
+**Fix**: Always run codebase analysis first. The analysis output has "Strengths to Preserve" (emergent ceiling input) and gap identification (essential floor status).
+
+### Mistake 4: Writing Aspirational Instead of Enforceable Principles
+
+**Problem**: Writing principles like "Code SHOULD be clean" or "Security SHOULD be considered" without concrete enforcement.
+
+**Why it's wrong**: These principles are unenforceable and untestable. They provide no governance value and will be ignored.
+
+**Fix**: Every principle needs the Three-Part Rule from `humaninloop:authoring-constitution`: specific behavior, enforcement mechanism, and rationale. "Security SHOULD be considered" becomes "Authentication MUST use JWT with rotation, enforced by middleware check, because centralized auth prevents bypass."
+
+### Mistake 5: Ignoring Evolution Notes
+
+**Problem**: Creating the constitution without documenting the brownfield context and gap status.
+
+**Why it's wrong**: Future maintainers won't know which principles reflect existing capability vs. aspirational targets. They can't prioritize improvements.
+
+**Fix**: Always include the Evolution Notes section with essential floor status table and link to evolution roadmap. This makes gaps visible and actionable.
 
 ## Related Skills
 
-- [authoring-constitution](../authoring-constitution/SKILL.md) - Core authoring (prerequisite)
-- [validation-constitution](../validation-constitution/SKILL.md) - Quality validation (use after authoring)
-- [analysis-codebase](../analysis-codebase/SKILL.md) - Analyze existing codebase before writing
+- `humaninloop:authoring-constitution` - Core authoring (prerequisite)
+- `humaninloop:validation-constitution` - Quality validation (use after authoring)
+- `humaninloop:analysis-codebase` - Analyze existing codebase before writing
+- `humaninloop:authoring-roadmap` - Create evolution roadmap for identified gaps
