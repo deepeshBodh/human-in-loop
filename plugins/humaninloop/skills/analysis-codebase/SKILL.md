@@ -1,17 +1,40 @@
 ---
 name: analysis-codebase
-description: This skill should be used when the user asks to "analyze codebase", "scan project", "detect tech stack", or mentions "codebase analysis", "existing code", "collision risk", "brownfield", or "project context". Provides systematic extraction of tech stack, conventions, entities, and patterns from existing codebases.
+description: Use when user asks to "analyze codebase", "scan project", "detect tech stack", or mentions "codebase analysis", "existing code", "collision risk", "brownfield", or "project context".
 ---
 
 # Analyzing Codebase
 
-## Purpose
+## Overview
 
-Systematically analyze existing codebases to extract structural information. Supports three modes:
+Systematically analyze existing codebases to extract structural information. Supports three modes: Context (project characteristics), Brownfield (entities and collision risks), and Setup-Brownfield (comprehensive analysis for `/humaninloop:setup`).
 
-1. **Context Mode**: Gather project characteristics to inform constitution authoring
-2. **Brownfield Mode**: Extract entities, endpoints, and collision risks for planning
-3. **Setup-Brownfield Mode**: Comprehensive analysis for `/humaninloop:setup` producing codebase-analysis.md
+## When to Use
+
+- Setting up constitution on existing codebase (brownfield projects)
+- Planning new features against existing code
+- Understanding tech stack before making changes
+- Detecting collision risks for new entities or endpoints
+- Running `/humaninloop:setup` on projects with existing code
+- Gathering project context for governance decisions
+
+## When NOT to Use
+
+- **Greenfield projects**: No existing code to analyze; start with `humaninloop:authoring-constitution` directly
+- **Single-file scripts**: No architectural patterns to extract
+- **Documentation-only review**: Use standard file reading instead
+- **Before project directory exists**: Nothing to analyze yet
+- **When user provides complete context**: Skip analysis if user already documented tech stack and patterns
+
+## Common Mistakes
+
+| Mistake | Problem | Fix |
+|---------|---------|-----|
+| Assuming framework | Guessing without evidence | Verify with code patterns |
+| Missing directories | Only checking standard paths | Projects vary, explore |
+| Over-extracting | Analyzing every file | Focus on config and patterns |
+| Ignoring governance | Missing existing decisions | Check README, CLAUDE.md, ADRs |
+| Inventing findings | Documenting assumptions | Only report what is found |
 
 ## Mode Selection
 
@@ -297,12 +320,8 @@ Before finalizing analysis:
 - [ ] Strengths and inconsistencies documented
 - [ ] Output written to `.humaninloop/memory/codebase-analysis.md`
 
-## Anti-Patterns
+## Related Skills
 
-| Anti-Pattern | Problem | Fix |
-|--------------|---------|-----|
-| **Assuming framework** | Guessing without evidence | Verify with code patterns |
-| **Missing directories** | Only checking standard paths | Projects vary, explore |
-| **Over-extracting** | Analyzing every file | Focus on config and patterns |
-| **Ignoring governance** | Missing existing decisions | Check README, CLAUDE.md, ADRs |
-| **Inventing findings** | Documenting assumptions | Only report what's found |
+- **For brownfield constitutions**: **REQUIRED:** Use humaninloop:brownfield-constitution after analysis
+- **For greenfield projects**: **OPTIONAL:** Use humaninloop:authoring-constitution directly
+- **For validation**: **OPTIONAL:** Use humaninloop:validation-constitution after constitution creation
