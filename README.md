@@ -81,7 +81,7 @@ Each command produces artifacts you review before the next step. You stay in con
 ### 6 Commands
 The full specify → plan → tasks → implement lifecycle.
 
-### 18 Skills
+### 19 Skills
 Claude automatically invokes these when relevant—authoring requirements, analyzing codebases, designing APIs, running verification tests, managing GitHub issues, and more.
 
 ### 6 Specialized Agents

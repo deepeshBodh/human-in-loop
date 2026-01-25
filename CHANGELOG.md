@@ -6,6 +6,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.8.3] - 2026-01-25
+
+New skill and skill rename.
+
+### humaninloop 0.8.3
+
+#### New Skill
+- **using-git-worktrees** - Git worktree workflow management for parallel feature development
+  - Worktree creation, listing, and cleanup patterns
+  - Best practices for branch-per-worktree workflows
+  - Example scripts: `worktree-setup.sh`, `worktree-list.sh`, `worktree-cleanup.sh`
+
+#### Changed
+- **using-github-issues** - Renamed from `tooling-github-issues` to align with `using-` prefix convention
+
+---
+
 ## [0.8.2] - 2026-01-25
 
 Skills update: new GitHub issues management skill and testing-end-user skill rebuild.
@@ -833,6 +850,7 @@ Initial marketplace scaffold.
 
 ---
 
+[0.8.3]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.3
 [0.8.2]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.2
 [0.8.1]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.1
 [0.8.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.0
