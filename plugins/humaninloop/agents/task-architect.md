@@ -221,116 +221,119 @@ Each cycle in tasks.md follows this structure:
 - [ ] **TN.1**: Write failing test for [behavior] in tests/[path]/test_[name].py
 - [ ] **TN.2**: Implement [component] to pass test in src/[path]/[file].py
 - [ ] **TN.3**: Refactor and verify automated tests pass
-- [ ] **TN.4**: **HUMAN VERIFICATION** - [What to verify with real infrastructure]
-  - Setup: [Prerequisites or test data]
-  - Action: [Specific command or UI action]
-  - Verify: [Observable outcome]
-  - **Human confirms**: [Sign-off statement]
+- [ ] **TN.4**: **TEST:** - [What to verify with real infrastructure]
+  - **Setup**: [Prerequisites or test data]
+  - **Action**: [Specific command or UI action]
+  - **Assert**: [Observable outcome]
+  - **Capture**: [console, screenshot, logs]
 
-**Checkpoint**: [Behavior human has verified in real environment]
+**Checkpoint**: [Behavior verified in real environment]
 ```
 
-### Human Verification Task (TN.4) Requirements
+### Verification Task (TN.4) Requirements
 
-The final task of each cycle MUST be a human verification task that:
+The final task of each cycle MUST be a verification task that:
 
 1. **Uses real infrastructure** - File system, database, API, UI—NOT mocks
 2. **Specifies exact steps** - Concrete commands or actions, not "verify it works"
-3. **Has observable outcome** - What the human should see when it works
-4. **Gates cycle completion** - Cycle is NOT done until human confirms
+3. **Has observable outcome** - What should be observed when it works
+4. **Gates cycle completion** - Cycle is NOT done until verification passes
 
-**CRITICAL**: The human verification task is what makes vertical TDD actually vertical. Without it, the slice stops at the mock boundary and real integration issues go undetected.
+**CRITICAL**: The verification task is what makes vertical TDD actually vertical. Without it, the slice stops at the mock boundary and real integration issues go undetected.
+
+The testing-agent will determine whether to auto-approve (CLI + 100% pass) or present a human checkpoint (GUI/SUBJECTIVE or any failures).
 
 Example:
 ```markdown
-- [ ] **T2.12**: **HUMAN VERIFICATION** - File watcher detects real file changes
-  - Setup: `mkdir /tmp/watcher-test`
-  - Action: Run `dart run bin/watcher.dart /tmp/watcher-test`
-  - Action: In another terminal, `touch /tmp/watcher-test/test.jsonl`
-  - Verify: Console outputs "FileWatchEvent: created ..."
-  - **Human confirms**: Events appear within 1 second ✓
-```
-
-## Testable Verification Task Format
-
-When generating human verification tasks (TN.4), choose between two formats based on what can be automated:
-
-### TEST:VERIFY Format (Preferred)
-
-Use `**TEST:VERIFY**` when the verification can be executed via CLI with measurable outcomes:
-
-```markdown
-- [ ] **TN.4**: **TEST:VERIFY** - {Description}
-  - **Setup**: {Prerequisites} (optional)
-  - **Action**: {Command} (can have multiple)
-  - **Assert**: {Expected outcome} (can have multiple)
-  - **Capture**: {console, screenshot, logs} (optional)
-  - **Human-Review**: {What human should evaluate}
-```
-
-**When to use TEST:VERIFY**:
-- CLI commands with observable output
-- File system operations (create, read, watch)
-- API calls with checkable responses
-- Process startup with console output
-- Any action executable via bash with verifiable results
-
-**Action Modifiers**:
-- `(background)` - Run process in background
-- `(timeout Ns)` - Override default 60s timeout
-- `(in {path})` - Execute in specific directory
-
-**Assert Patterns**:
-- `Console contains "{pattern}"` - Substring match
-- `Console contains "{pattern}" (within Ns)` - With timing
-- `File exists: {path}` - File system check
-- `Response status: {code}` - HTTP status
-
-**Example**:
-```markdown
-- [ ] **T2.12**: **TEST:VERIFY** - File watcher detects real file changes
+- [ ] **T2.12**: **TEST:** - File watcher detects real file changes
   - **Setup**: `mkdir /tmp/watcher-test`
   - **Action**: `dart run bin/watcher.dart /tmp/watcher-test` (background)
-  - **Action**: `touch /tmp/watcher-test/test.jsonl`
+  - **Action**: `sleep 1 && touch /tmp/watcher-test/test.jsonl`
   - **Assert**: Console contains "FileWatchEvent: created"
   - **Capture**: console
-  - **Human-Review**: Events appear within 1 second
 ```
 
-### HUMAN VERIFICATION Format (Fallback)
+## Verification Task Format
 
-Use `**HUMAN VERIFICATION**` when the verification requires:
-- GUI/UI interaction
-- Visual inspection
-- Subjective judgment
-- Actions not executable via CLI
+When generating verification tasks (typically TN.4 at the end of each cycle), use the unified `**TEST:**` format.
+
+### Unified TEST: Format
 
 ```markdown
-- [ ] **TN.4**: **HUMAN VERIFICATION** - {Description}
-  - Setup: {Prerequisites}
-  - Action: {What to do}
-  - Verify: {What to observe}
-  - **Human confirms**: {Sign-off statement}
+- [ ] **TN.X**: **TEST:** - {Description}
+  - **Setup**: {Prerequisites} (optional)
+  - **Action**: {Command or instruction}
+  - **Assert**: {Expected outcome}
+  - **Capture**: {console, screenshot, logs} (optional)
 ```
 
-**When to use HUMAN VERIFICATION**:
-- Mobile app testing
-- Visual design verification
-- User experience evaluation
-- Complex multi-step UI workflows
+The testing-agent will **classify the task at runtime** based on the Action and Assert content:
+- **CLI**: Backtick commands + measurable asserts → may auto-approve
+- **GUI**: UI actions, screenshot captures → human checkpoint
+- **SUBJECTIVE**: Qualitative terms (`looks`, `feels`) → human checkpoint
 
-### Decision Guide
+**You do NOT need to decide** whether a task needs human verification. Focus on writing clear, specific verification steps. The testing-agent handles the "when to involve human" decision.
 
-| Scenario | Format |
-|----------|--------|
-| Start server, check console output | TEST:VERIFY |
-| Call API endpoint, check response | TEST:VERIFY |
-| Create file, verify exists | TEST:VERIFY |
-| Click button, see modal | HUMAN VERIFICATION |
-| Visual layout looks correct | HUMAN VERIFICATION |
-| Multi-step UI wizard | HUMAN VERIFICATION |
+### Field Reference
 
-**Default to TEST:VERIFY** when possible—it enables automated evidence capture and structured checkpoint presentation.
+| Field | Required | Purpose |
+|-------|----------|---------|
+| `**Setup**:` | No | Prerequisites to establish before testing |
+| `**Action**:` | Yes | Commands or instructions to execute |
+| `**Assert**:` | Yes | Conditions to verify (outcomes) |
+| `**Capture**:` | No | Evidence types to collect (console, screenshot, logs) |
+
+### Action Modifiers
+
+| Modifier | Example | Behavior |
+|----------|---------|----------|
+| `(background)` | `npm start (background)` | Run process in background |
+| `(timeout Ns)` | `curl ... (timeout 10s)` | Override 60s default |
+| `(in {path})` | `make build (in ./backend)` | Execute in directory |
+
+### Assert Patterns
+
+| Pattern | Verification |
+|---------|--------------|
+| `Console contains "{pattern}"` | Substring match in output |
+| `Console contains "{pattern}" (within Ns)` | Timed match |
+| `File exists: {path}` | Check file system |
+| `Response status: {code}` | HTTP status check |
+
+### Examples
+
+**CLI-style verification** (will likely auto-approve):
+```markdown
+- [ ] **T2.12**: **TEST:** - File watcher detects real file changes
+  - **Setup**: `mkdir /tmp/watcher-test`
+  - **Action**: `dart run bin/watcher.dart /tmp/watcher-test` (background)
+  - **Action**: `sleep 1 && touch /tmp/watcher-test/test.jsonl`
+  - **Assert**: Console contains "FileWatchEvent: created"
+  - **Capture**: console
+```
+
+**GUI-style verification** (will present checkpoint):
+```markdown
+- [ ] **T4.8**: **TEST:** - Modal appears when clicking save
+  - **Action**: Click the "Save" button in the toolbar
+  - **Assert**: Confirmation modal appears with "Save changes?" message
+  - **Capture**: screenshot
+```
+
+**Subjective verification** (will present checkpoint):
+```markdown
+- [ ] **T5.6**: **TEST:** - Dashboard layout looks professional
+  - **Action**: Open the dashboard at localhost:3000
+  - **Assert**: Layout feels balanced and spacing looks consistent
+  - **Capture**: screenshot
+```
+
+### Legacy Format Support
+
+For backward compatibility, the testing-agent also accepts:
+- `**TEST:VERIFY**` - Treated as unified TEST:
+- `**TEST:CONTRACT**` - Treated as unified TEST:
+- `**HUMAN VERIFICATION**` - Treated as unified TEST: (maps Setup/Action/Verify fields)
 
 ## Reading the Context
 

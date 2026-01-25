@@ -190,44 +190,52 @@ AskUserQuestion(
 
    **Verification Task Detection and Routing**:
 
-   When encountering a task with `**TEST:VERIFY**` or `**TEST:CONTRACT**` markers:
+   When encountering a task with verification markers:
 
-   **Detection**:
-   - If task contains `**TEST:VERIFY**`: Route to testing-agent
-   - If task contains `**TEST:CONTRACT**`: Route to testing-agent
-   - If task contains `**HUMAN VERIFICATION**`: Manual execution (existing behavior)
+   **Detection** (any of these markers):
+   - `**TEST:**` - Unified format (preferred)
+   - `**TEST:VERIFY**` - Legacy format
+   - `**TEST:CONTRACT**` - Legacy format
+   - `**HUMAN VERIFICATION**` - Legacy format
+
+   All markers route to testing-agent.
 
    **Routing to Testing Agent**:
    ```
    Task(
      subagent_type: "humaninloop:testing-agent",
-     prompt: "Execute verification task {TASK_ID} from {FEATURE_DIR}/tasks.md. Parse the TEST:VERIFY markers, execute Setup/Action/Assert steps, capture evidence, and present checkpoint for human approval.",
-     description: "Execute TEST:VERIFY task"
+     prompt: "Execute verification task {TASK_ID} from {FEATURE_DIR}/tasks.md. Classify the task (CLI/GUI/SUBJECTIVE), execute Setup/Action/Assert steps, capture evidence, and decide whether to auto-approve or present checkpoint.",
+     description: "Execute TEST task"
    )
    ```
 
-   **Checkpoint Presentation**:
-   After testing-agent returns, present the evidence report to the user:
-   ```
-   AskUserQuestion(
-     questions: [{
-       question: "{evidence_summary}\n\nRecommendation: {recommendation}",
-       header: "Checkpoint: {TASK_ID}",
-       options: [
-         {label: "Approve", description: "Proceed to next task"},
-         {label: "Reject", description: "Investigate failure"},
-         {label: "Retry", description: "Re-run with adjustments"}
-       ],
-       multiSelect: false
-     }]
-   )
+   **Handling Testing Agent Response**:
+
+   The testing-agent returns a decision object:
+   ```json
+   {
+     "task_id": "T{N}.{X}",
+     "classification": "CLI|GUI|SUBJECTIVE",
+     "execution": { "status": "PASS|FAIL|PARTIAL", "pass_rate": "N/M" },
+     "decision": {
+       "result": "approved|rejected|retry",
+       "decided_by": "auto|human",
+       "checkpoint_presented": true|false,
+       "human_response": "Approve|Reject|Retry"
+     }
+   }
    ```
 
-   **Gate Behavior**:
-   - Cycle is NOT complete until human approves checkpoint
-   - If human selects "Reject": Stop cycle, report failure
-   - If human selects "Retry": Re-run testing-agent with same task
-   - If human selects "Approve": Mark task complete, proceed
+   **Route based on `decision`**:
+
+   | `decided_by` | `result` | Action |
+   |--------------|----------|--------|
+   | `auto` | `approved` | Mark task complete, proceed silently |
+   | `human` | `approved` | Mark task complete, proceed |
+   | `human` | `rejected` | Stop cycle, report failure |
+   | `human` | `retry` | Re-run testing-agent with same task |
+
+   **Note**: Testing-agent owns checkpoint presentation. Do NOT present an additional checkpoint here—the human has already decided (or auto-approval occurred).
 
    **Checkpoints**:
    - Each cycle ends with a `**Checkpoint**:` statement

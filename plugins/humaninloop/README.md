@@ -195,7 +195,7 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 
 | Agent | Purpose |
 |-------|---------|
-| **Testing Agent** | Collaborative QA partner that executes `TEST:VERIFY` verification tasks, captures evidence (console output, timing, file states), and presents checkpoints for human approval. Uses skill: `testing-end-user` |
+| **Testing Agent** | Collaborative QA partner that executes `TEST:` verification tasks, classifies them at runtime (CLI/GUI/SUBJECTIVE), captures evidence, and decides whether to auto-approve or present human checkpoints. Uses skill: `testing-end-user` |
 
 ### Validation
 
@@ -279,18 +279,19 @@ Tasks are organized into **cycles** - vertical slices that deliver testable valu
 | `[EXTEND]` | Extends existing file (brownfield) |
 | `[MODIFY]` | Modifies existing code (brownfield) |
 
-**Verification Task Format (TEST:VERIFY):**
+**Verification Task Format (TEST:):**
 
-When verification can be automated via CLI, use the `TEST:VERIFY` format:
+Use the unified `TEST:` format for all verification tasks:
 
 ```markdown
-- [ ] **TN.4**: **TEST:VERIFY** - {Description}
+- [ ] **TN.4**: **TEST:** - {Description}
   - **Setup**: {Prerequisites} (optional)
-  - **Action**: {Command} (can have multiple)
-  - **Assert**: {Expected outcome} (can have multiple)
+  - **Action**: {Command or instruction}
+  - **Assert**: {Expected outcome}
   - **Capture**: {console, screenshot, logs} (optional)
-  - **Human-Review**: {What human should evaluate}
 ```
+
+The testing-agent classifies tasks at runtime (CLI/GUI/SUBJECTIVE) and decides whether to auto-approve or present a human checkpoint. Legacy formats (`TEST:VERIFY`, `TEST:CONTRACT`, `HUMAN VERIFICATION`) are still supported.
 
 Action modifiers: `(background)`, `(timeout Ns)`, `(in {path})`
 

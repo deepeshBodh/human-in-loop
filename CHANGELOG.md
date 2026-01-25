@@ -6,6 +6,35 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.8.5] - 2026-01-26
+
+Unified verification format with runtime classification.
+
+### humaninloop 0.8.5
+
+#### Changed
+- **Unified TEST: marker** - All verification tasks now use single `**TEST:**` format
+  - Replaces `TEST:VERIFY`, `TEST:CONTRACT`, and `HUMAN VERIFICATION` markers
+  - Legacy formats remain supported for backward compatibility
+- **Runtime classification** - Testing-agent now classifies tasks at execution time
+  - CLI tasks with backtick commands and measurable asserts
+  - GUI tasks with UI actions or screenshot captures
+  - SUBJECTIVE tasks with qualitative terms (looks, feels)
+- **Auto-approval gate** - CLI tasks may auto-approve when:
+  - Classification is CLI
+  - 100% assertions pass
+  - No errors or timeouts
+  - No `**Human-Review**:` field
+- **testing-agent.md** - Added classification logic and checkpoint ownership
+- **implement.md** - Simplified routing, removed checkpoint presentation
+- **task-architect.md** - Simplified to unified format, removed decision guide
+- **CYCLE-STRUCTURE.md** - Updated all examples to unified format
+- **testing-end-user skill** - Updated marker documentation
+- **TASK-PARSING.md** - Added legacy format support section
+- **PHASE-CHECKLISTS.md** - Updated validation examples
+
+---
+
 ## [0.8.4] - 2026-01-25
 
 New UI/interface design skill.
@@ -865,6 +894,7 @@ Initial marketplace scaffold.
 
 ---
 
+[0.8.5]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.5
 [0.8.4]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.4
 [0.8.3]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.3
 [0.8.2]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.2

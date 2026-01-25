@@ -14,7 +14,11 @@ This reference file provides detailed cycle formatting, task structure, and exam
 - [ ] **TN.1**: Write failing test for [behavior] in [test file path]
 - [ ] **TN.2**: Implement [component] to pass test in [source file path]
 - [ ] **TN.3**: Refactor and verify tests pass
-- [ ] **TN.4**: Demo [behavior], verify acceptance criteria
+- [ ] **TN.4**: **TEST:** - [What to verify with real infrastructure]
+  - **Setup**: [Prerequisites]
+  - **Action**: [Command or instruction]
+  - **Assert**: [Expected outcome]
+  - **Capture**: [console, screenshot, logs]
 
 **Checkpoint**: [Observable outcome when cycle is complete]
 ```
@@ -177,125 +181,68 @@ Checkpoints should be:
 1. **Observable**: Something you can see or demonstrate
 2. **Testable**: Automated tests should verify this
 3. **Concrete**: Specific behavior, not abstract quality
-4. **Human-Verifiable**: A human MUST see the behavior in a real environment, not just in test output
+4. **Verifiable**: Can be verified with real infrastructure (not just mocks)
 
-### Good Checkpoints (Human-Verifiable)
+### Good Checkpoints
 
-- "Human launched app and created task via UI, task appears in list"
-- "Human called POST /api/tasks via curl, received 201 response with task ID"
-- "Human ran CLI export command, CSV file created with correct data"
-- "Human created file in watched directory, event appeared in console output"
+- "Task created via API, console shows 201 response"
+- "File watcher detects new file, console outputs event"
+- "CLI export command creates CSV with correct data"
+- "Server starts and responds to health check"
 
-### Bad Checkpoints (Test-Only)
+### Bad Checkpoints
 
 - "Task model is complete" (not observable)
 - "Code is clean" (subjective)
 - "Service layer works" (too vague)
 - "Ready for integration" (not testable)
-- "All unit tests pass" (automated only, not human-verified)
+- "All unit tests pass" (automated only, needs real verification)
 - "PathValidator correctly rejects symlinks" (tested via mocks, not real files)
 - "State updates reactively" (vague, likely tested via mocks)
 
 ---
 
-## Human Verification Task Requirements
+## Verification Task Requirements
 
-The final task of each cycle (typically TN.4) is the **Human Verification** task. This is NOT just another automated test—it is the gate that ensures the cycle delivers real, working functionality.
+The final task of each cycle (typically TN.4) is the **Verification** task. This is NOT just another automated test—it is the gate that ensures the cycle delivers real, working functionality.
 
-### What Human Verification MUST Include
+### What Verification MUST Include
 
 1. **Real Infrastructure**: Use real file systems, real databases, real APIs—NOT mocks
-2. **Tangible Output**: Something a human can see, click, or receive (UI, file, response)
-3. **Explicit Steps**: Concrete commands or actions the human performs
-4. **Observable Outcome**: What the human should see when it works
-5. **Sign-off Gate**: Cycle does not complete until human confirms behavior
+2. **Tangible Output**: Something observable (console output, file, response, UI state)
+3. **Explicit Steps**: Concrete commands or actions to perform
+4. **Observable Outcome**: What should be observed when it works
 
-### Human Verification Task Format
+### Unified TEST: Format
 
-```markdown
-- [ ] **TN.4**: **HUMAN VERIFICATION** - [Brief description of what to verify]
-  - Setup: [Any prerequisites or test data to create]
-  - Action: [Specific command or UI action to perform]
-  - Verify: [What the human should observe]
-  - Cleanup: [Optional cleanup steps]
-  - **Human confirms**: [Checkbox or explicit sign-off]
-```
-
-### Good Human Verification Tasks
+Use the `**TEST:**` marker for all verification tasks:
 
 ```markdown
-- [ ] **T2.12**: **HUMAN VERIFICATION** - File watcher detects real file changes
-  - Setup: Create test directory `mkdir /tmp/watcher-test`
-  - Action: Run `dart run bin/watcher.dart /tmp/watcher-test`
-  - Action: In another terminal, `touch /tmp/watcher-test/session.jsonl`
-  - Verify: Console outputs "FileWatchEvent: created /tmp/watcher-test/session.jsonl"
-  - Action: `rm /tmp/watcher-test/session.jsonl`
-  - Verify: Console outputs "FileWatchEvent: deleted ..."
-  - **Human confirms**: Events appear in real time ✓
-```
-
-```markdown
-- [ ] **T4.16**: **HUMAN VERIFICATION** - Sessions appear in UI from real files
-  - Setup: Build app with `flutter build macos`
-  - Setup: Create test session file in Claude sessions directory
-  - Action: Launch the built application
-  - Verify: Session appears in list within 1 second
-  - Verify: Session shows correct project path with ~ alias
-  - Action: Delete the session file
-  - Verify: Session disappears from list within 1 second
-  - **Human confirms**: Full session lifecycle works ✓
-```
-
-### Bad Human Verification Tasks
-
-```markdown
-# BAD: Just re-running automated tests
-- [ ] **T2.12**: Demo: Verify file watching infrastructure is functional
-  - Checkpoint: PathValidator correctly rejects symlinks outside scope
-
-# BAD: Vague with no concrete steps
-- [ ] **T4.16**: Demo: Verify full user story functionality
-  - Checkpoint: All 5 acceptance scenarios pass
-
-# BAD: Relies on mocked infrastructure
-- [ ] **T3.12**: Demo: Verify state management is functional
-  - Checkpoint: State updates reactively from file events
-```
-
-### Why This Matters
-
-Mocked tests verify that code does what the tests say. Human verification ensures the system does what the user needs. Without human verification:
-
-- All tests can pass while the feature doesn't work
-- Integration issues between real components go undetected
-- The "vertical slice" isn't actually vertical—it stops at the mock boundary
-
----
-
-## Testable Verification Tasks (TEST:VERIFY)
-
-When human verification can be automated via CLI with measurable outcomes, use the `**TEST:VERIFY**` format instead of plain `**HUMAN VERIFICATION**`.
-
-### TEST:VERIFY Format
-
-```markdown
-- [ ] **TN.X**: **TEST:VERIFY** - {Description}
+- [ ] **TN.X**: **TEST:** - {Description}
   - **Setup**: {Prerequisites} (optional)
-  - **Action**: {Command} (can have multiple)
-  - **Assert**: {Expected outcome} (can have multiple)
+  - **Action**: {Command or instruction}
+  - **Assert**: {Expected outcome}
   - **Capture**: {console, screenshot, logs} (optional)
-  - **Human-Review**: {What human should evaluate}
 ```
+
+The testing-agent **classifies tasks at runtime** and decides whether to auto-approve or present a human checkpoint:
+
+| Classification | Criteria | Execution |
+|----------------|----------|-----------|
+| **CLI** | Backtick commands + measurable asserts | May auto-approve if 100% pass |
+| **GUI** | UI actions, screenshot captures | Human checkpoint |
+| **SUBJECTIVE** | Qualitative terms (looks, feels) | Human checkpoint |
+
+**You do NOT need to decide** whether a task needs human verification—the testing-agent handles this.
 
 ### Field Definitions
 
 | Field | Required | Purpose |
 |-------|----------|---------|
 | `**Setup**:` | No | Prerequisites to establish before testing |
-| `**Action**:` | Yes | Commands to execute (can repeat) |
-| `**Assert**:` | Yes | Conditions to verify (can repeat) |
+| `**Action**:` | Yes | Commands or instructions to execute |
+| `**Assert**:` | Yes | Conditions to verify (outcomes) |
 | `**Capture**:` | No | Evidence types to collect |
-| `**Human-Review**:` | No | What human should specifically evaluate |
 
 ### Action Modifiers
 
@@ -314,61 +261,78 @@ When human verification can be automated via CLI with measurable outcomes, use t
 | `File exists: {path}` | Check file system |
 | `Response status: {code}` | HTTP status check |
 
-### Example: File Watcher Verification
+### Examples
 
-**Before** (HUMAN VERIFICATION):
+**CLI verification** (may auto-approve):
 ```markdown
-- [ ] **T2.12**: **HUMAN VERIFICATION** - File watcher detects real file changes
-  - Setup: Create test directory `mkdir /tmp/watcher-test`
-  - Action: Run `dart run bin/watcher.dart /tmp/watcher-test`
-  - Action: In another terminal, `touch /tmp/watcher-test/session.jsonl`
-  - Verify: Console outputs "FileWatchEvent: created ..."
-  - **Human confirms**: Events appear in real time ✓
-```
-
-**After** (TEST:VERIFY):
-```markdown
-- [ ] **T2.12**: **TEST:VERIFY** - File watcher detects real file changes
+- [ ] **T2.12**: **TEST:** - File watcher detects real file changes
   - **Setup**: `mkdir /tmp/watcher-test`
   - **Action**: `dart run bin/watcher.dart /tmp/watcher-test` (background)
   - **Action**: `sleep 1 && touch /tmp/watcher-test/test.jsonl`
   - **Assert**: Console contains "FileWatchEvent: created"
   - **Capture**: console
-  - **Human-Review**: Events appear within 1 second
 ```
 
-### Example: API Server Verification
-
+**API verification** (may auto-approve):
 ```markdown
-- [ ] **T4.8**: **TEST:VERIFY** - API server responds to health check
+- [ ] **T4.8**: **TEST:** - API server responds to health check
   - **Setup**: Ensure database is running
   - **Action**: `npm start` (background) (timeout 30s)
   - **Action**: `sleep 2 && curl -s localhost:3000/health`
   - **Assert**: Response status: 200
   - **Assert**: Console contains "Server listening on port 3000"
   - **Capture**: console
-  - **Human-Review**: Server starts without errors
 ```
 
-### When to Use Each Format
+**GUI verification** (human checkpoint):
+```markdown
+- [ ] **T4.16**: **TEST:** - Sessions appear in UI from real files
+  - **Setup**: Build app with `flutter build macos`
+  - **Setup**: Create test session file in Claude sessions directory
+  - **Action**: Launch the built application
+  - **Assert**: Session appears in list within 1 second
+  - **Assert**: Session shows correct project path with ~ alias
+  - **Capture**: screenshot
+```
 
-| Use TEST:VERIFY | Use HUMAN VERIFICATION |
-|-----------------|------------------------|
-| CLI commands with output | GUI/UI interaction required |
-| API calls checkable via curl | Visual design verification |
-| File operations | Subjective user experience |
-| Process startup with logs | Multi-step UI workflows |
-| Any bash-executable action | Non-CLI-accessible behavior |
+**Subjective verification** (human checkpoint):
+```markdown
+- [ ] **T5.10**: **TEST:** - Dashboard layout is well-organized
+  - **Action**: Open dashboard at localhost:3000/dashboard
+  - **Assert**: Layout feels balanced and spacing looks consistent
+  - **Capture**: screenshot
+```
 
-### Benefits of TEST:VERIFY
+### Bad Verification Tasks
 
-1. **Automated execution**: Testing agent runs commands
-2. **Evidence capture**: Console output saved automatically
-3. **Structured assertions**: Pass/fail clearly defined
-4. **Checkpoint presentation**: Human sees evidence summary
-5. **Retry support**: Can re-run with adjustments
+```markdown
+# BAD: Just re-running automated tests
+- [ ] **T2.12**: Demo: Verify file watching infrastructure is functional
+  - Checkpoint: PathValidator correctly rejects symlinks outside scope
 
-The human still approves—but the execution and evidence collection are automated
+# BAD: Vague with no concrete steps
+- [ ] **T4.16**: Demo: Verify full user story functionality
+  - Checkpoint: All 5 acceptance scenarios pass
+
+# BAD: Relies on mocked infrastructure
+- [ ] **T3.12**: Demo: Verify state management is functional
+  - Checkpoint: State updates reactively from file events
+```
+
+### Why This Matters
+
+Mocked tests verify that code does what the tests say. Real verification ensures the system does what the user needs. Without verification:
+
+- All tests can pass while the feature doesn't work
+- Integration issues between real components go undetected
+- The "vertical slice" isn't actually vertical—it stops at the mock boundary
+
+### Legacy Format Support
+
+For backward compatibility, the testing-agent accepts these legacy markers (internally mapped to TEST:):
+- `**TEST:VERIFY**`
+- `**TEST:CONTRACT**`
+- `**HUMAN VERIFICATION**` (maps Setup/Action/Verify fields)
 
 ## Complete Example: Task Management Feature
 
@@ -388,7 +352,11 @@ The human still approves—but the execution and evidence collection are automat
 - [ ] **T1.3**: Implement TaskService in src/services/task_service.py
 - [ ] **T1.4**: Create task API endpoints in src/api/tasks.py
 - [ ] **T1.5**: Refactor and verify tests pass
-- [ ] **T1.6**: Demo CRUD operations, verify acceptance criteria
+- [ ] **T1.6**: **TEST:** - CRUD operations work via API
+  - **Action**: `curl -X POST localhost:3000/api/tasks -d '{"title":"Test"}'`
+  - **Assert**: Response status: 201
+  - **Assert**: Console contains "task_id"
+  - **Capture**: console
 
 **Checkpoint**: Can create, read, update, delete tasks via API
 
@@ -406,7 +374,11 @@ The human still approves—but the execution and evidence collection are automat
 - [ ] **T2.4**: Create auth endpoints in src/api/auth.py
 - [ ] **T2.5**: Add auth middleware in src/middleware/auth.py
 - [ ] **T2.6**: Refactor and verify tests pass
-- [ ] **T2.7**: Demo login/logout, verify token handling
+- [ ] **T2.7**: **TEST:** - Login returns valid token
+  - **Action**: `curl -X POST localhost:3000/api/auth/login -d '{"email":"test@example.com","password":"test"}'`
+  - **Assert**: Response status: 200
+  - **Assert**: Console contains "token"
+  - **Capture**: console
 
 **Checkpoint**: Can authenticate and access protected endpoints
 
@@ -425,7 +397,12 @@ The human still approves—but the execution and evidence collection are automat
 - [ ] **T3.3**: [EXTEND] Add complete() to TaskService in src/services/task_service.py
 - [ ] **T3.4**: Add completion endpoint in src/api/tasks.py
 - [ ] **T3.5**: Refactor and verify tests pass
-- [ ] **T3.6**: Demo task completion, verify acceptance criteria
+- [ ] **T3.6**: **TEST:** - Task completion updates timestamp
+  - **Setup**: Create task via POST /api/tasks
+  - **Action**: `curl -X PATCH localhost:3000/api/tasks/1/complete`
+  - **Assert**: Response status: 200
+  - **Assert**: Console contains "completed_at"
+  - **Capture**: console
 
 **Checkpoint**: Can mark tasks complete with timestamp
 
@@ -442,7 +419,11 @@ The human still approves—but the execution and evidence collection are automat
 - [ ] **T4.3**: [MODIFY] Update TaskService for priority in src/services/task_service.py
 - [ ] **T4.4**: [MODIFY] Update task endpoints for priority in src/api/tasks.py
 - [ ] **T4.5**: Refactor and verify tests pass
-- [ ] **T4.6**: Demo priority assignment, verify acceptance criteria
+- [ ] **T4.6**: **TEST:** - Priority assignment works
+  - **Action**: `curl -X POST localhost:3000/api/tasks -d '{"title":"Urgent","priority":"high"}'`
+  - **Assert**: Response status: 201
+  - **Assert**: Console contains "priority":"high"
+  - **Capture**: console
 
 **Checkpoint**: Can assign and update task priority
 
@@ -458,7 +439,12 @@ The human still approves—but the execution and evidence collection are automat
 - [ ] **T5.2**: [EXTEND] Add filter methods to TaskService in src/services/task_service.py
 - [ ] **T5.3**: [MODIFY] Update list endpoint with query params in src/api/tasks.py
 - [ ] **T5.4**: Refactor and verify tests pass
-- [ ] **T5.5**: Demo filtering, verify acceptance criteria
+- [ ] **T5.5**: **TEST:** - Filtering returns correct results
+  - **Setup**: Create tasks with different statuses
+  - **Action**: `curl "localhost:3000/api/tasks?status=pending"`
+  - **Assert**: Response status: 200
+  - **Assert**: Console contains only pending tasks
+  - **Capture**: console
 
 **Checkpoint**: Can filter tasks by status and priority
 
@@ -474,7 +460,12 @@ The human still approves—but the execution and evidence collection are automat
 - [ ] **T6.2**: Create ExportService in src/services/export_service.py
 - [ ] **T6.3**: Add export endpoint in src/api/export.py
 - [ ] **T6.4**: Refactor and verify tests pass
-- [ ] **T6.5**: Demo CSV export, verify file format
+- [ ] **T6.5**: **TEST:** - CSV export creates valid file
+  - **Setup**: Create several tasks
+  - **Action**: `curl localhost:3000/api/export/csv -o /tmp/tasks.csv`
+  - **Assert**: File exists: /tmp/tasks.csv
+  - **Assert**: Console contains "Content-Type: text/csv"
+  - **Capture**: console
 
 **Checkpoint**: Can export task list to valid CSV file
 ```

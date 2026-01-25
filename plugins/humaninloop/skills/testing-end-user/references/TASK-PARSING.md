@@ -10,19 +10,29 @@
 - [Assert Pattern Parsing](#assert-pattern-parsing)
 - [Parsed Task Structure](#parsed-task-structure)
 - [Error Handling](#error-handling)
+- [Legacy Format Support](#legacy-format-support)
 
 ## Overview
 
-This document defines how to extract structured data from `**TEST:VERIFY**` and `**TEST:CONTRACT**` task markers in tasks.md.
+This document defines how to extract structured data from verification task markers in tasks.md. The unified `**TEST:**` format is preferred, with legacy formats supported for backward compatibility.
 
 ## Task Detection
 
-### Marker Patterns
+### Unified Format (Preferred)
+
+```regex
+\*\*TEST:\*\* - (.+)
+```
+
+### Legacy Formats (Supported)
 
 ```regex
 \*\*TEST:VERIFY\*\* - (.+)
 \*\*TEST:CONTRACT\*\* - (.+)
+\*\*HUMAN VERIFICATION\*\* - (.+)
 ```
+
+All formats are internally normalized to the unified structure.
 
 ### Context Lines
 
@@ -73,9 +83,11 @@ Result: Cycle number and task number
 ### 3. Extract Test Type
 
 ```regex
-\*\*TEST:(VERIFY|CONTRACT)\*\*
+\*\*TEST:(VERIFY|CONTRACT)?\*\*
 ```
-Result: `VERIFY` or `CONTRACT`
+Result: `VERIFY`, `CONTRACT`, or empty (unified format)
+
+For unified `**TEST:**` format, type defaults to `UNIFIED`.
 
 ### 4. Extract Description
 
@@ -241,3 +253,47 @@ Handle escaped quotes in patterns:
 **Assert**: Console contains "User said \"Hello\""
 ```
 Parse with quote escaping awareness.
+
+## Legacy Format Support
+
+### HUMAN VERIFICATION Mapping
+
+When parsing `**HUMAN VERIFICATION**` tasks, map fields to unified format:
+
+| Legacy Field | Unified Field |
+|--------------|---------------|
+| `Setup:` | `**Setup**:` |
+| `Action:` | `**Action**:` |
+| `Verify:` | `**Assert**:` |
+| `**Human confirms**:` | (ignored - testing-agent handles) |
+
+### Example Legacy Task
+
+```markdown
+- [ ] **T2.12**: **HUMAN VERIFICATION** - File watcher detects changes
+  - Setup: `mkdir /tmp/test`
+  - Action: Run `dart run bin/watcher.dart /tmp/test`
+  - Verify: Console outputs "FileWatchEvent: created"
+  - **Human confirms**: Events appear in real time ✓
+```
+
+Normalized to:
+
+```json
+{
+  "id": "T2.12",
+  "type": "UNIFIED",
+  "description": "File watcher detects changes",
+  "setup": [{"command": "mkdir /tmp/test"}],
+  "actions": [{"command": "dart run bin/watcher.dart /tmp/test", "modifiers": {}}],
+  "asserts": [{"type": "console_contains", "pattern": "FileWatchEvent: created"}],
+  "capture": ["console"]
+}
+```
+
+### Format Detection Priority
+
+1. Check for `**TEST:**` (unified) → use as-is
+2. Check for `**TEST:VERIFY**` or `**TEST:CONTRACT**` → treat as unified
+3. Check for `**HUMAN VERIFICATION**` → map fields to unified format
+4. No marker found → reject task

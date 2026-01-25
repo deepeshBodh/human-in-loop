@@ -1,13 +1,13 @@
 ---
 name: testing-end-user
-description: Use when executing TEST:VERIFY tasks, running verification tests against real infrastructure, or when encountering "TEST:VERIFY", "TEST:CONTRACT", "execute verification", "run test task", or tasks with Setup/Action/Assert markers.
+description: Use when executing TEST tasks, running verification tests against real infrastructure, or when encountering "TEST:", "TEST:VERIFY", "TEST:CONTRACT", "execute verification", "run test task", or tasks with Setup/Action/Assert markers.
 ---
 
 # End-User Verification Testing
 
 ## Overview
 
-Execute verification tasks that validate real infrastructure behavior through structured Setup/Action/Assert sequences. Present evidence to humans for approval decisions. This skill transforms tasks marked with `**TEST:VERIFY**` into executable verification sequences with captured evidence.
+Execute verification tasks that validate real infrastructure behavior through structured Setup/Action/Assert sequences. Classify tasks at runtime (CLI/GUI/SUBJECTIVE) to determine whether to auto-approve or present human checkpoints. This skill transforms tasks marked with `**TEST:**` into executable verification sequences with captured evidence.
 
 **Violating the letter of these rules is violating the spirit of these rules.**
 
@@ -15,11 +15,12 @@ Verification testing exists to catch failures before they reach production. Ever
 
 ## When to Use
 
-- Tasks marked with `**TEST:VERIFY**` or `**TEST:CONTRACT**`
+- Tasks marked with `**TEST:**`, `**TEST:VERIFY**`, or `**TEST:CONTRACT**`
+- Legacy `**HUMAN VERIFICATION**` tasks (mapped to unified format)
 - CLI command verification with expected output
 - File system state validation
 - Real process behavior testing (not mocks)
-- Human approval gates for critical functionality
+- GUI/UI verification requiring human judgment
 - End-to-end validation before deployment
 
 ## When NOT to Use
@@ -38,13 +39,18 @@ Verification testing exists to catch failures before they reach production. Ever
 Identify tasks containing verification markers:
 
 ```markdown
-- [ ] **TN.X**: **TEST:VERIFY** - {Description}
-  - **Setup**: {Prerequisites}
-  - **Action**: {Command}
+- [ ] **TN.X**: **TEST:** - {Description}
+  - **Setup**: {Prerequisites} (optional)
+  - **Action**: {Command or instruction}
   - **Assert**: {Expected outcome}
-  - **Capture**: {console, screenshot, logs}
-  - **Human-Review**: {What human should evaluate}
+  - **Capture**: {console, screenshot, logs} (optional)
 ```
+
+**Supported markers** (all normalized to unified format):
+- `**TEST:**` - Unified format (preferred)
+- `**TEST:VERIFY**` - Legacy format
+- `**TEST:CONTRACT**` - Legacy format
+- `**HUMAN VERIFICATION**` - Legacy format (maps Setup/Action/Verify fields)
 
 See [references/TASK-PARSING.md](references/TASK-PARSING.md) for field marker extraction rules.
 
@@ -100,6 +106,18 @@ See [references/REPORT-TEMPLATES.md](references/REPORT-TEMPLATES.md) for templat
 **6. Present Checkpoint**
 
 Ask human to approve, reject, or retry. Human decision gates cycle completion. No proceeding without explicit human approval.
+
+### Task Classification
+
+Before execution, classify the task based on Action and Assert content:
+
+| Classification | Criteria | Checkpoint Behavior |
+|----------------|----------|---------------------|
+| **CLI** | Backtick commands + measurable asserts | May auto-approve if 100% pass |
+| **GUI** | UI actions (`click`, `tap`) or screenshot capture | Always human checkpoint |
+| **SUBJECTIVE** | Qualitative terms (`looks`, `feels`, `appears`) | Always human checkpoint |
+
+Default to SUBJECTIVE if uncertain (safe fallback).
 
 ### Result Classification
 

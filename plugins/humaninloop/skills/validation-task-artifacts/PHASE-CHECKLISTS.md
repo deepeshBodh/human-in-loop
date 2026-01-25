@@ -46,8 +46,8 @@ If NO to any: the cycle may need restructuring.
 | Cycle coverage | Does every cycle from mapping have tasks? | Critical |
 | TDD structure | Does each cycle have test-first task ordering? | Critical |
 | File paths | Does every task have a specific file path? | Critical |
-| Human verification | Does each cycle end with a HUMAN VERIFICATION task? | Critical |
-| Real infrastructure | Do human verification tasks use real infrastructure (not mocks)? | Critical |
+| Verification task | Does each cycle end with a **TEST:** verification task? | Critical |
+| Real infrastructure | Do verification tasks use real infrastructure (not mocks)? | Critical |
 | Task IDs | Are task IDs properly formatted (TN.X)? | Important |
 | Story labels | Are tasks linked to stories where appropriate? | Important |
 | Brownfield markers | Are [EXTEND]/[MODIFY] markers correctly applied? | Important |
@@ -63,9 +63,9 @@ If NO to any: the cycle may need restructuring.
 - Do the task IDs follow the T{cycle}.{seq} format?
 - Are feature cycles properly marked as parallel-eligible?
 - Do checkpoints describe observable, testable outcomes?
-- **Does every cycle end with a HUMAN VERIFICATION task?**
-- **Do human verification tasks specify concrete steps with real infrastructure?**
-- **Would a human be able to see/verify the behavior without running automated tests?**
+- **Does every cycle end with a `**TEST:**` verification task?**
+- **Do verification tasks specify concrete steps with real infrastructure?**
+- **Do verification tasks have clear Setup/Action/Assert structure?**
 
 ### TDD Structure Validation
 
@@ -73,36 +73,37 @@ For each cycle, verify task ordering:
 1. **First task**: Write failing test (TN.1)
 2. **Middle tasks**: Implementation (TN.2, TN.3, ...)
 3. **Near-last task**: Refactor and verify automated tests pass
-4. **Last task**: **HUMAN VERIFICATION** with real infrastructure
+4. **Last task**: `**TEST:**` verification with real infrastructure
 
 If this order is violated: Critical issue.
 
-### Human Verification Validation
+### Verification Task Validation
 
 For each cycle's final task, verify:
 
-1. **Is it labeled "HUMAN VERIFICATION"?** If it just says "Demo" or "Verify", it may be vague.
+1. **Is it using `**TEST:**` format?** If it just says "Demo" or "Verify", it may be vague.
 2. **Does it specify real infrastructure?** Look for concrete paths, commands, or UI actions.
-3. **Does it have explicit steps?** Setup, Action, Verify format with specific commands.
-4. **Does it have observable outcomes?** What the human should see when it works.
-5. **Does it include a sign-off?** "Human confirms: ..." statement.
+3. **Does it have explicit steps?** Setup/Action/Assert format with specific commands.
+4. **Does it have observable outcomes?** Clear Assert conditions.
+5. **Does it include Capture?** Evidence collection for review (console, screenshot, logs).
 
-**Good Human Verification Task:**
+**Good Verification Task:**
 ```markdown
-- [ ] **T2.12**: **HUMAN VERIFICATION** - File watcher detects real files
-  - Setup: `mkdir /tmp/test-dir`
-  - Action: Run watcher, then `touch /tmp/test-dir/test.jsonl`
-  - Verify: Console outputs "FileWatchEvent: created ..."
-  - **Human confirms**: Events appear in real time ✓
+- [ ] **T2.12**: **TEST:** - File watcher detects real files
+  - **Setup**: `mkdir /tmp/test-dir`
+  - **Action**: `dart run bin/watcher.dart /tmp/test-dir` (background)
+  - **Action**: `sleep 1 && touch /tmp/test-dir/test.jsonl`
+  - **Assert**: Console contains "FileWatchEvent: created"
+  - **Capture**: console
 ```
 
-**Bad Human Verification Task (REJECT):**
+**Bad Verification Task (REJECT):**
 ```markdown
 - [ ] **T2.12**: Demo: Verify file watching infrastructure is functional
   - Checkpoint: PathValidator correctly rejects symlinks outside scope
 ```
 
-Why bad? No concrete steps, no real files created, "checkpoint" describes what tests verify, not what human sees.
+Why bad? No concrete steps, no real files created, "checkpoint" describes what tests verify, not observable behavior.
 
 ---
 
@@ -160,12 +161,12 @@ If any link is broken: Critical issue.
 | Missing cycle | Critical | Add tasks for cycle |
 | No test task first | Critical | Reorder to test-first |
 | Vague file paths | Critical | Specify exact paths |
-| Missing human verification | Critical | Add HUMAN VERIFICATION task as final task |
+| Missing verification task | Critical | Add `**TEST:**` task as final task |
 | Mock-only verification | Critical | Rewrite with real infrastructure steps |
-| Vague demo task | Critical | Add concrete Setup/Action/Verify steps |
+| Vague demo task | Critical | Add concrete Setup/Action/Assert steps |
 | Wrong task ID format | Important | Fix to TN.X format |
-| Missing checkpoint | Important | Add human-verifiable outcome |
-| Test-only checkpoint | Important | Rewrite as human-observable behavior |
+| Missing checkpoint | Important | Add verifiable outcome |
+| Test-only checkpoint | Important | Rewrite as observable behavior |
 | Missing [P] marker | Minor | Add if parallel-eligible |
 
 ---
@@ -193,17 +194,18 @@ If any link is broken: Critical issue.
 - **Impact**: Violates TDD discipline, tests may be afterthought
 - **Suggested Fix**: Reorder T3.1 to be test, T3.2+ to be implementation
 
-**Issue T-002**: Cycle 2 has mock-only human verification task
+**Issue T-002**: Cycle 2 has mock-only verification task
 
 - **Evidence**: T2.12 says "Demo: Verify file watching infrastructure is functional" with checkpoint "PathValidator correctly rejects symlinks outside scope"
-- **Impact**: No real infrastructure tested. All tests could pass while feature doesn't work in production. Human cannot verify behavior without reading test output.
-- **Suggested Fix**: Rewrite as HUMAN VERIFICATION with real infrastructure:
+- **Impact**: No real infrastructure tested. All tests could pass while feature doesn't work in production.
+- **Suggested Fix**: Rewrite with `**TEST:**` format and real infrastructure:
   ```
-  - [ ] **T2.12**: **HUMAN VERIFICATION** - File watcher detects real files
-    - Setup: `mkdir /tmp/watcher-test`
-    - Action: Run watcher, then `touch /tmp/watcher-test/test.jsonl`
-    - Verify: Console outputs "FileWatchEvent: created ..."
-    - **Human confirms**: Events appear within 1 second ✓
+  - [ ] **T2.12**: **TEST:** - File watcher detects real files
+    - **Setup**: `mkdir /tmp/watcher-test`
+    - **Action**: `dart run bin/watcher.dart /tmp/watcher-test` (background)
+    - **Action**: `sleep 1 && touch /tmp/watcher-test/test.jsonl`
+    - **Assert**: Console contains "FileWatchEvent: created"
+    - **Capture**: console
   ```
 
 ### Important (2)
@@ -235,5 +237,5 @@ None
 
 **needs-revision**: 2 Critical issues (TDD ordering, mock-only verification) and 2 Important issues.
 The mock-only verification is the most severe—without real infrastructure testing, the entire feature could be broken despite all tests passing.
-Fixable in one iteration by the Task Architect.
+Fixable in one iteration by the Task Architect using the unified `**TEST:**` format.
 ```
