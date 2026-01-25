@@ -6,6 +6,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.8.6] - 2026-01-26
+
+Skill auto-invocation fix for user-invoked skills.
+
+### humaninloop 0.8.6
+
+#### Fixed
+- **using-github-issues skill** - Added RFC 2119 keywords for reliable auto-invocation (#55)
+  - Skill now uses `MUST` keyword: "This skill MUST be invoked when the user says..."
+  - Follows ADR-006 pattern for user-invoked skills vs agent-invoked skills
+
+#### Documentation
+- **ADR-006** - RFC 2119 Keywords for Skill Auto-Invocation pattern documented
+
+---
+
 ## [0.8.5] - 2026-01-26
 
 Unified verification format with runtime classification.
@@ -894,6 +910,7 @@ Initial marketplace scaffold.
 
 ---
 
+[0.8.6]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.6
 [0.8.5]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.5
 [0.8.4]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.4
 [0.8.3]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.3
