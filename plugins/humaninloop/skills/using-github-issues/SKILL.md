@@ -1,5 +1,5 @@
 ---
-name: tooling-github-issues
+name: using-github-issues
 description: Use when creating GitHub issues, managing issue lifecycle, triaging bugs and features, or when user mentions "log issue", "create bug", "feature request", "close stale issues", or needs structured issue tracking.
 ---
 

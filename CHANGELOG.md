@@ -13,7 +13,7 @@ Skills update: new GitHub issues management skill and testing-end-user skill reb
 ### humaninloop 0.8.2
 
 #### New Skill
-- **tooling-github-issues** - GitHub issue management with quality standards enforcement
+- **using-github-issues** - GitHub issue management with quality standards enforcement
   - Bug report, feature request, task, and security advisory templates
   - Pre-creation checklist with duplicate and security checks
   - Lifecycle management (search, triage, status updates, batch operations)
