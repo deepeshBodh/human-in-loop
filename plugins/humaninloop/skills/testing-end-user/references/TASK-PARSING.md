@@ -1,5 +1,16 @@
 # Task Parsing Rules
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Task Detection](#task-detection)
+- [Field Markers](#field-markers)
+- [Parsing Algorithm](#parsing-algorithm)
+- [Action Modifier Parsing](#action-modifier-parsing)
+- [Assert Pattern Parsing](#assert-pattern-parsing)
+- [Parsed Task Structure](#parsed-task-structure)
+- [Error Handling](#error-handling)
+
 ## Overview
 
 This document defines how to extract structured data from `**TEST:VERIFY**` and `**TEST:CONTRACT**` task markers in tasks.md.
@@ -218,7 +229,7 @@ If `**Action**:` or `**Assert**:` missing:
 
 ### Malformed Patterns
 
-If modifiers or patterns don't match expected format:
+If modifiers or patterns do not match expected format:
 - Log warning
 - Use literal text as fallback
 - Include in report for human review
