@@ -155,30 +155,9 @@ Before starting, check for interrupted workflows:
 
 This phase detects under-specified input and routes through the `analysis-iterative` skill for enrichment when needed.
 
-### 0.5.1 Display Inline Hint
+### 0.5.1 Semantic Detection
 
-```
-AskUserQuestion(
-  questions: [{
-    question: "**Tip**: Good feature descriptions include who needs it, what problem it solves, and how you'll know it works.\n\nYour input:\n> {user_input}\n\nProceed with this input?",
-    header: "Feature Input",
-    options: [
-      {label: "Proceed", description: "This description is sufficient"},
-      {label: "Enrich input", description: "Help me think through this more"}
-    ],
-    multiSelect: false
-  }]
-)
-```
-
-**Routing**:
-- "Enrich input" → Skip to 0.5.3 (invoke skill)
-- "Proceed" + `skip_brainstorm == true` → Skip to Phase 1
-- "Proceed" + `skip_brainstorm == false` → Continue to 0.5.2
-
-### 0.5.2 Semantic Detection
-
-Analyze input for Who + Problem + Value triad:
+Analyze input for Who + Problem + Value triad FIRST (before showing prompt to user):
 
 ```
 Analyze: "{user_input}"
@@ -189,9 +168,45 @@ Return JSON: {
 }
 ```
 
+Store result as `detection_result` for use in next step.
+
+### 0.5.2 Display Input Guidance
+
+Based on `detection_result.verdict`, present appropriate recommendation:
+
+**If `verdict == "sufficient"`**:
+```
+AskUserQuestion(
+  questions: [{
+    question: "**Tip**: Good feature descriptions include who needs it, what problem it solves, and how you'll know it works.\n\nYour input:\n> {user_input}\n\nDetected: Who, Problem, and Value present.\n\nProceed with this input?",
+    header: "Feature Input",
+    options: [
+      {label: "Proceed (Recommended)", description: "Input has sufficient detail"},
+      {label: "Enrich input", description: "Help me think through this more"}
+    ],
+    multiSelect: false
+  }]
+)
+```
+
+**If `verdict == "sparse"`**:
+```
+AskUserQuestion(
+  questions: [{
+    question: "**Tip**: Good feature descriptions include who needs it, what problem it solves, and how you'll know it works.\n\nYour input:\n> {user_input}\n\nDetected gaps: {missing elements}\n\nWould you like help enriching this input?",
+    header: "Feature Input",
+    options: [
+      {label: "Enrich input (Recommended)", description: "Help me fill in the gaps"},
+      {label: "Proceed anyway", description: "Continue with current input"}
+    ],
+    multiSelect: false
+  }]
+)
+```
+
 **Routing**:
-- `verdict == "sufficient"` → Set `input_source = "direct"`, skip to Phase 1
-- `verdict == "sparse"` → Continue to 0.5.3
+- "Enrich input" or "Enrich input (Recommended)" → Continue to 0.5.3 (invoke skill)
+- "Proceed (Recommended)" or "Proceed anyway" → Skip to Phase 1, set `input_source = "direct"`
 
 ### 0.5.3 Invoke Enrichment Skill
 
@@ -207,13 +222,42 @@ Skill(
 The skill will:
 1. Ask focused questions (WHO/PROBLEM/VALUE) for missing elements only
 2. Use one-at-a-time questioning with options and recommendations
-3. Generate enriched description using ENRICHMENT.md template
+3. Generate enriched description using ENRICHMENT.md template with completion markers
 4. Return the enriched feature description
 
-**After skill completes**:
-- Set `user_input = enriched_output`
-- Set `input_source = "enriched"`
-- Continue to Phase 1
+### 0.5.4 Parse Enrichment Output and Continue
+
+**CRITICAL**: After the skill generates output, the supervisor MUST:
+
+1. **Detect completion marker**: Look for `<!-- ENRICHMENT_COMPLETE -->` in the output
+2. **Extract enriched output**: Parse content between markers or extract the **Summary** section
+3. **Set workflow state**:
+   ```
+   user_input = extracted_summary
+   input_source = "enriched"
+   ```
+4. **Continue to Phase 1**: Do NOT stop or ask additional questions
+
+**Parsing the Summary**:
+- Look for `### Summary` section in the enrichment output
+- Extract the narrative text (typically one paragraph)
+- Use this as the new `user_input` for the Requirements Analyst
+
+**Example**:
+If enrichment output contains:
+```
+### Summary
+
+End users need dark mode because they experience eye strain during extended use in low-light environments. This matters because it improves user satisfaction and enables evening usage. Success will be measured by user feedback indicating reduced eye fatigue.
+```
+
+Then set:
+```
+user_input = "End users need dark mode because they experience eye strain during extended use in low-light environments. This matters because it improves user satisfaction and enables evening usage. Success will be measured by user feedback indicating reduced eye fatigue."
+input_source = "enriched"
+```
+
+**Continue to Phase 1** immediately after parsing.
 
 ---
 
