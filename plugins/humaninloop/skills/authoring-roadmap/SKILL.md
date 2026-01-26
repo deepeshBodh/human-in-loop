@@ -1,6 +1,9 @@
 ---
 name: authoring-roadmap
-description: Use when creating evolution roadmap, generating gap analysis, identifying improvement priorities, or when user mentions "roadmap", "gap analysis", "evolution plan", "brownfield gaps", or "improvement priorities"
+description: >
+  This skill MUST be invoked when the user says "roadmap", "gap analysis", "evolution plan",
+  "brownfield gaps", or "improvement priorities". Use when creating evolution roadmaps or
+  identifying improvement priorities for brownfield projects.
 ---
 
 # Authoring Evolution Roadmap
@@ -20,10 +23,10 @@ Create evolution roadmaps that identify gaps between current codebase state and 
 
 ## When NOT to Use
 
-- No codebase analysis exists yet → run **humaninloop:analysis-codebase** first
-- No constitution has been created → run **humaninloop:authoring-constitution** or **humaninloop:brownfield-constitution** first
-- Greenfield project with no existing code → no gaps to identify
-- User wants implementation plan, not gap analysis → use **humaninloop:plan** instead
+- **No codebase analysis exists yet**: **REQUIRED:** run `humaninloop:analysis-codebase` first
+- **No constitution has been created**: **REQUIRED:** run `humaninloop:authoring-constitution` or `humaninloop:brownfield-constitution` first
+- **Greenfield project with no existing code**: No gaps to identify
+- **User wants implementation plan, not gap analysis**: **OPTIONAL:** use `humaninloop:plan` instead
 
 ## Input Requirements
 
@@ -45,7 +48,7 @@ To create an evolution roadmap, both inputs are REQUIRED:
 - Not for "we'll formalize it later"
 - Not even if user says "skip analysis, just list the gaps"
 
-If inputs are missing, create them first using **humaninloop:analysis-codebase** and **humaninloop:authoring-constitution**.
+If inputs are missing, create them first using **REQUIRED:** `humaninloop:analysis-codebase` and `humaninloop:authoring-constitution`.
 
 ## Gap Identification Process
 
@@ -106,6 +109,12 @@ Determine which gaps block or enable others:
 - **Blocks**: What this gap prevents if not addressed
 - **Enables**: What fixing this gap unlocks
 - **Depends On**: Other gaps that must be addressed first
+
+**No exceptions:**
+- Not for "priorities are obvious"
+- Not for "P3 can be estimated later"
+- Not for "dependencies will become clear during implementation"
+- Every gap MUST have priority, effort, and dependencies documented before proceeding.
 
 ## Gap Card Format
 
@@ -256,7 +265,7 @@ Before finalizing roadmap, ALL items MUST be checked:
 
 ## Red Flags - STOP and Restart Properly
 
-If you notice yourself thinking any of these, STOP immediately:
+If any of these thoughts arise, STOP immediately:
 
 - "I already know what the gaps are"
 - "The codebase is too simple to need a formal roadmap"
@@ -266,7 +275,7 @@ If you notice yourself thinking any of these, STOP immediately:
 - "This is just documentation overhead"
 - "I'll create the roadmap later after some quick fixes"
 
-**All of these mean:** You are rationalizing. Restart with proper process.
+**All of these mean:** Rationalization is occurring. Restart with proper process.
 
 ## Common Rationalizations
 
