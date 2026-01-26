@@ -6,6 +6,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.8.7] - 2026-01-26
+
+Skill audit compliance and /specify workflow improvements.
+
+### humaninloop 0.8.7
+
+#### Fixed
+- **8 skills** - Address audit compliance issues with improved structure
+  - `authoring-roadmap`, `using-git-worktrees`, `syncing-claude-md`, `analysis-codebase`
+  - `validation-constitution`, `brownfield-constitution`, `authoring-constitution`, `testing-end-user`
+- **/humaninloop:specify** - Reorder semantic detection to run before user prompt display
+- **/humaninloop:specify** - Add enrichment continuation to parse skill output and proceed to Phase 1
+
+---
+
 ## [0.8.6] - 2026-01-26
 
 Skill auto-invocation fix for user-invoked skills.
@@ -910,6 +925,7 @@ Initial marketplace scaffold.
 
 ---
 
+[0.8.7]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.7
 [0.8.6]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.6
 [0.8.5]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.5
 [0.8.4]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.4
