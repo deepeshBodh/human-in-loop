@@ -6,6 +6,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.8.8] - 2026-01-26
+
+Research option in clarification flow and skill YAML compliance.
+
+### humaninloop 0.8.8
+
+#### Added
+- **Research this option** - Clarification questions in /specify, /plan, and /tasks now offer "Research this" option (#58)
+  - Supervisor can research answers using codebase exploration, web search, or documentation lookup
+  - Clarification log tracks source (user vs research) for answers
+  - User confirms or overrides research findings before proceeding
+
+#### Fixed
+- **8 skills** - Convert multi-line YAML descriptions to single-line format for reliable model triggering
+  - `analysis-codebase`, `authoring-constitution`, `authoring-roadmap`, `brownfield-constitution`
+  - `syncing-claude-md`, `testing-end-user`, `using-git-worktrees`, `validation-constitution`
+
+---
+
 ## [0.8.7] - 2026-01-26
 
 Skill audit compliance and /specify workflow improvements.

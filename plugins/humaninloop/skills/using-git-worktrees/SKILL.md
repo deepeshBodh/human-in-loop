@@ -1,9 +1,6 @@
 ---
 name: using-git-worktrees
-description: >
-  This skill MUST be invoked when the user says "create worktree", "isolated workspace",
-  "parallel branch work", "git worktree", "feature isolation", or "branch workspace".
-  SHOULD also invoke when starting feature work that needs isolation from current workspace.
+description: Use when user asks to "create worktree", "isolated workspace", "parallel branch work", or mentions "git worktree", "feature isolation", "branch workspace", or when starting feature work that needs isolation from current workspace.
 ---
 
 # Using Git Worktrees

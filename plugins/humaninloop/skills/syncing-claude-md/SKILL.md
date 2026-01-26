@@ -1,8 +1,6 @@
 ---
 name: syncing-claude-md
-description: >
-  This skill MUST be invoked when the user says "sync CLAUDE.md", "update agent instructions",
-  "propagate constitution changes", "CLAUDE.md sync", "agent instructions", or "constitution alignment".
+description: Use when user asks to "sync CLAUDE.md", "update agent instructions", "propagate constitution changes", or mentions "CLAUDE.md sync", "agent instructions", or "constitution alignment".
 ---
 
 # Syncing CLAUDE.md

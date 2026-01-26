@@ -1,10 +1,6 @@
 ---
 name: analysis-codebase
-description: >
-  This skill MUST be invoked when the user says "analyze codebase", "scan project",
-  "detect tech stack", or "codebase analysis". SHOULD also invoke when user mentions
-  "existing code", "collision risk", "brownfield", or "project context". Also used
-  by plan-architect agents during discovery phase.
+description: Use when user asks to "analyze codebase", "scan project", "detect tech stack", or mentions "codebase analysis", "existing code", "collision risk", "brownfield", or "project context".
 ---
 
 # Analyzing Codebase

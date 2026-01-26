@@ -1,9 +1,6 @@
 ---
 name: authoring-roadmap
-description: >
-  This skill MUST be invoked when the user says "roadmap", "gap analysis", "evolution plan",
-  "brownfield gaps", or "improvement priorities". Use when creating evolution roadmaps or
-  identifying improvement priorities for brownfield projects.
+description: Use when creating evolution roadmap, generating gap analysis, identifying improvement priorities, or when user mentions "roadmap", "gap analysis", "evolution plan", "brownfield gaps", or "improvement priorities"
 ---
 
 # Authoring Evolution Roadmap
