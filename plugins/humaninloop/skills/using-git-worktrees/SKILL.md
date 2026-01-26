@@ -1,6 +1,9 @@
 ---
 name: using-git-worktrees
-description: Use when user asks to "create worktree", "isolated workspace", "parallel branch work", or mentions "git worktree", "feature isolation", "branch workspace", or when starting feature work that needs isolation from current workspace.
+description: >
+  This skill MUST be invoked when the user says "create worktree", "isolated workspace",
+  "parallel branch work", "git worktree", "feature isolation", or "branch workspace".
+  SHOULD also invoke when starting feature work that needs isolation from current workspace.
 ---
 
 # Using Git Worktrees
@@ -15,7 +18,7 @@ Create isolated workspaces sharing the same repository for parallel branch work.
 
 - Starting feature work requiring isolation from current workspace
 - Working on multiple branches simultaneously
-- Executing implementation plans in a clean environment (pairs with `humaninloop:plan`)
+- Executing implementation plans in a clean environment (**OPTIONAL:** pairs with `humaninloop:plan`)
 - Testing changes without affecting the main working directory
 - Parallel code review while continuing development
 
@@ -318,3 +321,11 @@ git worktree lock <path>
 # Unlock worktree
 git worktree unlock <path>
 ```
+
+## Example Scripts
+
+Working shell scripts are available in `examples/`:
+
+- [examples/worktree-setup.sh](examples/worktree-setup.sh) - Complete worktree creation with safety checks
+- [examples/worktree-cleanup.sh](examples/worktree-cleanup.sh) - Safe removal with uncommitted change detection
+- [examples/worktree-list.sh](examples/worktree-list.sh) - Enhanced listing with status and disk usage
