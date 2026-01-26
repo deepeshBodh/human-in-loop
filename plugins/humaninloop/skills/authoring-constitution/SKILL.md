@@ -1,6 +1,10 @@
 ---
 name: authoring-constitution
-description: Use when creating or updating project constitution, when user asks to "write principles", "define governance", or mentions "constitution", "governance", "principles", "enforcement", or "amendment process". Core skill for greenfield projects.
+description: >
+  This skill MUST be invoked when the user says "create a constitution", "write principles",
+  "define governance", or "define constraints". SHOULD invoke when user mentions "constitution",
+  "governance", "principles", "enforcement", or "amendment process". Core skill for greenfield
+  projects needing governance documentation.
 ---
 
 # Authoring Constitution
@@ -19,9 +23,9 @@ Write project constitutions that teams actually follow. Every principle must be 
 
 ## When NOT to Use
 
-- **Brownfield projects with existing code**: Use `humaninloop:brownfield-constitution` instead, which provides Essential Floor + Emergent Ceiling approach
-- **Reviewing an existing constitution**: Use `humaninloop:validation-constitution` for quality checks
-- **Syncing CLAUDE.md after constitution changes**: Use `humaninloop:syncing-claude-md` for synchronization
+- **Brownfield projects with existing code**: **REQUIRED** alternative - Use `humaninloop:brownfield-constitution` instead, which provides Essential Floor + Emergent Ceiling approach
+- **Reviewing an existing constitution**: **OPTIONAL** - Use `humaninloop:validation-constitution` for quality checks
+- **Syncing CLAUDE.md after constitution changes**: **OPTIONAL** - Use `humaninloop:syncing-claude-md` for synchronization
 
 ## Common Mistakes
 
@@ -123,7 +127,7 @@ Use precise language for requirements:
 | **SHOULD NOT** | Discouraged; valid exceptions exist | "Magic numbers SHOULD NOT appear" |
 | **MAY** | Optional; implementation choice | "Teams MAY adopt additional linting rules" |
 
-See [RFC-2119-KEYWORDS.md](RFC-2119-KEYWORDS.md) for detailed usage.
+See [references/RFC-2119-KEYWORDS.md](references/RFC-2119-KEYWORDS.md) for detailed usage.
 
 ## Mandatory Constitution Sections
 
@@ -182,7 +186,7 @@ Previous reports:
 -->
 ```
 
-See [SYNC-IMPACT-FORMAT.md](SYNC-IMPACT-FORMAT.md) for complete format.
+See [references/SYNC-IMPACT-FORMAT.md](references/SYNC-IMPACT-FORMAT.md) for complete format.
 
 ### 2. Core Principles
 
@@ -204,7 +208,7 @@ Numbered principles (I, II, III...) with Enforcement/Testability/Rationale.
 | **Operations** | Observability, Error Handling, Performance |
 | **Governance** | Versioning, Dependencies, Exceptions |
 
-**Greenfield Recommendation**: Beyond the Essential Floor (I-IV: Security, Testing, Error Handling, Observability), greenfield constitutions SHOULD include architectural principles. See [RECOMMENDED-PATTERNS.md](RECOMMENDED-PATTERNS.md) for:
+**Greenfield Recommendation**: Beyond the Essential Floor (I-IV: Security, Testing, Error Handling, Observability), greenfield constitutions SHOULD include architectural principles. See [references/RECOMMENDED-PATTERNS.md](references/RECOMMENDED-PATTERNS.md) for:
 
 - **Hexagonal Architecture** (Ports & Adapters) - Layer rules, dependency flow, port interfaces
 - **Single Responsibility & Module Boundaries** - Complexity limits, separation of concerns
@@ -318,6 +322,6 @@ outdated or incorrect guidance, undermining the governance this constitution est
 
 ## Related Skills
 
-- **For architectural patterns**: See [RECOMMENDED-PATTERNS.md](RECOMMENDED-PATTERNS.md) for hexagonal architecture, single responsibility, and dependency discipline principles
+- **For architectural patterns**: See [references/RECOMMENDED-PATTERNS.md](references/RECOMMENDED-PATTERNS.md) for hexagonal architecture, single responsibility, and dependency discipline principles
 - **For brownfield projects**: **REQUIRED** alternative - Use `humaninloop:brownfield-constitution` which extends this skill with Essential Floor + Emergent Ceiling approach
 - **For validation**: **OPTIONAL** - Use `humaninloop:validation-constitution` after authoring to verify quality

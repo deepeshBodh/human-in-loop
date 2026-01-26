@@ -1,6 +1,9 @@
 ---
 name: validation-constitution
-description: Use when user asks to "review constitution", "validate principles", "check quality", or mentions "constitution review", "quality check", "version bump", "anti-patterns", or "constitution audit".
+description: >
+  This skill MUST be invoked when the user says "review constitution", "validate principles",
+  "check quality", "constitution review", "quality check", "version bump", "anti-patterns",
+  or "constitution audit". Use after drafting a constitution and before presenting for approval.
 ---
 
 # Validating Constitution
@@ -33,7 +36,7 @@ Skipping validation because "the constitution looks fine" or "it's mostly comple
 
 ### Step 1: Load Quality Checklist
 
-Read [QUALITY-CHECKLIST.md](QUALITY-CHECKLIST.md) and verify every item. Do not skip items because they "seem obvious" or "clearly pass."
+Read [references/QUALITY-CHECKLIST.md](references/QUALITY-CHECKLIST.md) and verify every item. Do not skip items because they "seem obvious" or "clearly pass."
 
 ### Step 2: Check Each Principle
 
@@ -49,7 +52,7 @@ If any principle lacks any part, the constitution FAILS validation.
 
 ### Step 3: Scan for Anti-Patterns
 
-Compare against [ANTI-PATTERNS.md](ANTI-PATTERNS.md). Common failures:
+Compare against [references/ANTI-PATTERNS.md](references/ANTI-PATTERNS.md). Common failures:
 
 | Anti-Pattern | Detection |
 |--------------|-----------|

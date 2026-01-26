@@ -1,6 +1,10 @@
 ---
 name: analysis-codebase
-description: Use when user asks to "analyze codebase", "scan project", "detect tech stack", or mentions "codebase analysis", "existing code", "collision risk", "brownfield", or "project context".
+description: >
+  This skill MUST be invoked when the user says "analyze codebase", "scan project",
+  "detect tech stack", or "codebase analysis". SHOULD also invoke when user mentions
+  "existing code", "collision risk", "brownfield", or "project context". Also used
+  by plan-architect agents during discovery phase.
 ---
 
 # Analyzing Codebase
@@ -108,7 +112,7 @@ For constitution authoring - gather broad project characteristics.
 
 **Output**: Project Context Report (markdown)
 
-See [CONTEXT-GATHERING.md](CONTEXT-GATHERING.md) for detailed guidance.
+See [references/CONTEXT-GATHERING.md](references/CONTEXT-GATHERING.md) for detailed guidance.
 
 ## Mode: Brownfield Analysis
 
@@ -121,7 +125,7 @@ For planning - extract structural details for collision detection.
 
 **Output**: Codebase Inventory (JSON)
 
-See [BROWNFIELD-ANALYSIS.md](BROWNFIELD-ANALYSIS.md) for detailed guidance.
+See [references/BROWNFIELD-ANALYSIS.md](references/BROWNFIELD-ANALYSIS.md) for detailed guidance.
 
 ## Mode: Setup Brownfield
 
