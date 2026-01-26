@@ -5,6 +5,7 @@ Use this template when concluding a specification-input enrichment session.
 ## Template
 
 ```markdown
+<!-- ENRICHMENT_COMPLETE -->
 ## Enriched Feature Description
 
 **Actor**: [The user/role who needs this feature]
@@ -20,6 +21,11 @@ Use this template when concluding a specification-input enrichment session.
 ### Original Input
 
 > [Original user input preserved verbatim]
+
+---
+
+**Enrichment complete.** The `/humaninloop:specify` supervisor should now continue to Phase 1 using the Summary section above as the enriched input.
+<!-- ENRICHMENT_OUTPUT_END -->
 ```
 
 ## Example
@@ -29,6 +35,7 @@ For input: "Add dark mode"
 After enrichment questions:
 
 ```markdown
+<!-- ENRICHMENT_COMPLETE -->
 ## Enriched Feature Description
 
 **Actor**: End users of the application
@@ -44,6 +51,11 @@ End users need this feature because they experience eye strain during extended u
 ### Original Input
 
 > Add dark mode
+
+---
+
+**Enrichment complete.** The `/humaninloop:specify` supervisor should now continue to Phase 1 using the Summary section above as the enriched input.
+<!-- ENRICHMENT_OUTPUT_END -->
 ```
 
 ## Guidelines

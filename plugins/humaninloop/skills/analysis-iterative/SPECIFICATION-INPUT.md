@@ -104,6 +104,18 @@ Finally, let's define how we'll know this works.
 
 After questions are answered, generate the enriched description using [ENRICHMENT.md](ENRICHMENT.md) template.
 
+## Completion and Return
+
+After generating the enriched description:
+
+1. **Output the enriched description** using the ENRICHMENT.md template with markers
+2. **Signal completion** with the footer text indicating the supervisor should continue
+3. **Do NOT ask any follow-up questions** - the skill is complete
+
+The `<!-- ENRICHMENT_COMPLETE -->` and `<!-- ENRICHMENT_OUTPUT_END -->` markers allow the supervisor to parse the output.
+
+**Important**: This skill MUST conclude after generating the enrichment. The supervisor (specify command) owns the workflow continuation.
+
 ## Key Differences from Standard Mode
 
 | Aspect | Standard Mode | Specification-Input Mode |
