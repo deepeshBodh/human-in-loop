@@ -45,7 +45,7 @@ Common approved libraries by language:
 | Go | `go-playground/validator`, `shopspring/decimal`, `google/uuid` | Struct validation, decimals, identifiers |
 | Rust | `serde`, `rust_decimal`, `uuid` | Serialization, decimals, identifiers |
 
-See full registry at `${CLAUDE_PLUGIN_ROOT}/templates/approved-domain-deps.md`.
+Projects SHOULD maintain their own approved dependency registry in their constitution or documentation.
 
 **Port Interface Requirements**:
 
