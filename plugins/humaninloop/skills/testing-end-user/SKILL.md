@@ -1,6 +1,10 @@
 ---
 name: testing-end-user
-description: Use when executing TEST tasks, running verification tests against real infrastructure, or when encountering "TEST:", "TEST:VERIFY", "TEST:CONTRACT", "execute verification", "run test task", or tasks with Setup/Action/Assert markers.
+description: >
+  This skill MUST be invoked when the user says "run test task", "execute test",
+  "run the test", "run tests", "test this", "execute verification", "run verification",
+  "verify this", or when tasks contain "TEST:", "TEST:VERIFY", "TEST:CONTRACT", or
+  Setup/Action/Assert markers. Use for verification testing against real infrastructure.
 ---
 
 # End-User Verification Testing
@@ -9,7 +13,7 @@ description: Use when executing TEST tasks, running verification tests against r
 
 Execute verification tasks that validate real infrastructure behavior through structured Setup/Action/Assert sequences. Classify tasks at runtime (CLI/GUI/SUBJECTIVE) to determine whether to auto-approve or present human checkpoints. This skill transforms tasks marked with `**TEST:**` into executable verification sequences with captured evidence.
 
-**Violating the letter of these rules is violating the spirit of these rules.**
+**Violating the letter of the rules is violating the spirit of the rules.**
 
 Verification testing exists to catch failures before they reach production. Every shortcut in this process is a potential production incident waiting to happen.
 
@@ -228,4 +232,4 @@ If any of these thoughts arise, STOP immediately:
 - [references/TASK-PARSING.md](references/TASK-PARSING.md) - Field marker extraction rules and parsing algorithm
 - [references/EVIDENCE-CAPTURE.md](references/EVIDENCE-CAPTURE.md) - Console capture, background processes, timeout handling
 - [references/REPORT-TEMPLATES.md](references/REPORT-TEMPLATES.md) - Minimal and rich report formats, checkpoint presentation
-- [testing/TESTING-EVIDENCE.md](testing/TESTING-EVIDENCE.md) - RED/GREEN/REFACTOR testing cycle documentation
+- [references/TESTING-EVIDENCE.md](references/TESTING-EVIDENCE.md) - RED/GREEN/REFACTOR testing cycle documentation
