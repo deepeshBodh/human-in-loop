@@ -1,6 +1,8 @@
 ---
 name: syncing-claude-md
-description: Use when user asks to "sync CLAUDE.md", "update agent instructions", "propagate constitution changes", or mentions "CLAUDE.md sync", "agent instructions", or "constitution alignment".
+description: >
+  This skill MUST be invoked when the user says "sync CLAUDE.md", "update agent instructions",
+  "propagate constitution changes", "CLAUDE.md sync", "agent instructions", or "constitution alignment".
 ---
 
 # Syncing CLAUDE.md
@@ -111,7 +113,7 @@ Tables are copied directly with no summarization. This applies to:
 
 **Why exact match:** These sections contain precise configuration that agents must follow exactly. Summarization risks losing critical details like specific tool versions or threshold values.
 
-See [SECTION-TEMPLATES.md](SECTION-TEMPLATES.md) for detailed templates and examples for each sync rule.
+See [references/SECTION-TEMPLATES.md](references/SECTION-TEMPLATES.md) for detailed templates and examples for each sync rule.
 
 ## Synchronization Process
 
@@ -161,11 +163,11 @@ Update CLAUDE.md with synchronized content. Apply changes section by section, pr
 
 Run the Quick Validation checklist. All items must pass before considering sync complete.
 
-See [SYNC-PATTERNS.md](SYNC-PATTERNS.md) for detailed process steps, validation checklists, and conflict resolution.
+See [references/SYNC-PATTERNS.md](references/SYNC-PATTERNS.md) for detailed process steps, validation checklists, and conflict resolution.
 
 ## CLAUDE.md Structure
 
-CLAUDE.md should include these sections for proper sync:
+CLAUDE.md includes these sections for proper sync:
 
 ### Required Sections
 
@@ -190,7 +192,7 @@ These sections may exist in CLAUDE.md but are not synchronized from the constitu
 
 Optional sections are preserved during sync—they are not deleted or modified.
 
-See [SECTION-TEMPLATES.md](SECTION-TEMPLATES.md) for the complete structure template.
+See [references/SECTION-TEMPLATES.md](references/SECTION-TEMPLATES.md) for the complete structure template.
 
 ## Sync Triggers
 
@@ -242,7 +244,7 @@ Before completing synchronization, verify:
 - [ ] No contradictions between files
 - [ ] Extra CLAUDE.md sections preserved (not deleted)
 
-See [SYNC-PATTERNS.md](SYNC-PATTERNS.md) for the complete validation checklist.
+See [references/SYNC-PATTERNS.md](references/SYNC-PATTERNS.md) for the complete validation checklist.
 
 ## Commit Convention
 
@@ -262,8 +264,8 @@ This skill includes detailed reference documentation:
 
 | File | Purpose | When to Use |
 |------|---------|-------------|
-| [SECTION-TEMPLATES.md](SECTION-TEMPLATES.md) | Templates for each CLAUDE.md section | When creating or restructuring CLAUDE.md |
-| [SYNC-PATTERNS.md](SYNC-PATTERNS.md) | Detailed sync patterns, validation checklists, edge cases | When resolving complex sync scenarios |
+| [references/SECTION-TEMPLATES.md](references/SECTION-TEMPLATES.md) | Templates for each CLAUDE.md section | When creating or restructuring CLAUDE.md |
+| [references/SYNC-PATTERNS.md](references/SYNC-PATTERNS.md) | Detailed sync patterns, validation checklists, edge cases | When resolving complex sync scenarios |
 
 ## Related Skills
 
