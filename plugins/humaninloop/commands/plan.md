@@ -550,17 +550,57 @@ When advocate verdict is `needs-revision` or `critical-gaps`:
      questions: clarifications.map(c => ({
        question: c.question,
        header: c.gap_id,
-       options: c.options || [
-         {label: "Yes", description: ""},
-         {label: "No", description: ""},
-         {label: "Not sure", description: "Needs more discussion"}
+       options: [
+         ...(c.options || [
+           {label: "Yes", description: ""},
+           {label: "No", description: ""}
+         ]),
+         {label: "Research this", description: "Let me investigate before answering"}
        ],
        multiSelect: false
      }))
    )
    ```
 
-2. **Update context with user answers**:
+2. **Handle "Research this" responses**:
+
+   If user selects "Research this" for any question:
+
+   a. **Analyze the question** to determine appropriate research:
+      - Existing code/behavior → `Task(subagent_type: "Explore")`
+      - External library/API → `WebSearch` for docs
+      - Best practices → `WebSearch` + codebase patterns
+      - Specific library → `mcp__context7__query-docs` if available
+
+   b. **Execute research** with supervisor judgment:
+      ```
+      Task(
+        subagent_type: "Explore",
+        prompt: "Find the answer to: {question}\n\nContext: {gap context}",
+        description: "Research gap: {gap_id}"
+      )
+      ```
+
+   c. **Process results**:
+      - **Definitive answer**: Log with evidence, ask user to confirm or override
+        ```
+        AskUserQuestion(
+          questions: [{
+            question: "Research found: {answer}\n\nSource: {file:line or URL}",
+            header: c.gap_id,
+            options: [
+              {label: "Accept this answer", description: "Use the researched answer"},
+              {label: "Provide different answer", description: "I'll give my own answer"}
+            ],
+            multiSelect: false
+          }]
+        )
+        ```
+      - **Inconclusive**: Re-present question with research context added
+
+   d. **Continue** with remaining questions or loop for more research
+
+3. **Update context with user answers**:
    Append to `## Clarification Log`:
    ```markdown
    ### Phase: {phase} - Iteration {N}
@@ -569,12 +609,13 @@ When advocate verdict is `needs-revision` or `critical-gaps`:
    {List from advocate report}
 
    #### User Answers
-   | Gap ID | Question | Answer |
-   |--------|----------|--------|
-   | G1 | {question} | {user's answer} |
+   | Gap ID | Question | Answer | Source |
+   |--------|----------|--------|--------|
+   | G1 | {question} | {user's answer} | user |
+   | G2 | {question} | {researched answer} | research: {file:line} |
    ```
 
-3. **Update supervisor instructions for revision**:
+4. **Update supervisor instructions for revision**:
    ```markdown
    **Phase**: {phase} (Revision)
 
