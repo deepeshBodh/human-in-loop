@@ -1,6 +1,10 @@
 ---
 name: brownfield-constitution
-description: Use when user asks to "create constitution for existing codebase", "codify existing patterns", or mentions "brownfield", "existing codebase", "essential floor", "emergent ceiling", or "evolution roadmap". Extends authoring-constitution with Essential Floor + Emergent Ceiling approach.
+description: >
+  This skill MUST be invoked when the user says "create constitution for existing codebase",
+  "codify existing patterns", "brownfield constitution", or "essential floor". SHOULD invoke
+  when user mentions "brownfield", "existing codebase", "emergent ceiling", or "evolution roadmap".
+  Extends authoring-constitution with Essential Floor + Emergent Ceiling approach.
 ---
 
 # Brownfield Constitution Authoring
@@ -13,7 +17,7 @@ The core insight: existing codebases have implicit conventions worth preserving 
 
 ## When to Use
 
-Use this skill when:
+Applicable when:
 
 - Creating a constitution for an **existing codebase** (brownfield project)
 - The codebase has existing patterns, conventions, or architecture worth preserving
@@ -23,16 +27,14 @@ Use this skill when:
 
 ## When NOT to Use
 
-Do NOT use this skill when:
-
-- Starting a **new project from scratch** → use `humaninloop:authoring-constitution` directly
-- **Codebase analysis has not been completed** → run `humaninloop:analysis-codebase` first
-- The project is **too small to need formal governance** (single-file scripts, prototypes)
-- You only need to **validate an existing constitution** → use `humaninloop:validation-constitution`
+- **New project from scratch**: **REQUIRED** alternative - Use `humaninloop:authoring-constitution` directly
+- **Codebase analysis not completed**: **REQUIRED** prerequisite - Run `humaninloop:analysis-codebase` first
+- **Project too small for formal governance**: Single-file scripts, prototypes do not need constitutions
+- **Validating existing constitution**: **OPTIONAL** - Use `humaninloop:validation-constitution`
 
 ## Prerequisites
 
-**REQUIRED:** This skill extends `humaninloop:authoring-constitution`. Before using brownfield mode:
+**REQUIRED:** This skill extends `humaninloop:authoring-constitution`. Prerequisites for brownfield mode:
 
 1. **Understand core principles**: Read `humaninloop:authoring-constitution` for the Three-Part Principle Rule (Enforcement, Testability, Rationale)
 2. **Know RFC 2119 keywords**: See RFC-2119-KEYWORDS.md in `humaninloop:authoring-constitution`
@@ -166,7 +168,7 @@ After completing brownfield constitution, run validation using `humaninloop:vali
 
 **Problem**: Writing the brownfield constitution without first running `humaninloop:analysis-codebase`.
 
-**Why it's wrong**: Without analysis, you're guessing about existing patterns. You'll miss good patterns worth preserving and may not accurately assess essential floor status.
+**Why it's wrong**: Without analysis, the process devolves into guessing about existing patterns. Good patterns worth preserving get missed and essential floor status assessments become inaccurate.
 
 **Fix**: Always run codebase analysis first. The analysis output has "Strengths to Preserve" (emergent ceiling input) and gap identification (essential floor status).
 
@@ -188,7 +190,7 @@ After completing brownfield constitution, run validation using `humaninloop:vali
 
 ## Related Skills
 
-- `humaninloop:authoring-constitution` - Core authoring (prerequisite)
-- `humaninloop:validation-constitution` - Quality validation (use after authoring)
-- `humaninloop:analysis-codebase` - Analyze existing codebase before writing
-- `humaninloop:authoring-roadmap` - Create evolution roadmap for identified gaps
+- **REQUIRED:** `humaninloop:authoring-constitution` - Core authoring (prerequisite)
+- **REQUIRED:** `humaninloop:analysis-codebase` - Analyze existing codebase before writing
+- **OPTIONAL:** `humaninloop:validation-constitution` - Quality validation (use after authoring)
+- **OPTIONAL:** `humaninloop:authoring-roadmap` - Create evolution roadmap for identified gaps
