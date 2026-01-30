@@ -106,6 +106,10 @@ Each command produces artifacts you review before the next step. You stay in con
 
 **Output**: `specs/{feature}/spec.md`
 
+**Agents**:
+- **Requirements Analyst** — Transforms feature requests into structured specs; no implementation details
+- **Devil's Advocate** — Reviews for gaps and ambiguity; asks clarifying questions
+
 </details>
 
 <details>
@@ -145,6 +149,10 @@ Each command produces artifacts you review before the next step. You stay in con
 
 **Output**: `specs/{feature}/plan.md` + supporting artifacts
 
+**Agents**:
+- **Plan Architect** — Creates research, data models, and API contracts; no code generation
+- **Devil's Advocate** — Validates technical decisions and cross-artifact consistency
+
 </details>
 
 <details>
@@ -181,6 +189,10 @@ Each command produces artifacts you review before the next step. You stay in con
 ```
 
 **Output**: `specs/{feature}/tasks.md` with TDD cycles
+
+**Agents**:
+- **Task Architect** — Maps requirements to vertical slices with TDD structure; no implementation
+- **Devil's Advocate** — Ensures coverage, proper ordering, and testable increments
 
 </details>
 
@@ -227,6 +239,9 @@ Each command produces artifacts you review before the next step. You stay in con
 
 **Output**: `.humaninloop/memory/constitution.md`
 
+**Agents**:
+- **Principal Architect** — Defines governance principles and quality gates; enforces RFC 2119 keywords
+
 </details>
 
 <details>
@@ -266,6 +281,8 @@ Each command produces artifacts you review before the next step. You stay in con
 ```
 
 **Output**: Coverage report + flagged issues
+
+**Agents**: None — direct analysis using validation skills
 
 </details>
 
@@ -308,6 +325,9 @@ Each command produces artifacts you review before the next step. You stay in con
 ```
 
 **Output**: Implemented code + marked tasks
+
+**Agents**:
+- **Testing Agent** — Executes verification tasks and captures evidence; auto-approves or presents checkpoints
 
 </details>
 
