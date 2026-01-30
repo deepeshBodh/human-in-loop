@@ -31,36 +31,6 @@ Every step produces artifacts you can review, refine, and approve before moving 
 
 ---
 
-## Quick Start
-
-### 1. Add the marketplace
-
-```bash
-/plugin marketplace add deepeshBodh/human-in-loop
-```
-
-### 2. Install the plugin
-
-```bash
-/plugin install humaninloop
-```
-
-### 3. Set up your project
-
-```bash
-/humaninloop:setup
-```
-
-This creates your project constitution—the standards and conventions that guide all future specifications.
-
-### 4. Create your first spec
-
-```bash
-/humaninloop:specify add user authentication with email and password
-```
-
----
-
 ## The Workflow
 
 ```
@@ -355,6 +325,36 @@ Claude automatically invokes these when relevant—authoring requirements, analy
 Focused responsibilities: requirements analyst, devil's advocate, plan architect, principal architect, task architect, testing agent.
 
 See the [plugin documentation](./plugins/humaninloop/README.md) for full details.
+
+---
+
+## Quick Start
+
+### 1. Add the marketplace
+
+```bash
+/plugin marketplace add deepeshBodh/human-in-loop
+```
+
+### 2. Install the plugin
+
+```bash
+/plugin install humaninloop
+```
+
+### 3. Set up your project
+
+```bash
+/humaninloop:setup
+```
+
+This creates your project constitution—the standards and conventions that guide all future specifications.
+
+### 4. Create your first spec
+
+```bash
+/humaninloop:specify add user authentication with email and password
+```
 
 ---
 
