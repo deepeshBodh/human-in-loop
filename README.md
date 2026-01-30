@@ -1,19 +1,8 @@
-<p align="center">
-  <a href="https://humaninloop.dev">
-    <img src="docs/images/hero.png" alt="HumanInLoop - Plan with humans. Build with AI. Ship sustainably." width="800">
-  </a>
-</p>
+# HumanInLoop
 
-<p align="center">
-  <strong>Stop vibe coding. Ship software that lasts.</strong>
-</p>
+**Stop vibe coding. Ship software that lasts.**
 
-<p align="center">
-  <a href="https://humaninloop.dev">Website</a> •
-  <a href="#quick-start">Quick Start</a> •
-  <a href="./ROADMAP.md">Roadmap</a> •
-  <a href="./CHANGELOG.md">Changelog</a>
-</p>
+[Website](https://humaninloop.dev) • [Quick Start](#quick-start) • [Roadmap](./ROADMAP.md) • [Changelog](./CHANGELOG.md)
 
 ---
 
