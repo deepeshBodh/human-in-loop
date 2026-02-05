@@ -6,6 +6,37 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.8.9] - 2026-02-05
+
+Skill compliance audit for SKILL-GUIDELINES v1.2.0 (#62).
+
+### humaninloop 0.8.9
+
+#### Fixed
+- **17 skills** - Aligned with SKILL-GUIDELINES v1.2.0 compliance:
+  - Fixed RFC 2119 invocation format ("MUST be invoked when user says")
+  - Renamed Purpose → Overview sections
+  - Added When to Use / When NOT to Use sections
+  - Renamed Anti-Patterns → Common Mistakes with expanded examples
+  - Moved reference files to references/ subdirectory
+
+  Skills updated:
+  - authoring-requirements, authoring-user-stories
+  - validation-plan-artifacts, validation-task-artifacts
+  - patterns-vertical-tdd, patterns-technical-decisions
+  - patterns-entity-modeling, patterns-api-contracts
+  - analysis-specifications, analysis-iterative, analysis-codebase
+  - testing-end-user, syncing-claude-md
+  - authoring-constitution, brownfield-constitution, validation-constitution
+  - authoring-roadmap
+
+#### Documentation
+- README: Added ASCII workflow and command diagrams
+- README: Added agent descriptions to command diagrams
+- README: Replaced hero banner with compact header
+
+---
+
 ## [0.8.8] - 2026-01-26
 
 Research option in clarification flow and skill YAML compliance.
@@ -944,6 +975,8 @@ Initial marketplace scaffold.
 
 ---
 
+[0.8.9]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.9
+[0.8.8]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.8
 [0.8.7]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.7
 [0.8.6]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.6
 [0.8.5]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.5
