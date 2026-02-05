@@ -1,13 +1,31 @@
 ---
 name: authoring-requirements
-description: This skill should be used when the user asks to "write requirements", "define success criteria", "identify edge cases", or mentions "functional requirements", "FR-", "SC-", "RFC 2119", "MUST SHOULD MAY", or "edge cases". Produces technology-agnostic requirements in FR-XXX format with measurable success criteria.
+description: This skill MUST be invoked when the user says "write requirements", "define success criteria", "identify edge cases", or "functional requirements". SHOULD also invoke when user mentions "FR-", "SC-", "RFC 2119", "MUST SHOULD MAY", or "edge cases". Produces technology-agnostic requirements in FR-XXX format with measurable success criteria.
 ---
 
 # Authoring Requirements
 
-## Purpose
+## Overview
 
 Write technology-agnostic functional requirements, identify edge cases, and define measurable success criteria. Focus on WHAT the system does and WHY, never HOW it's implemented.
+
+## When to Use
+
+- Starting a new feature specification
+- Documenting acceptance criteria for user stories
+- Defining API contracts at the business logic level
+- Creating requirements for stakeholder review
+- When existing requirements are vague or missing structure
+- Translating informal feature requests into formal requirements
+
+## When NOT to Use
+
+- **Implementation planning** - Use design docs or architecture decisions instead
+- **Technical architecture decisions** - Use ADRs or technical design documents
+- **When requirements already exist and are validated** - Don't duplicate work
+- **API endpoint specifications** - Use `humaninloop:patterns-api-contracts` instead
+- **Data model design** - Use `humaninloop:patterns-entity-modeling` instead
+- **User story authoring** - Use `humaninloop:authoring-user-stories` instead (this skill focuses on the underlying requirements)
 
 ## Functional Requirements Format
 
@@ -30,7 +48,7 @@ Write requirements using the FR-XXX format with RFC 2119 keywords:
 | **SHOULD** | Recommended; valid exceptions may exist |
 | **MAY** | Optional; implementation choice |
 
-See [RFC-2119-KEYWORDS.md](RFC-2119-KEYWORDS.md) for detailed usage guidance.
+See [RFC-2119-KEYWORDS.md](references/RFC-2119-KEYWORDS.md) for detailed usage guidance.
 
 ### FR Numbering Rules
 
@@ -73,7 +91,7 @@ Identify 3-5 boundary conditions that need explicit handling:
 | **Concurrency** | Simultaneous edits, duplicate submissions |
 | **Permissions** | Unauthorized access, expired tokens |
 
-See [EDGE-CASES.md](EDGE-CASES.md) for detailed patterns.
+See [EDGE-CASES.md](references/EDGE-CASES.md) for detailed patterns.
 
 ## Success Criteria Format
 
@@ -157,10 +175,32 @@ Before finalizing, verify:
 - [ ] SCs focus on user/business value
 - [ ] Entities described conceptually (if applicable)
 
-## Anti-Patterns to Avoid
+## Common Mistakes
 
-- **Technology leakage**: "System MUST use PostgreSQL for storage"
-- **Implementation details**: "MUST implement using the Observer pattern"
-- **Unmeasurable criteria**: "System MUST be fast" or "MUST be user-friendly"
-- **Missing keywords**: "System will notify users" (use MUST/SHOULD/MAY)
-- **Technical metrics**: "API latency MUST be under 100ms"
+### Technology Leakage
+❌ "System MUST use PostgreSQL for storage"
+✅ "System MUST persist data durably"
+
+### Implementation Details
+❌ "MUST implement using the Observer pattern"
+✅ "System MUST notify relevant components when state changes"
+
+### Unmeasurable Criteria
+❌ "System MUST be fast" or "MUST be user-friendly"
+✅ "Users MUST complete the flow in under 2 minutes"
+
+### Missing RFC 2119 Keywords
+❌ "System will notify users"
+✅ "System MUST notify users" (use MUST/SHOULD/MAY)
+
+### Technical Metrics as Success Criteria
+❌ "API latency MUST be under 100ms"
+✅ "Users MUST perceive responses as instantaneous"
+
+### Confusing Requirements with User Stories
+❌ "As a user, I want to see my balance"
+✅ "System MUST display current balance to authenticated users" (FR) + separate user story
+
+### Scope Creep in Edge Cases
+❌ Listing 20+ edge cases covering every hypothetical
+✅ Focus on 3-5 high-impact boundary conditions
