@@ -1,6 +1,6 @@
 ---
 name: brownfield-constitution
-description: Use when user asks to "create constitution for existing codebase", "codify existing patterns", or mentions "brownfield", "existing codebase", "essential floor", "emergent ceiling", or "evolution roadmap". Extends authoring-constitution with Essential Floor + Emergent Ceiling approach.
+description: This skill MUST be invoked when the user says "create constitution for existing codebase", "codify existing patterns", "brownfield constitution", "essential floor", or "emergent ceiling". SHOULD also invoke when user mentions "brownfield", "evolution roadmap", or "legacy project". Extends authoring-constitution.
 ---
 
 # Brownfield Constitution Authoring

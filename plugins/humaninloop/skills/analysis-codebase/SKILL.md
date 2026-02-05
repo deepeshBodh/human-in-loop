@@ -1,6 +1,6 @@
 ---
 name: analysis-codebase
-description: Use when user asks to "analyze codebase", "scan project", "detect tech stack", or mentions "codebase analysis", "existing code", "collision risk", "brownfield", or "project context".
+description: This skill MUST be invoked when the user says "analyze codebase", "scan project", "detect tech stack", "codebase analysis", "collision risk", or "brownfield". SHOULD also invoke when user mentions "existing code" or "project context".
 ---
 
 # Analyzing Codebase
