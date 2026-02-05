@@ -1,13 +1,30 @@
 ---
 name: validation-plan-artifacts
-description: This skill should be used when the user asks to "review research", "review data model", "review contracts", or mentions "plan quality", "phase review", or "design gaps". Provides phase-specific review criteria for planning artifacts with issue classification.
+description: This skill MUST be invoked when the user says "review research", "review data model", "review contracts", "plan quality", "phase review", or "design gaps". SHOULD also invoke when user mentions "artifact review" or "planning validation".
 ---
 
 # Reviewing Plan Artifacts
 
-## Purpose
+## Overview
 
 Find gaps in planning artifacts and generate issues that need resolution before proceeding to the next phase. Focus on design completeness and quality, not implementation details. This skill provides phase-specific review criteria for the Devil's Advocate.
+
+## When to Use
+
+- Reviewing research.md after B0 phase completion
+- Reviewing data-model.md after B1 phase completion
+- Reviewing contracts/ after B2 phase completion
+- Validating cross-artifact consistency before task generation
+- When plan architect requests artifact review
+- Quality gate checks before phase transitions
+
+## When NOT to Use
+
+- **Implementation code review** - Use code review tools instead
+- **Task artifact review** - Use `humaninloop:validation-task-artifacts` instead
+- **Specification review** - Use `humaninloop:analysis-specifications` instead
+- **Constitution review** - Use `humaninloop:validation-constitution` instead
+- **During active drafting** - Wait for artifact completion before review
 
 ## Review Focus by Phase
 
@@ -21,7 +38,7 @@ Each phase has specific checks to execute. The checks identify Critical, Importa
 | B2 | Contracts | Endpoint coverage, schemas, error handling |
 | B3 | Cross-Artifact | Alignment, consistency, traceability |
 
-See [PHASE-CHECKLISTS.md](PHASE-CHECKLISTS.md) for detailed phase-specific checklists and key questions.
+See [PHASE-CHECKLISTS.md](references/PHASE-CHECKLISTS.md) for detailed phase-specific checklists and key questions.
 
 ## Issue Classification
 
@@ -33,7 +50,7 @@ Issues are classified by severity to determine appropriate action:
 | **Important** | Significant gap; should resolve | Flag for this iteration |
 | **Minor** | Polish item; can defer | Note for later |
 
-See [ISSUE-TEMPLATES.md](ISSUE-TEMPLATES.md) for severity classification rules, issue documentation formats, and report templates.
+See [ISSUE-TEMPLATES.md](references/ISSUE-TEMPLATES.md) for severity classification rules, issue documentation formats, and report templates.
 
 ## Review Process
 
@@ -74,11 +91,11 @@ For phases after the first artifact (data-model, contracts), use incremental rev
 
 - Execute ALL phase-specific checks from PHASE-CHECKLISTS.md
 - Document issues with full evidence
-- This is your primary focus—no shortcuts here
+- This is the primary focus—no shortcuts
 
 ### Consistency Check (Previous Artifacts)
 
-- Use the cross-artifact checklist at `${CLAUDE_PLUGIN_ROOT}/templates/cross-artifact-checklist.md`
+- Use the cross-artifact checklist in [PHASE-CHECKLISTS.md](references/PHASE-CHECKLISTS.md#cross-artifact-consistency)
 - Do NOT re-read previous artifacts in full
 - Spot-check: entity names, requirement IDs, decision references
 - Flag only inconsistencies between artifacts
@@ -146,3 +163,29 @@ Before finalizing review, verify:
 - [ ] Verdict matches issue severity
 - [ ] Cross-artifact concerns noted
 - [ ] Strengths acknowledged
+
+## Common Mistakes
+
+### Over-Classification of Severity
+❌ Marking style issues as "Critical"
+✅ Reserve Critical for issues that genuinely block progress
+
+### Missing Evidence
+❌ "The data model is incomplete"
+✅ "The data model is missing the User entity referenced in FR-003"
+
+### Vague Suggestions
+❌ "Fix the contracts"
+✅ "Add error response schema for 404 case in GET /users/{id}"
+
+### Reviewing Implementation Details
+❌ Commenting on code patterns, variable names, or framework choices
+✅ Focus on design completeness, traceability, and consistency
+
+### Skipping Cross-Artifact Checks
+❌ Reviewing only the new artifact in isolation
+✅ Always verify consistency with previous phase artifacts
+
+### Excessive Re-Reading
+❌ Re-reading all previous artifacts in full for every review
+✅ Use incremental review mode with targeted consistency checks
