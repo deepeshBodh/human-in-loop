@@ -1,6 +1,6 @@
 ---
 name: validation-constitution
-description: Use when user asks to "review constitution", "validate principles", "check quality", or mentions "constitution review", "quality check", "version bump", "anti-patterns", or "constitution audit".
+description: This skill MUST be invoked when the user says "review constitution", "validate principles", "check quality", "constitution review", "quality check", "version bump", "anti-patterns", or "constitution audit".
 ---
 
 # Validating Constitution

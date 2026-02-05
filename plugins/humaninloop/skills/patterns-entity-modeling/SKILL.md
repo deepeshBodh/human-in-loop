@@ -1,13 +1,30 @@
 ---
 name: patterns-entity-modeling
-description: This skill should be used when the user asks to "extract entities", "define data model", "model relationships", or mentions "entity", "data model", "relationship", "cardinality", "domain model", or "state machine". Provides DDD-style entity modeling including attributes, relationships, and state machines.
+description: This skill MUST be invoked when the user says "extract entities", "define data model", "model relationships", "entity modeling", or "domain model". SHOULD also invoke when user mentions "relationship", "cardinality", "state machine", or "data attributes".
 ---
 
 # Modeling Domain Entities
 
-## Purpose
+## Overview
 
 Extract and model domain entities from requirements using Domain-Driven Design principles. This skill covers entity identification, attribute definition, relationship modeling, and state machine documentation.
+
+## When to Use
+
+- Creating data-model.md from requirements or specifications
+- Extracting entities from user stories and functional requirements
+- Defining attributes, types, and constraints for entities
+- Modeling relationships between entities with cardinality
+- Documenting state machines for stateful entities
+- Brownfield analysis of existing data models
+
+## When NOT to Use
+
+- **API contract design** - Use `humaninloop:patterns-api-contracts` instead
+- **Database schema migration** - This skill is conceptual, not implementation
+- **When data model already exists and is complete** - Don't duplicate work
+- **Pure validation rules** - Model entities first, then add validation
+- **Technical architecture decisions** - Use `humaninloop:patterns-technical-decisions`
 
 ## Entity Extraction
 
@@ -109,7 +126,7 @@ Mark sensitive fields:
 
 Relationships connect entities with defined cardinality: One-to-One (1:1), One-to-Many (1:N), or Many-to-Many (N:M).
 
-See [RELATIONSHIP-PATTERNS.md](RELATIONSHIP-PATTERNS.md) for detailed patterns, join entity examples, and documentation formats.
+See [RELATIONSHIP-PATTERNS.md](references/RELATIONSHIP-PATTERNS.md) for detailed patterns, join entity examples, and documentation formats.
 
 ### Relationship Diagram (Text)
 
@@ -128,7 +145,7 @@ Task ──N:1──▶ Project (belongs to)
 
 Entities with status fields need state transition documentation.
 
-See [STATE-MACHINES.md](STATE-MACHINES.md) for patterns, diagram formats, and common workflows.
+See [STATE-MACHINES.md](references/STATE-MACHINES.md) for patterns, diagram formats, and common workflows.
 
 ### When to Model State
 
@@ -142,7 +159,7 @@ Model state machines when:
 
 Constraints and validation rules ensure data integrity.
 
-See [VALIDATION-RULES.md](VALIDATION-RULES.md) for constraint patterns, format validations, and business rule documentation.
+See [VALIDATION-RULES.md](references/VALIDATION-RULES.md) for constraint patterns, format validations, and business rule documentation.
 
 ## data-model.md Structure
 
@@ -239,12 +256,32 @@ Before finalizing entity model, verify:
 - [ ] Brownfield status indicated for each entity
 - [ ] Traceability to requirements documented
 
-## Anti-Patterns to Avoid
+## Common Mistakes
 
-- **Missing entities**: Don't skip entities mentioned in requirements
-- **Anemic entities**: Entities with only ID are suspicious
-- **Implementation types**: Use conceptual types, not VARCHAR(255)
-- **Undefined relationships**: Every reference needs relationship docs
-- **Hidden state**: Status fields need state machine documentation
-- **Unmarked PII**: Always identify sensitive data
-- **Orphan entities**: Every entity needs at least one relationship
+### Missing Entities
+❌ Skipping entities mentioned in requirements ("we'll add that later")
+✅ Evaluate every noun from requirements for entity status
+
+### Anemic Entities
+❌ Entity with only `id` field and no attributes
+✅ Every entity needs meaningful attributes that describe its purpose
+
+### Implementation Types
+❌ Using `VARCHAR(255)`, `INT(11)`, `BIGINT` in data model
+✅ Use conceptual types: `Text(100)`, `Integer`, `Identifier`
+
+### Undefined Relationships
+❌ Reference attributes without relationship documentation
+✅ Every `Reference(Entity)` needs cardinality and relationship description
+
+### Hidden State Machines
+❌ Status/state fields without transition documentation
+✅ Every status field needs state machine diagram and valid transitions
+
+### Unmarked PII
+❌ Email, phone, address fields without PII markers
+✅ Always mark sensitive data with `**PII**` or `**PII-SENSITIVE**`
+
+### Orphan Entities
+❌ Entities with no relationships to other entities
+✅ Every entity connects to at least one other entity (or is explicitly standalone)

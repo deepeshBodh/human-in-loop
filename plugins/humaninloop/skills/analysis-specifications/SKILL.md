@@ -1,13 +1,30 @@
 ---
 name: analysis-specifications
-description: This skill should be used when the user asks to "review spec", "find gaps", "what's missing", or "clarify requirements", or when reviewing spec.md for completeness. Focuses on product decisions, not implementation details. Generates clarifying questions with concrete options.
+description: This skill MUST be invoked when the user says "review spec", "find gaps", "what's missing", or "clarify requirements". SHOULD also invoke when reviewing spec.md for completeness. Focuses on product decisions and generates clarifying questions with concrete options.
 ---
 
 # Reviewing Specifications
 
-## Purpose
+## Overview
 
 Find gaps in specifications and generate clarifying questions that a product owner or stakeholder can answer. Focus on WHAT is missing, not HOW to implement.
+
+## When to Use
+
+- Reviewing a spec.md before implementation begins
+- Validating requirements completeness after specification phase
+- Generating questions for stakeholder clarification
+- Checking user stories for missing acceptance criteria
+- Quality gate before planning phase begins
+- When Devil's Advocate reviews specification artifacts
+
+## When NOT to Use
+
+- **Technical architecture review** - Use design review tools instead
+- **Code review** - Different skill domain entirely
+- **Implementation planning** - Focus on design, not spec gaps
+- **Performance specifications** - Technical concern, not product
+- **When spec doesn't exist yet** - Use `humaninloop:authoring-requirements` first
 
 ## Core Principle
 
@@ -22,7 +39,7 @@ Find gaps in specifications and generate clarifying questions that a product own
 
 ## Question Format
 
-Frame every question as a decision the user can make:
+Every question must be framed as a decision the stakeholder can make:
 
 ```markdown
 **Question**: [Clear product decision]
@@ -107,15 +124,36 @@ Before finalizing the review, verify:
 - [ ] Related gaps grouped together
 - [ ] No implementation details in questions
 
-## Anti-Patterns to Avoid
+## Common Mistakes
 
-| Anti-Pattern | Problem | Fix |
-|--------------|---------|-----|
-| **Technical questions** | "What retry policy?" asks implementation | Ask "How long should users wait?" |
-| **Vague questions** | "What about errors?" is unclear | Be specific: "What message when X fails?" |
-| **No options** | Open-ended questions are hard to answer | Provide 2-3 concrete choices |
-| **Too many gaps** | Overwhelming stakeholders | Limit to 5-7 critical/important per round |
-| **Missing impact** | Stakeholder doesn't know why it matters | Add "Why this matters" for each |
-| **Implementation bias** | Framing assumes technical solution | Focus on user outcomes |
-| **Scope creep** | Adding new features as "gaps" | Only clarify existing scope |
-| **Ignoring context** | Missing domain knowledge | Reference existing patterns/decisions |
+### Technical Questions Instead of Product Questions
+❌ "What retry policy should we use?"
+✅ "How long should users wait before seeing an error?"
+
+### Vague Questions
+❌ "What about errors?"
+✅ "What message should users see when payment fails?"
+
+### Open-Ended Questions Without Options
+❌ "How should we handle this case?"
+✅ "Options: (1) Show warning and continue, (2) Block action, (3) Ask for confirmation"
+
+### Too Many Gaps at Once
+❌ Presenting 20+ gaps to stakeholders
+✅ Limit to 5-7 critical/important gaps per review round
+
+### Missing "Why This Matters"
+❌ Just listing the gap without context
+✅ Explain user or business impact for each question
+
+### Implementation Bias
+❌ "Should we cache this data?" (assumes caching)
+✅ "How quickly should users see updated data?"
+
+### Scope Creep Disguised as Gaps
+❌ Adding new features as "missing requirements"
+✅ Only clarify scope of existing features
+
+### Ignoring Existing Context
+❌ Asking questions already answered elsewhere
+✅ Reference existing patterns and decisions before asking

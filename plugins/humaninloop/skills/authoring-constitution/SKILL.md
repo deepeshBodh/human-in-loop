@@ -1,6 +1,6 @@
 ---
 name: authoring-constitution
-description: Use when creating or updating project constitution, when user asks to "write principles", "define governance", or mentions "constitution", "governance", "principles", "enforcement", or "amendment process". Core skill for greenfield projects.
+description: This skill MUST be invoked when the user says "write principles", "define governance", "create constitution", or "write a constitution". SHOULD also invoke when user mentions "governance", "principles", "enforcement", or "amendment process". Core skill for greenfield projects.
 ---
 
 # Authoring Constitution

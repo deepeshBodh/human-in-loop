@@ -1,13 +1,30 @@
 ---
 name: analysis-iterative
-description: This skill should be used when the user says "brainstorm", "deep analysis", "let's think through", "analyze this with me", or "help me think through". Also used by /humaninloop:specify for input enrichment when feature descriptions lack Who/Problem/Value clarity. Provides progressive deep analysis through one-by-one questioning with 2-3 options per question and clear recommendations. Challenges disagreement to strengthen thinking and concludes with a synthesis document.
+description: This skill MUST be invoked when the user says "brainstorm", "deep analysis", "let's think through", "analyze this with me", or "help me think through". SHOULD also invoke when feature descriptions lack Who/Problem/Value clarity during specification enrichment.
 ---
 
 # Iterative Analysis
 
-## Purpose
+## Overview
 
 Guide deep thinking through progressive, one-at-a-time questioning. Each question builds on previous answers, creating a collaborative exploration that concludes with a structured synthesis document.
+
+## When to Use
+
+- Brainstorming sessions that need structured exploration
+- Deep analysis of complex problems with multiple decision points
+- Thinking through feature requirements before specification
+- Enriching sparse feature descriptions for `/humaninloop:specify`
+- Exploring trade-offs that require deliberate choices
+- When users need help organizing their thinking on a topic
+
+## When NOT to Use
+
+- **Quick clarifications** - Simple questions don't need iterative questioning
+- **Implementation details** - Use planning skills instead
+- **Specification review** - Use `humaninloop:analysis-specifications` instead
+- **When user has clear direction** - Don't slow down decisive users
+- **Time-sensitive decisions** - Iterative questioning takes time
 
 ## Workflow Phases
 
@@ -100,7 +117,7 @@ Then generate the synthesis document. See [SYNTHESIS.md](SYNTHESIS.md) for the t
 
 ## Adaptive Depth
 
-Do NOT force a fixed number of questions. Continue until:
+Never force a fixed number of questions. Continue until:
 - Core decisions are made
 - The user signals they're ready to conclude
 - A natural stopping point is reached
@@ -153,14 +170,31 @@ and focus engineering time on the core value proposition. Users will need a clea
 This actually opens up our next question about data freshness expectations...
 ```
 
-## Anti-Patterns to Avoid
+## Common Mistakes
 
-- Asking multiple questions in one turn
-- Presenting options without a clear recommendation
-- Accepting user's choice without exploring disagreement
-- Asking questions that don't build on previous answers
-- Rushing to conclusion before core decisions are made
-- Making the synthesis before explicitly transitioning
+### Multiple Questions Per Turn
+❌ "What's the target audience? And what problem are we solving? And what's the timeline?"
+✅ "Let's start with: Who is the primary user for this feature?"
+
+### Options Without Recommendations
+❌ "Here are three approaches: A, B, or C. Which do you prefer?"
+✅ "Here are three approaches... My recommendation is B because [specific reasoning]"
+
+### Skipping Disagreement Exploration
+❌ "You want A instead of B? Okay, moving on..."
+✅ "You're leaning toward A. Before we commit, let me push back: [specific concern]. What's your thinking?"
+
+### Questions That Don't Connect
+❌ Jumping topics without showing how previous answer affects direction
+✅ "Based on your focus on [previous answer], our next question becomes..."
+
+### Premature Synthesis
+❌ Generating synthesis after 2-3 questions without exploring trade-offs
+✅ Continue until core decisions are made and key trade-offs addressed
+
+### No Explicit Transition
+❌ Suddenly presenting a synthesis document
+✅ "I think we've covered the key decision points. Let me synthesize what we've worked through..."
 
 ---
 

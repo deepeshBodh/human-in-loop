@@ -1,13 +1,30 @@
 ---
 name: patterns-technical-decisions
-description: This skill should be used when the user asks to "evaluate alternatives", "make technology choice", "document decision", or mentions "technology choice", "alternatives", "trade-offs", "decision record", "rationale", "why we chose", or "NEEDS CLARIFICATION". Provides evaluation framework and ADR documentation format.
+description: This skill MUST be invoked when the user says "evaluate alternatives", "make technology choice", "document decision", "technology choice", "trade-offs", "decision record", "rationale", or "why we chose". SHOULD also invoke when user mentions "alternatives" or "NEEDS CLARIFICATION".
 ---
 
 # Making Technical Decisions
 
-## Purpose
+## Overview
 
 Provide a complete framework for technology decisions: evaluate alternatives against consistent criteria, make informed choices, and document decisions so future maintainers understand WHY choices were made.
+
+## When to Use
+
+- Choosing between technology options (libraries, frameworks, services)
+- When research.md requires "NEEDS CLARIFICATION" resolution
+- Documenting architectural decisions for the team
+- When spec or plan requires technology choice justification
+- Evaluating existing stack vs new dependencies
+- Any decision with long-term maintenance implications
+
+## When NOT to Use
+
+- **Trivial changes** - No architectural impact, obvious solution
+- **Decisions already documented** - Existing ADR covers the scenario
+- **Emergency hotfixes** - Document decision post-facto, don't block fix
+- **Pure implementation details** - Internal code structure without external impact
+- **Reversible choices** - Easily changed later without consequence
 
 ## Decision Workflow
 
@@ -33,7 +50,7 @@ For each decision point, consider 2-3 alternatives minimum.
 | **Cost** | Total cost of ownership? |
 | **Brownfield Alignment** | Fits existing stack? |
 
-See [EVALUATION-MATRIX.md](EVALUATION-MATRIX.md) for detailed criteria, scoring, and technology category comparisons.
+See [EVALUATION-MATRIX.md](references/EVALUATION-MATRIX.md) for detailed criteria, scoring, and technology category comparisons.
 
 ### Phase 2: Decide
 
@@ -70,7 +87,7 @@ Record decisions in ADR format for future maintainers.
 **Trade-offs Accepted**: [What we gave up]
 ```
 
-See [DECISION-RECORD.md](DECISION-RECORD.md) for full ADR format, consequences, and dependency tracking.
+See [DECISION-RECORD.md](references/DECISION-RECORD.md) for full ADR format, consequences, and dependency tracking.
 
 ## research.md Output
 
@@ -129,14 +146,32 @@ Before finalizing:
 - [ ] Constitution alignment checked
 - [ ] Dependencies between decisions mapped
 
-## Anti-Patterns
+## Common Mistakes
 
-| Anti-Pattern | Problem | Fix |
-|--------------|---------|-----|
-| Single option "evaluation" | No real choice | Always list alternatives |
-| Shiny object syndrome | New tech bias | Require strong justification |
-| Vague rationale | "It's better" | Connect to criteria |
-| Ignoring team skills | Hidden costs | Weight familiarity |
-| Missing consequences | Only positives | List negatives too |
-| Orphan decisions | No connections | Map dependencies |
-| Constitution blindness | Principle violations | Check alignment |
+### Single Option "Evaluation"
+❌ "We evaluated Option A and chose it"
+✅ "We compared Option A, Option B, and Option C against weighted criteria"
+
+### Shiny Object Syndrome
+❌ Choosing newest technology because it's trending
+✅ Require strong justification for unfamiliar dependencies over existing stack
+
+### Vague Rationale
+❌ "We chose JWT because it's better"
+✅ "We chose JWT because: stateless (fits our scale), team familiarity (3/4 devs), ecosystem support"
+
+### Ignoring Team Skills
+❌ Choosing Rust for a Python team without accounting for learning curve
+✅ Weight team familiarity criterion appropriately in evaluation matrix
+
+### Missing Trade-offs
+❌ Only listing positives of chosen option
+✅ Explicitly document what was given up: "Trade-off: JWT requires token refresh handling"
+
+### Orphan Decisions
+❌ Decisions documented in isolation
+✅ Map decision dependencies: "D2 (session storage) depends on D1 (auth mechanism)"
+
+### Constitution Blindness
+❌ Making decisions that violate project principles
+✅ Check alignment with constitution before finalizing

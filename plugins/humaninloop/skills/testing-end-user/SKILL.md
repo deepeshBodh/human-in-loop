@@ -1,6 +1,6 @@
 ---
 name: testing-end-user
-description: Use when executing TEST tasks, running verification tests against real infrastructure, or when encountering "TEST:", "TEST:VERIFY", "TEST:CONTRACT", "execute verification", "run test task", or tasks with Setup/Action/Assert markers.
+description: This skill MUST be invoked when the user says "TEST:", "TEST:VERIFY", "TEST:CONTRACT", "execute verification", "run test task", or "verification test". SHOULD also invoke when encountering tasks with Setup/Action/Assert markers or testing against real infrastructure.
 ---
 
 # End-User Verification Testing

@@ -1,13 +1,30 @@
 ---
 name: validation-task-artifacts
-description: This skill should be used when the user asks to "review task mapping", "review tasks", "validate cycles", or mentions "task quality", "cycle review", or "TDD structure". Provides phase-specific review criteria for task artifacts with issue classification.
+description: This skill MUST be invoked when the user says "review task mapping", "review tasks", "validate cycles", or "check TDD structure". SHOULD also invoke when user mentions "task quality", "cycle review", "vertical slice", or "task artifact".
 ---
 
 # Reviewing Task Artifacts
 
-## Purpose
+## Overview
 
 Find gaps in task artifacts and generate issues that need resolution before proceeding to the next phase. Focus on vertical slice completeness, TDD structure, and traceability. This skill provides phase-specific review criteria for the Devil's Advocate.
+
+## When to Use
+
+- Reviewing task-mapping.md after mapping phase completes
+- Validating tasks.md before implementation begins
+- Cross-checking traceability between stories, cycles, and tasks
+- Assessing TDD structure compliance in cycle definitions
+- Generating advocate reports with classified issues
+- Quality gate checks before implementation starts
+
+## When NOT to Use
+
+- **Plan artifact review** - Use `humaninloop:validation-plan-artifacts` instead
+- **Implementation code review** - Use code review tools
+- **Creating task artifacts** - This skill is for validation only
+- **When tasks.md doesn't exist yet** - Wait for Task Architect to complete
+- **Specification review** - Use `humaninloop:analysis-specifications` instead
 
 ## Review Focus by Phase
 
@@ -23,7 +40,7 @@ Each phase has specific checks to execute. The checks identify Critical, Importa
 | Tasks | Format | Task IDs, file paths, markers correct |
 | Cross | Traceability | Stories -> Cycles -> Tasks chain complete |
 
-See [PHASE-CHECKLISTS.md](PHASE-CHECKLISTS.md) for detailed phase-specific checklists and key questions.
+See [PHASE-CHECKLISTS.md](references/PHASE-CHECKLISTS.md) for detailed phase-specific checklists and key questions.
 
 ## Issue Classification
 
@@ -35,7 +52,7 @@ Issues are classified by severity to determine appropriate action:
 | **Important** | Significant gap; should resolve | Flag for this iteration |
 | **Minor** | Polish item; can defer | Note for later |
 
-See [ISSUE-TEMPLATES.md](ISSUE-TEMPLATES.md) for severity classification rules, issue documentation formats, and report templates.
+See [ISSUE-TEMPLATES.md](references/ISSUE-TEMPLATES.md) for severity classification rules, issue documentation formats, and report templates.
 
 ## Review Process
 
@@ -110,3 +127,29 @@ Before finalizing review, verify:
 - [ ] Verdict matches issue severity
 - [ ] Cross-artifact concerns noted
 - [ ] Strengths acknowledged
+
+## Common Mistakes
+
+### Skipping Cross-Artifact Checks
+❌ Reviewing task-mapping.md in isolation
+✅ Always verify alignment with stories from spec and data model
+
+### Over-Classification of Severity
+❌ Marking formatting issues as "Critical"
+✅ Reserve Critical for gaps that genuinely block implementation
+
+### Missing Evidence in Issue Reports
+❌ "The cycles are not vertical slices"
+✅ "Cycle 2 groups all database tasks (tasks 2.1-2.4) without user-facing value - horizontal layer, not vertical slice"
+
+### Not Verifying TEST Task Presence
+❌ Assuming every cycle has proper TDD structure
+✅ Explicitly check each cycle starts with a TEST: task before implementation
+
+### Ignoring Traceability Gaps
+❌ Accepting tasks without story labels
+✅ Every task MUST trace back to a user story via cycle mapping
+
+### Reviewing During Active Drafting
+❌ Reviewing incomplete task artifacts mid-creation
+✅ Wait for Task Architect to signal completion before validation

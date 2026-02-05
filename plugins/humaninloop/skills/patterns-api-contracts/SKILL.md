@@ -1,13 +1,31 @@
 ---
 name: patterns-api-contracts
-description: This skill should be used when the user asks to "design API", "map endpoints", "define schemas", or mentions "API", "endpoint", "REST", "OpenAPI", "schema", "contract", or "HTTP". Provides RESTful API design with endpoint mapping, request/response schemas, and comprehensive error handling.
+description: This skill MUST be invoked when the user says "design API", "map endpoints", "define schemas", "API contract", "REST API design", or "OpenAPI spec". SHOULD also invoke when user mentions "endpoint", "schema", "contract", or "HTTP".
 ---
 
 # Designing API Contracts
 
-## Purpose
+## Overview
 
-Design RESTful API contracts that map user actions to endpoints with complete schema definitions and comprehensive error handling. This skill covers endpoint design, request/response schemas, and OpenAPI specification.
+Design RESTful API contracts that map user actions to endpoints with complete schema definitions and comprehensive error handling. Every user action becomes an endpoint; every endpoint has request/response schemas and error handling.
+
+## When to Use
+
+- Designing new API endpoints for a feature
+- Mapping user actions to HTTP methods and paths
+- Creating OpenAPI specifications from requirements
+- Defining request/response schemas for endpoints
+- Documenting error responses for an API
+- Integrating with existing API patterns (brownfield)
+- Creating contracts/ directory artifacts
+
+## When NOT to Use
+
+- **GraphQL API design** - Different paradigm, not RESTful
+- **WebSocket or real-time streaming** - Use specialized patterns
+- **Internal microservice communication** - When external contracts aren't needed
+- **Entity modeling** - Use `humaninloop:patterns-entity-modeling` first
+- **Technical architecture decisions** - Use `humaninloop:patterns-technical-decisions`
 
 ## Endpoint Mapping
 
@@ -106,7 +124,7 @@ LoginRequest:
 
 Use standard error format with machine-readable codes and human-readable messages.
 
-See [ERROR-PATTERNS.md](ERROR-PATTERNS.md) for complete HTTP status codes, error code conventions, and response formats.
+See [ERROR-PATTERNS.md](references/ERROR-PATTERNS.md) for complete HTTP status codes, error code conventions, and response formats.
 
 ### Quick Reference
 
@@ -125,7 +143,7 @@ See [ERROR-PATTERNS.md](ERROR-PATTERNS.md) for complete HTTP status codes, error
 
 For endpoints returning collections, implement pagination, filtering, and sorting.
 
-See [PAGINATION-PATTERNS.md](PAGINATION-PATTERNS.md) for offset vs cursor pagination, filtering operators, and sorting patterns.
+See [PAGINATION-PATTERNS.md](references/PAGINATION-PATTERNS.md) for offset vs cursor pagination, filtering operators, and sorting patterns.
 
 ### Quick Reference
 
@@ -151,7 +169,7 @@ Handle endpoint collisions:
 
 ## OpenAPI Structure
 
-See [OPENAPI-TEMPLATE.yaml](OPENAPI-TEMPLATE.yaml) for a complete, copy-ready template with all sections.
+See [OPENAPI-TEMPLATE.yaml](references/OPENAPI-TEMPLATE.yaml) for a complete, copy-ready template with all sections.
 
 ### Minimal Structure
 
@@ -213,13 +231,32 @@ Before finalizing API contracts:
 - [ ] OpenAPI spec is valid
 - [ ] Traceability to requirements complete
 
-## Anti-Patterns
+## Common Mistakes
 
-| Avoid | Instead |
-|-------|---------|
-| Verb in URL (`/getUsers`) | Noun resource (`/users`) |
-| GET for actions | POST for actions (`POST /users/{id}/archive`) |
-| Missing error responses | Define all error cases |
-| Inconsistent naming | Pick one style (kebab-case recommended) |
-| Generic errors (just 400/500) | Specific error codes |
-| No examples | Include realistic examples |
+### Verbs in URLs
+❌ `/getUsers`, `/createUser`, `/deleteUser`
+✅ `/users` with appropriate HTTP methods (GET, POST, DELETE)
+
+### GET for State-Changing Actions
+❌ `GET /users/{id}/delete`
+✅ `DELETE /users/{id}` or `POST /users/{id}/archive`
+
+### Missing Error Responses
+❌ Only documenting 200 OK response
+✅ Define all error cases: 400, 401, 403, 404, 409, 422, 500
+
+### Inconsistent Naming
+❌ Mixing `/user-profiles`, `/userSettings`, `/user_preferences`
+✅ Pick one style consistently: `/user-profiles`, `/user-settings`, `/user-preferences`
+
+### Generic Error Codes
+❌ Just returning 400 or 500 for all errors
+✅ Specific codes: `INVALID_EMAIL`, `USER_NOT_FOUND`, `RATE_LIMIT_EXCEEDED`
+
+### Missing Examples
+❌ Schema definitions without realistic example values
+✅ Include `example:` fields showing real-world data
+
+### Skipping Brownfield Check
+❌ Creating new patterns when existing API conventions exist
+✅ Always check existing API style (auth, error format, pagination) first
