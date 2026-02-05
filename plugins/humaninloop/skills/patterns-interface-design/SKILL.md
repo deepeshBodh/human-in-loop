@@ -1,15 +1,13 @@
 ---
 name: patterns-interface-design
-description: Use when designing UI components, pages, or applications, or when user mentions "interface design", "UI", "component design", "visual design", "styling", "dark mode", "spacing", "typography hierarchy", "surface elevation", or needs distinctive frontend aesthetics.
+description: This skill MUST be invoked when the user says "interface design", "UI design", "component design", "visual design", "styling", "dark mode", "spacing", "typography hierarchy", or "surface elevation". SHOULD also invoke when user mentions "frontend aesthetics" or "UI components".
 ---
 
 # Interface Design Patterns
 
-## Core Mandate
+## Overview
 
-**"The moment you stop asking 'why this?' is the moment defaults take over."**
-
-Craft emerges from intentional choices, not pattern-following. Generic output happens when designers treat structural decisions (typography, navigation, data visualization) as mere infrastructure rather than design itself.
+Craft intentional interface designs through systematic discovery. Generic output happens when structural decisions (typography, navigation, data visualization) are treated as mere infrastructure rather than design itself.
 
 **Violating the letter of these rules is violating the spirit of these rules.** Following "most" of the discovery process or applying "some" intentional choices is not compliance.
 
@@ -216,7 +214,7 @@ When any of these thoughts occur, STOP immediately:
 
 ## Quality Checklist
 
-Before finalizing any interface design:
+Before finalizing any interface design (see [references/VALIDATION-CHECKS.md](references/VALIDATION-CHECKS.md) for detailed validation):
 
 **Discovery:**
 - [ ] 5+ domain concepts identified
