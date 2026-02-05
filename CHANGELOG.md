@@ -6,6 +6,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [0.8.10] - 2026-02-05
+
+Complete SKILL-GUIDELINES v1.2.0 compliance (#63).
+
+### humaninloop 0.8.10
+
+#### Fixed
+- **2 remaining skills** - Aligned with SKILL-GUIDELINES v1.2.0 compliance:
+  - Fixed RFC 2119 invocation format ("MUST be invoked when user says")
+  - Renamed Core Mandate → Overview section (patterns-interface-design)
+
+  Skills updated:
+  - patterns-interface-design
+  - using-git-worktrees
+
+All 20 skills now comply with SKILL-GUIDELINES v1.2.0.
+
+---
+
 ## [0.8.9] - 2026-02-05
 
 Skill compliance audit for SKILL-GUIDELINES v1.2.0 (#62).
@@ -975,6 +994,7 @@ Initial marketplace scaffold.
 
 ---
 
+[0.8.10]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.10
 [0.8.9]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.9
 [0.8.8]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.8
 [0.8.7]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.7
