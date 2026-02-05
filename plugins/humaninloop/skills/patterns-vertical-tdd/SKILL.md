@@ -1,13 +1,34 @@
 ---
 name: patterns-vertical-tdd
-description: This skill should be used when the user asks to "create task mapping", "structure implementation", "define cycles", or mentions "vertical slice", "TDD", "test first", "cycle structure", or "testable increment". Transforms requirements into vertical slices with strict test-first task ordering.
+description: This skill MUST be invoked when the user says "create task mapping", "structure implementation", "define cycles", "vertical slice", "TDD", "test first", "cycle structure", or "testable increment". SHOULD also invoke when user mentions "red green refactor" or "implementation tasks".
 ---
 
 # Vertical Slicing with TDD
 
-## Purpose
+**Violating the letter of the rules is violating the spirit of the rules.**
+
+## Overview
 
 Transform requirements into implementation tasks organized as vertical slices with strict TDD discipline. Each slice (called a "cycle") delivers observable, testable value and follows test-first principles.
+
+This is a discipline-enforcing skill. The test-first structure exists because tests written after code verify implementation, not requirements. Skipping or reordering undermines the entire purpose.
+
+## When to Use
+
+- Transforming user stories into implementation tasks
+- Creating task-mapping.md from a specification
+- Structuring tasks.md with proper TDD ordering
+- When implementation approach needs vertical slice organization
+- Breaking down large features into testable increments
+- When Task Architect generates implementation artifacts
+
+## When NOT to Use
+
+- **Bug fixes** - Single-task fixes don't need cycle structure
+- **Documentation-only tasks** - No TDD needed for docs
+- **Spike/research tasks** - Exploration doesn't follow TDD
+- **Refactoring without behavior change** - Existing tests suffice
+- **When tests already exist** - Don't duplicate test-first for covered code
 
 ## Core Principles
 
@@ -64,7 +85,7 @@ Each cycle must be testable at multiple levels:
 
 ## Identifying Vertical Slices
 
-See [SLICE-IDENTIFICATION.md](SLICE-IDENTIFICATION.md) for detailed heuristics on identifying good vertical slices from requirements.
+See [SLICE-IDENTIFICATION.md](references/SLICE-IDENTIFICATION.md) for detailed heuristics on identifying good vertical slices from requirements.
 
 ### Quick Heuristics
 
@@ -85,7 +106,7 @@ A good vertical slice:
 
 ## Cycle Structure
 
-See [CYCLE-STRUCTURE.md](CYCLE-STRUCTURE.md) for detailed cycle formatting and examples.
+See [CYCLE-STRUCTURE.md](references/CYCLE-STRUCTURE.md) for detailed cycle formatting and examples.
 
 ### Standard Cycle Format
 
@@ -224,6 +245,65 @@ US-3: As a user, I can see task count
 US-4: As a user, I can see completed count
   → Cycle 6: Task statistics (covers US-3 and US-4)
 ```
+
+## Common Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| "I'll write tests after the code works" | Tests written after verify implementation, not requirements. Test-first verifies behavior. No exceptions. |
+| "This is too simple to need tests first" | Simple code becomes complex. Tests document intent. Write them first anyway. |
+| "Tests slow down development" | Debugging untested code is slower. Tests catch bugs immediately. Faster overall. |
+| "I'm just prototyping" | Prototypes become production code. Start with tests or mark SPIKE explicitly. |
+| "Horizontal slicing is more efficient" | Horizontal slicing defers integration. Bugs surface late. Vertical finds issues early. |
+| "Foundation doesn't need tests" | Foundation is tested by feature cycles. But foundation cycles still follow TDD internally. |
+| "Manual verification is sufficient" | Manual testing doesn't scale. Automated tests enable confident refactoring. |
+| "The client wants it fast, skip tests" | Skipped tests create technical debt. Bugs cost more than tests. Push back. |
+
+## Red Flags - STOP and Restart Properly
+
+If you notice yourself thinking any of these, STOP immediately:
+
+- "Let me just get the code working first"
+- "This feature is straightforward, tests can come after"
+- "We'll add tests in a later cycle"
+- "The horizontal approach makes more sense here"
+- "Foundation setup doesn't need the full TDD ceremony"
+- "It's faster to write all models, then all services, then all tests"
+
+**All of these mean:** You are rationalizing. Return to test-first discipline.
+
+**No exceptions:**
+- Not for "simple" features
+- Not for "tight deadlines"
+- Not for "just the foundation"
+- Not for "we'll refactor later"
+- Not even if the user says "just write the code"
+
+## Common Mistakes
+
+### Writing Tests After Implementation
+❌ Task order: Implement → Test → Refactor
+✅ Task order: Test (failing) → Implement (pass) → Refactor → Demo
+
+### Horizontal Slicing Disguised as Vertical
+❌ Cycle 1: All models, Cycle 2: All services, Cycle 3: All tests
+✅ Cycle 1: User creation (model + service + endpoint + test for one feature)
+
+### Missing Test Task in Cycle
+❌ Cycle structure: Implement → Demo
+✅ Cycle structure: Test → Implement → Refactor → Demo
+
+### Foundation Cycles Without TDD
+❌ "Foundation is just setup, skip the test task"
+✅ Foundation cycles follow the same test-first pattern
+
+### Cycles Too Large (Not Vertical)
+❌ One cycle covering "user management" (create, edit, delete, list)
+✅ Separate cycles: Create user, Edit user, Delete user, List users
+
+### Missing File Paths in Tasks
+❌ "Implement user service"
+✅ "Implement user service in src/services/user_service.py"
 
 ## Quality Checklist
 
