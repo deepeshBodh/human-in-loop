@@ -6,6 +6,31 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [1.0.0] - 2026-02-06
+
+**First stable release.** Specification-driven development workflow is production-ready.
+
+This milestone marks API stability for the humaninloop plugin. The core workflow (setup → specify → plan → tasks → implement) is complete, tested, and ready for production use.
+
+### humaninloop 1.0.0
+
+#### Changed
+- **analysis-iterative skill** - Rewritten from rigid prescriptive phases to principle-based adaptive behavior (#64)
+  - New phase model: Opening → Discovery → Adaptive Questioning → Conclusion
+  - Three question formats: structured options, open probes, confirmations
+  - Confidence signal reading and smart wrap-up
+  - New `references/ADAPTIVE-EXAMPLES.md` with annotated conversations
+
+#### Highlights Since 0.1.0
+- **6 Commands**: setup, specify, plan, tasks, audit, implement
+- **6 Specialized Agents**: requirements-analyst, devils-advocate, plan-architect, task-architect, principal-architect, testing-agent
+- **20 Skills**: authoring, analysis, patterns, validation, testing, and utility skills
+- **Brownfield Support**: Essential Floor + Emergent Ceiling approach for existing codebases
+- **Vertical TDD**: Cycle-based task generation with test-first ordering
+- **Human Verification**: Testing agent with checkpoint gates
+
+---
+
 ## [0.8.10] - 2026-02-05
 
 Complete SKILL-GUIDELINES v1.2.0 compliance (#63).
@@ -994,6 +1019,7 @@ Initial marketplace scaffold.
 
 ---
 
+[1.0.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v1.0.0
 [0.8.10]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.10
 [0.8.9]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.9
 [0.8.8]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.8
