@@ -1,6 +1,6 @@
 # Specification Input Enrichment Mode
 
-Use this mode when invoked by `/humaninloop:specify` to enrich sparse feature descriptions.
+Use this mode when invoked by `humaninloop:specify` to enrich sparse feature descriptions.
 
 ## Context
 
@@ -120,7 +120,7 @@ The `<!-- ENRICHMENT_COMPLETE -->` and `<!-- ENRICHMENT_OUTPUT_END -->` markers 
 
 | Aspect | Standard Mode | Specification-Input Mode |
 |--------|---------------|--------------------------|
-| Questions | Adaptive, open-ended | Two-phase: Triad gaps (conditional) + Key decisions (always) |
-| Depth | Continue until natural conclusion | 2-5 questions depending on gaps |
+| Questions | Adaptive per turn: structured options, open probes, or confirmations based on user state | Two-phase: Triad gaps (conditional) + Key decisions (always) |
+| Depth | Adapts to complexity — converges when decisions are settled | 2-5 questions depending on gaps |
 | Output | SYNTHESIS.md format | ENRICHMENT.md format |
 | Purpose | Explore any topic | Enrich feature descriptions for /specify |
