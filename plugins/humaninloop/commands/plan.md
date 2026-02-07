@@ -251,6 +251,7 @@ Create technical research document resolving all unknowns from the specification
 
 **Use Skills**:
 - `patterns-technical-decisions`
+- `patterns-planning-procedure` (for marker resolution, roadmap integration, report population, and phase quality gates)
 
 **Brownfield Context** (if `project_type: brownfield`):
 - Read existing analysis from `.humaninloop/memory/codebase-analysis.md`
@@ -361,6 +362,7 @@ Create data model document extracting entities, relationships, and validation ru
 
 **Use Skills**:
 - `patterns-entity-modeling`
+- `patterns-planning-procedure` (for marker resolution, roadmap integration, report population, and phase quality gates)
 
 **Brownfield Context** (if `project_type: brownfield`):
 - Read existing entities from `.humaninloop/memory/codebase-analysis.md`
@@ -460,6 +462,7 @@ Create API contracts and integration guide.
 
 **Use Skills**:
 - `patterns-api-contracts`
+- `patterns-planning-procedure` (for quickstart structure, marker resolution, roadmap integration, report population, and phase quality gates)
 
 **Brownfield Context** (if `project_type: brownfield`):
 - Read existing API patterns from `.humaninloop/memory/codebase-analysis.md`
