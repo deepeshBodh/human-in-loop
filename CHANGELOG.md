@@ -6,6 +6,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [1.1.0] - 2026-02-07
+
+### humaninloop 1.1.0
+
+#### Added
+- **ui-designer agent** - Senior interface designer who analyzes visual inspiration from existing apps to extract design patterns, build actionable design systems, and craft screen layouts and interaction flows
+- **analysis-screenshot skill** - Step-by-step process for extracting design tokens, components, and layout structure from screenshot images with `references/implementation-templates.md`
+- **patterns-flow-mapping skill** - Procedure for connecting multiple analyzed screenshots into coherent interaction flows with navigation logic and journey definitions
+- **authoring-design-system skill** - Procedure for synthesizing extractions from multiple screenshots into a unified design system with `references/implementation-output-templates.md`
+
+---
+
 ## [1.0.0] - 2026-02-06
 
 **First stable release.** Specification-driven development workflow is production-ready.
