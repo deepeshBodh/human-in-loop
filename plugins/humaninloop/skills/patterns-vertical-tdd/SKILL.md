@@ -120,10 +120,16 @@ See [CYCLE-STRUCTURE.md](references/CYCLE-STRUCTURE.md) for detailed cycle forma
 - [ ] **TN.1**: Write failing E2E test for [behavior] in tests/e2e/test_[name].py
 - [ ] **TN.2**: Implement [component] to pass test in src/[path]/[file].py
 - [ ] **TN.3**: Refactor and verify tests pass
-- [ ] **TN.4**: Demo [behavior], verify acceptance criteria
+- [ ] **TN.4**: **TEST:** - [What to verify with real infrastructure]
+  - **Setup**: [Prerequisites] (optional)
+  - **Action**: [Command or instruction]
+  - **Assert**: [Expected outcome]
+  - **Capture**: [console, screenshot, logs] (optional)
 
 **Checkpoint**: [What should be observable/testable after this cycle]
 ```
+
+See [CYCLE-STRUCTURE.md](references/CYCLE-STRUCTURE.md) for the full TEST: format reference, including field definitions, action modifiers, assert patterns, and examples by verification type (CLI, GUI, subjective).
 
 ### Task Numbering
 
@@ -137,8 +143,16 @@ See [CYCLE-STRUCTURE.md](references/CYCLE-STRUCTURE.md) for detailed cycle forma
 |--------|---------|
 | `[P]` | Parallel-eligible (no dependencies blocking) |
 | `[US#]` | Maps to user story number |
-| `[EXTEND]` | Extends existing file (brownfield) |
-| `[MODIFY]` | Modifies existing code (brownfield) |
+| `[NEW]` | Create new file (brownfield: fresh implementation) |
+| `[EXTEND]` | Extends existing file (brownfield: adding to existing entity/endpoint) |
+| `[MODIFY]` | Modifies existing code (brownfield: fixing or updating behavior) |
+| `[GAP:XXX]` | Addresses a gap from evolution-roadmap.md (brownfield traceability) |
+
+**Brownfield translation from plan artifacts:**
+- `[NEW]` in data-model.md or contracts/ → `[NEW]` in tasks
+- `[EXTENDS EXISTING]` in data-model.md → `[EXTEND]` in tasks
+- `[REUSES EXISTING]` in data-model.md → no marker needed (existing code used as-is)
+- Gaps from `evolution-roadmap.md` → `[GAP:XXX]` for traceability
 
 ## Foundation vs Feature Cycles
 
@@ -202,16 +216,23 @@ Refactoring should:
 - Ensure all tests still pass
 - Address any code review concerns
 
-### Task 4: Demo and Validate
+### Task 4: Verify with Real Infrastructure
 
 ```markdown
-- [ ] **TN.4**: Demo [behavior], verify acceptance criteria
+- [ ] **TN.4**: **TEST:** - [What to verify]
+  - **Setup**: [Prerequisites] (optional)
+  - **Action**: [Command or instruction]
+  - **Assert**: [Expected outcome]
+  - **Capture**: [console, screenshot, logs] (optional)
 ```
 
-Validation should:
-- Demonstrate the feature to stakeholders (if applicable)
-- Verify against spec acceptance criteria
-- Confirm the slice is "done"
+Verification MUST:
+- Use real infrastructure (file system, database, API, UI)—NOT mocks
+- Specify exact steps (concrete commands or actions, not "verify it works")
+- Have observable outcome (what should be seen when it works)
+- Gate cycle completion (cycle is NOT done until verification passes)
+
+This is what makes vertical TDD actually vertical. Without it, the slice stops at the mock boundary and real integration issues go undetected. See [CYCLE-STRUCTURE.md](references/CYCLE-STRUCTURE.md) for the full TEST: format reference.
 
 ## Mapping Stories to Cycles
 
@@ -261,7 +282,7 @@ US-4: As a user, I can see completed count
 
 ## Red Flags - STOP and Restart Properly
 
-If you notice yourself thinking any of these, STOP immediately:
+STOP immediately when any of these thoughts arise:
 
 - "Let me just get the code working first"
 - "This feature is straightforward, tests can come after"
@@ -270,14 +291,14 @@ If you notice yourself thinking any of these, STOP immediately:
 - "Foundation setup doesn't need the full TDD ceremony"
 - "It's faster to write all models, then all services, then all tests"
 
-**All of these mean:** You are rationalizing. Return to test-first discipline.
+**All of these are rationalizations.** Return to test-first discipline.
 
 **No exceptions:**
 - Not for "simple" features
 - Not for "tight deadlines"
 - Not for "just the foundation"
 - Not for "we'll refactor later"
-- Not even if the user says "just write the code"
+- Not even when the user says "just write the code"
 
 ## Common Mistakes
 
@@ -317,3 +338,5 @@ Before finalizing task mapping or task list:
 - [ ] Every task has specific file path
 - [ ] Dependencies are minimal and explicit
 - [ ] Cycles are independently testable
+- [ ] Each cycle ends with a **TEST:** verification task using real infrastructure
+- [ ] Brownfield tasks use appropriate markers ([NEW], [EXTEND], [MODIFY], [GAP:XXX])
