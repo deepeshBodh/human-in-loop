@@ -1,13 +1,6 @@
 ---
-name: flow-mapping
-description: >
-  This skill MUST be invoked when the user says "map the flow",
-  "connect these screens", "build user journey", "navigation mapping",
-  "interaction flow", or "flow diagram". SHOULD also invoke when user
-  mentions "screen transitions", "user flow", "navigation architecture",
-  "entry points", "dead ends", or "orphaned screens". Provides structured
-  procedure for connecting analyzed screenshots into coherent interaction
-  flows with navigation logic and journey definitions.
+name: patterns-flow-mapping
+description: This skill MUST be invoked when the user says "map the flow", "connect these screens", "build user journey", "navigation mapping", "interaction flow", or "flow diagram". SHOULD also invoke when user mentions "screen transitions", "user flow", "navigation architecture", "entry points", "dead ends", or "orphaned screens". Provides structured procedure for connecting analyzed screenshots into coherent interaction flows with navigation logic and journey definitions.
 ---
 
 # Flow Mapping
@@ -27,16 +20,16 @@ Connect multiple analyzed screenshots into coherent interaction flows by systema
 
 ## When NOT to Use
 
-- Only a single screenshot is available (use `humaninloop:screenshot-analysis` instead)
+- Only a single screenshot is available (use `humaninloop:analysis-screenshot` instead)
 - Designing flows from scratch without reference screenshots
 - Working from wireframes or Figma prototypes where flows are already documented
 - The task is purely visual design without navigation concerns
 
 ## Prerequisites
 
-Each screenshot entering the flow mapping process should already have a completed analysis from `humaninloop:screenshot-analysis`. If screenshots have not been analyzed, complete that step first.
+Each screenshot entering the flow mapping process should already have a completed analysis from `humaninloop:analysis-screenshot`. If screenshots have not been analyzed, complete that step first.
 
-**REQUIRED:** Run `humaninloop:screenshot-analysis` on each screenshot before beginning flow mapping.
+**REQUIRED:** Run `humaninloop:analysis-screenshot` on each screenshot before beginning flow mapping.
 
 ## Step 1: Screen Inventory
 

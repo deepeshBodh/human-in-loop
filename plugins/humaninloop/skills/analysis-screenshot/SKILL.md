@@ -1,11 +1,6 @@
 ---
-name: screenshot-analysis
-description: >
-  This skill MUST be invoked when the user says "analyze screenshot",
-  "extract design tokens", "pull colors from screenshot", "component inventory",
-  "break down this UI", or "design extraction". SHOULD also invoke when user
-  mentions "screenshot", "color palette", "typography", "spacing", or
-  "component catalog".
+name: analysis-screenshot
+description: This skill MUST be invoked when the user says "analyze screenshot", "extract design tokens", "pull colors from screenshot", "component inventory", "break down this UI", or "design extraction". SHOULD also invoke when user mentions "screenshot", "color palette", "typography", "spacing", or "component catalog".
 ---
 
 # Screenshot Analysis

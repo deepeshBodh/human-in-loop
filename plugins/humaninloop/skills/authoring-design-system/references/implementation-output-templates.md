@@ -1,6 +1,6 @@
 # Implementation Output Templates
 
-Templates for translating a unified design system into platform-specific code. These extend the single-extraction templates from `humaninloop:screenshot-analysis` with multi-source attribution and conflict resolution comments.
+Templates for translating a unified design system into platform-specific code. These extend the single-extraction templates from `humaninloop:analysis-screenshot` with multi-source attribution and conflict resolution comments.
 
 ## CSS Custom Properties
 

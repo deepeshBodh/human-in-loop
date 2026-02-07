@@ -1,18 +1,13 @@
 ---
-name: design-system-assembly
-description: >
-  This skill MUST be invoked when the user says "assemble design system",
-  "build design system", "merge extractions", "consolidate tokens",
-  "unify design tokens", or "synthesize design system". SHOULD also invoke
-  when user mentions "design system", "token consolidation", "component
-  normalization", or "multi-screenshot synthesis".
+name: authoring-design-system
+description: This skill MUST be invoked when the user says "assemble design system", "build design system", "merge extractions", "consolidate tokens", "unify design tokens", or "synthesize design system". SHOULD also invoke when user mentions "design system", "token consolidation", "component normalization", or "multi-screenshot synthesis".
 ---
 
 # Design System Assembly
 
 ## Overview
 
-Synthesize individual screenshot extractions produced by `humaninloop:screenshot-analysis` into a unified, coherent design system. Every token in the final system traces back to its source screenshot, every conflict is documented with resolution rationale, and the output is implementation-ready.
+Synthesize individual screenshot extractions produced by `humaninloop:analysis-screenshot` into a unified, coherent design system. Every token in the final system traces back to its source screenshot, every conflict is documented with resolution rationale, and the output is implementation-ready.
 
 ## When to Use
 
@@ -26,12 +21,12 @@ Synthesize individual screenshot extractions produced by `humaninloop:screenshot
 
 - Only one screenshot extraction exists (no merging needed -- use the extraction directly)
 - Designing from scratch without reference screenshots (use `humaninloop:patterns-interface-design`)
-- Extractions have not been completed yet (run `humaninloop:screenshot-analysis` first)
+- Extractions have not been completed yet (run `humaninloop:analysis-screenshot` first)
 - Implementing an already-defined design system (no synthesis needed)
 
 ## Prerequisites
 
-**REQUIRED:** Run `humaninloop:screenshot-analysis` on each reference screenshot before invoking this skill. Each extraction provides the raw material for assembly.
+**REQUIRED:** Run `humaninloop:analysis-screenshot` on each reference screenshot before invoking this skill. Each extraction provides the raw material for assembly.
 
 Gather all extraction documents. Each extraction should contain: color palette, typography scale, spacing scale, component catalog, layout structure, and border/elevation system.
 
