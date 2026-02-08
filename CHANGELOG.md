@@ -6,6 +6,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [1.1.1] - 2026-02-08
+
+### humaninloop 1.1.1
+
+#### Changed
+- **devils-advocate agent** - Refactored to AGENT-GUIDELINES compliance (#66)
+  - Added `<example>` invocation examples in description for Task tool triggering
+  - Replaced inline phase-specific review criteria with skill delegation
+  - Added structured "What You Produce", "Quality Standards", and "Adversarial Calibration" sections
+  - Skill references now use `humaninloop:` namespace prefix
+
+---
+
 ## [1.1.0] - 2026-02-07
 
 ### humaninloop 1.1.0

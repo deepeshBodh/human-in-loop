@@ -1,6 +1,6 @@
 {
   "name": "humaninloop",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Specification-driven development workflow: specify → plan → tasks → implement",
   "author": {
     "name": "HumanInLoop",
