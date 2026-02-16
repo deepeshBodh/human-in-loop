@@ -1,6 +1,6 @@
 # HumanInLoop Plugin
 
-Specification-driven development workflow: **setup → specify → plan → tasks → implement**
+Specification-driven development workflow: **setup → specify → techspec → plan → tasks → implement**
 
 ## Overview
 
@@ -9,6 +9,7 @@ The HumanInLoop plugin provides a comprehensive multi-agent workflow for specifi
 **Core Workflows:**
 - **Setup** - Create project constitution with enforceable governance principles
 - **Specify** - Create feature specifications with integrated quality validation
+- **Techspec** - Translate business specifications into traceable technical artifacts
 - **Plan** - Generate implementation plans with research, data models, and API contracts
 - **Tasks** - Generate actionable implementation tasks with dependency tracking and brownfield markers
 
@@ -95,6 +96,38 @@ Create a feature specification with integrated quality validation.
 - Branch name = spec directory name = feature ID
 - Number auto-increments based on existing branches and specs
 
+### `/humaninloop:techspec`
+
+Translate business specifications into traceable technical artifacts through a multi-agent workflow.
+
+```
+/humaninloop:techspec
+```
+
+**Requires:** `spec.md` to exist with completed specify workflow
+
+**Workflow:**
+1. **Phase T0 (Core)**: Technical Analyst produces requirements (`requirements.md`) and constraints (`constraints.md`)
+2. **Review**: Devil's Advocate validates core artifacts using `validation-plan-artifacts` (phase: T0)
+3. **Phase T1 (Supplementary)**: Plan Architect produces NFRs (`nfrs.md`), integration maps (`integrations.md`), and data sensitivity classifications (`data-sensitivity.md`)
+4. **Review**: Devil's Advocate validates supplementary artifacts using `validation-plan-artifacts` (phase: T1, mode: incremental)
+
+**Output:**
+```
+specs/<###-feature-name>/technical/
+├── requirements.md          # TR-XXX technical requirements traced to FRs
+├── constraints.md           # C-XXX constraints with sources
+├── nfrs.md                  # NFR-XXX with measurable targets
+├── integrations.md          # INT-XXX integration maps with failure modes
+└── data-sensitivity.md      # DS-XXX data classifications
+```
+
+**Features:**
+- Every technical requirement traces to a business functional requirement
+- Two-pass production: core artifacts first, supplementary after review
+- Incremental validation between passes
+- Five artifact types: TR- (requirements), C- (constraints), NFR- (non-functional), INT- (integrations), DS- (data sensitivity)
+
 ### `/humaninloop:plan`
 
 Generate an implementation plan from an existing specification.
@@ -103,7 +136,7 @@ Generate an implementation plan from an existing specification.
 /humaninloop:plan
 ```
 
-**Requires:** `spec.md` to exist (run specify workflow first)
+**Requires:** `spec.md` and completed techspec workflow (all 5 technical artifacts must exist)
 
 **Workflow:**
 1. **Phase A0**: Codebase discovery (detects existing code conflicts)
@@ -177,6 +210,14 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 | **Requirements Analyst** | Transforms feature requests into precise specifications with user stories, requirements, and acceptance criteria |
 | **Devil's Advocate** | Adversarial reviewer who stress-tests specs, finds gaps, challenges assumptions, and generates clarifying questions |
 
+### Techspec Workflow Agents
+
+| Agent | Purpose |
+|-------|---------|
+| **Technical Analyst** | Senior technical analyst who translates business specifications into traceable technical artifacts (requirements, constraints, NFRs, integration maps, data sensitivity). Uses skill: `authoring-technical-requirements` |
+| **Plan Architect** | Reviews core artifacts and produces supplementary technical artifacts (NFRs, integrations, data sensitivity) |
+| **Devil's Advocate** | Validates techspec artifacts for completeness and traceability. Uses skill: `validation-plan-artifacts` (phases: T0, T1) |
+
 ### Plan Workflow Agents
 
 | Agent | Purpose |
@@ -199,7 +240,9 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 
 ### Validation
 
-**Plan Workflow:** Uses `validation-plan-artifacts` skill for phase-specific review criteria.
+**Techspec Workflow:** Uses `validation-plan-artifacts` skill for techspec-specific review criteria (phases T0, T1).
+
+**Plan Workflow:** Uses `validation-plan-artifacts` skill for phase-specific review criteria (phases B0, B1, B2).
 
 **Tasks Workflow:** Uses `validation-task-artifacts` skill for:
 - Vertical slice validation (cycles deliver testable value)
@@ -218,10 +261,16 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 └── architect-report.md        # Principal Architect report (temporary)
 ```
 
-**Feature-Level (from specify → plan → tasks):**
+**Feature-Level (from specify → techspec → plan → tasks):**
 ```
 specs/<###-feature-name>/
 ├── spec.md                    # Feature specification
+├── technical/                 # Technical specification artifacts
+│   ├── requirements.md        # TR-XXX technical requirements
+│   ├── constraints.md         # C-XXX constraints
+│   ├── nfrs.md                # NFR-XXX non-functional requirements
+│   ├── integrations.md        # INT-XXX integration maps
+│   └── data-sensitivity.md    # DS-XXX data classifications
 ├── plan.md                    # Implementation plan summary
 ├── research.md                # Technology decisions
 ├── data-model.md              # Entity definitions
@@ -234,6 +283,7 @@ specs/<###-feature-name>/
     ├── context.md             # Specify workflow context
     ├── analyst-report.md      # Requirements Analyst output
     ├── advocate-report.md     # Devil's Advocate output
+    ├── techspec-context.md    # Techspec workflow state
     ├── plan-context.md        # Plan workflow state
     └── tasks-context.md       # Tasks workflow state
 ```
