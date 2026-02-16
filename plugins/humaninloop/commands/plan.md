@@ -59,6 +59,12 @@ AGENTS (independent, no workflow knowledge)
 ```
 specs/{feature-id}/
 ├── spec.md                          # Input (from specify workflow)
+├── technical/                       # Input (from techspec workflow)
+│   ├── requirements.md              # Business FR → Technical TR mapping
+│   ├── constraints.md               # Tech constraints & migration needs
+│   ├── nfrs.md                      # Non-functional requirements
+│   ├── integrations.md              # System boundaries & external deps
+│   └── data-sensitivity.md          # Data classification & security
 ├── research.md                      # Phase 1 output
 ├── data-model.md                    # Phase 2 output
 ├── contracts/                       # Phase 3 output
@@ -67,6 +73,7 @@ specs/{feature-id}/
 ├── plan.md                          # Summary (completion)
 └── .workflow/
     ├── context.md                   # Context + instructions (specify)
+    ├── techspec-context.md          # Context + instructions (techspec)
     ├── plan-context.md              # Context + instructions (plan)
     ├── planner-report.md            # Plan Architect output
     └── advocate-report.md           # Devil's Advocate output
@@ -111,7 +118,28 @@ Before starting, verify the specification workflow is complete:
      )
      ```
 
-4. **If entry gate passes**: Continue to Brownfield Check
+4. **Check techspec workflow status**: Read `specs/{feature-id}/.workflow/techspec-context.md`
+   - If NOT found: Block and tell user to run `/humaninloop:techspec` first:
+     ```
+     AskUserQuestion(
+       questions: [{
+         question: "Technical specification not found. Planning requires a completed techspec.\n\nRun /humaninloop:techspec first to translate business requirements into technical requirements.",
+         header: "Entry Gate",
+         options: [
+           {label: "Run techspec first", description: "Return to /humaninloop:techspec"},
+           {label: "Abort", description: "Cancel planning workflow"}
+         ],
+         multiSelect: false
+       }]
+     )
+     ```
+   - If `status` != `completed`: Block with same pattern, directing user to complete techspec
+
+5. **Verify technical artifacts**: Check all 5 files exist in `specs/{feature-id}/technical/`:
+   - `requirements.md`, `constraints.md`, `nfrs.md`, `integrations.md`, `data-sensitivity.md`
+   - If any missing: Block and tell user to run `/humaninloop:techspec` to completion
+
+6. **If entry gate passes**: Continue to Brownfield Check
 
 ---
 
@@ -239,10 +267,12 @@ Update `{{supervisor_instructions}}` in plan-context.md:
 ```markdown
 **Phase**: Research
 
-Create technical research document resolving all unknowns from the specification.
+Create technical research document evaluating technology alternatives and making design decisions.
 
 **Read**:
-- Spec: `specs/{feature-id}/spec.md`
+- Technical Requirements: `specs/{feature-id}/technical/requirements.md`
+- Technical Constraints: `specs/{feature-id}/technical/constraints.md`
+- System Integrations: `specs/{feature-id}/technical/integrations.md`
 - Constitution: `.humaninloop/memory/constitution.md`
 
 **Write**:
@@ -296,7 +326,9 @@ Update context for advocate:
 Review the research document for gaps and quality.
 
 **Read**:
-- Spec: `specs/{feature-id}/spec.md`
+- Technical Requirements: `specs/{feature-id}/technical/requirements.md`
+- Technical Constraints: `specs/{feature-id}/technical/constraints.md`
+- System Integrations: `specs/{feature-id}/technical/integrations.md`
 - Research: `specs/{feature-id}/research.md`
 - Planner report: `specs/{feature-id}/.workflow/planner-report.md`
 
@@ -305,6 +337,11 @@ Review the research document for gaps and quality.
 
 **Use Skills**:
 - `validation-plan-artifacts` (phase: research)
+
+**Technical Consistency Checks**:
+- TR references: Do research decisions reference the technical requirements they address?
+- Constraint compliance: Do technology choices respect all constraints from constraints.md?
+- Integration alignment: Do selected technologies support the integration patterns from integrations.md?
 
 **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/advocate-report-template.md`
 ```
@@ -351,7 +388,8 @@ Update `{{supervisor_instructions}}` in plan-context.md:
 Create data model document extracting entities, relationships, and validation rules.
 
 **Read**:
-- Spec: `specs/{feature-id}/spec.md`
+- Technical Requirements: `specs/{feature-id}/technical/requirements.md`
+- Data Sensitivity: `specs/{feature-id}/technical/data-sensitivity.md`
 - Research: `specs/{feature-id}/research.md`
 - Constitution: `.humaninloop/memory/constitution.md`
 
@@ -424,6 +462,7 @@ Update context for advocate:
 - Entity names match research decisions
 - Technology choices honored
 - Requirement IDs trace correctly
+- Data sensitivity alignment: Entity definitions honor classifications from `specs/{feature-id}/technical/data-sensitivity.md`
 
 **Time Budget**:
 - Data model full review: unlimited
@@ -448,7 +487,9 @@ Update `{{supervisor_instructions}}` in plan-context.md:
 Create API contracts and integration guide.
 
 **Read**:
-- Spec: `specs/{feature-id}/spec.md`
+- Technical Requirements: `specs/{feature-id}/technical/requirements.md`
+- NFRs: `specs/{feature-id}/technical/nfrs.md`
+- System Integrations: `specs/{feature-id}/technical/integrations.md`
 - Research: `specs/{feature-id}/research.md`
 - Data Model: `specs/{feature-id}/data-model.md`
 - Constitution: `.humaninloop/memory/constitution.md`
@@ -528,6 +569,8 @@ Update context for advocate:
 - Entity names match data model exactly
 - API patterns match research decisions
 - Requirement IDs trace correctly
+- NFR targets: API design honors performance targets from `specs/{feature-id}/technical/nfrs.md`
+- Integration patterns: Endpoint design matches integration catalogue from `specs/{feature-id}/technical/integrations.md`
 
 **Time Budget**:
 - Contracts full review: unlimited
@@ -712,6 +755,7 @@ Write `specs/{feature-id}/plan.md`:
 | Artifact | Path | Status |
 |----------|------|--------|
 | Specification | specs/{feature-id}/spec.md | ✓ Complete |
+| Technical Requirements | specs/{feature-id}/technical/ | ✓ Present (from techspec) |
 | Research | specs/{feature-id}/research.md | ✓ Complete |
 | Data Model | specs/{feature-id}/data-model.md | ✓ Complete |
 | API Contracts | specs/{feature-id}/contracts/api.yaml | ✓ Complete |

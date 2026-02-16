@@ -1,14 +1,16 @@
 ---
-type: planning-request
+type: techspec-request
 phase: {{phase}}
 status: {{status}}
 iteration: {{iteration}}
 feature_id: {{feature_id}}
 created: {{created}}
 updated: {{updated}}
+core_status: {{core_status}}
+supplementary_status: {{supplementary_status}}
 ---
 
-# Planning Request
+# Technical Specification Request
 
 ## Feature Context
 
@@ -31,10 +33,8 @@ updated: {{updated}}
 | Tech NFRs | {{nfrs_path}} | {{nfrs_status}} |
 | Tech Integrations | {{integrations_path}} | {{integrations_status}} |
 | Tech Data Sensitivity | {{datasensitivity_path}} | {{datasensitivity_status}} |
-| Research | {{research_path}} | {{research_status}} |
-| Data Model | {{datamodel_path}} | {{datamodel_status}} |
-| Contracts | {{contracts_path}} | {{contracts_status}} |
-| Planner Report | {{planner_report_path}} | - |
+| TechAnalyst Report | {{techanalyst_report_path}} | - |
+| Architect Report | {{architect_report_path}} | - |
 | Advocate Report | {{advocate_report_path}} | - |
 
 ## Constitution Principles
