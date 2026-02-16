@@ -107,10 +107,8 @@ Translate business specifications into traceable technical artifacts through a m
 **Requires:** `spec.md` to exist with completed specify workflow
 
 **Workflow:**
-1. **Phase T0 (Core)**: Technical Analyst produces requirements (`requirements.md`) and constraints (`constraints.md`)
-2. **Review**: Devil's Advocate validates core artifacts using `validation-plan-artifacts` (phase: T0)
-3. **Phase T1 (Supplementary)**: Plan Architect produces NFRs (`nfrs.md`), integration maps (`integrations.md`), and data sensitivity classifications (`data-sensitivity.md`)
-4. **Review**: Devil's Advocate validates supplementary artifacts using `validation-plan-artifacts` (phase: T1, mode: incremental)
+1. **Phase T0 (Core)**: Technical Analyst produces requirements (`requirements.md`) and constraints (`constraints.md`), Principal Architect reviews feasibility, Devil's Advocate validates completeness (phase: T0)
+2. **Phase T1 (Supplementary)**: Technical Analyst produces NFRs (`nfrs.md`), integration maps (`integrations.md`), and data sensitivity classifications (`data-sensitivity.md`), Principal Architect reviews feasibility, Devil's Advocate validates completeness (phase: T1, mode: incremental)
 
 **Output:**
 ```
@@ -215,7 +213,7 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 | Agent | Purpose |
 |-------|---------|
 | **Technical Analyst** | Senior technical analyst who translates business specifications into traceable technical artifacts (requirements, constraints, NFRs, integration maps, data sensitivity). Uses skill: `authoring-technical-requirements` |
-| **Plan Architect** | Reviews core artifacts and produces supplementary technical artifacts (NFRs, integrations, data sensitivity) |
+| **Principal Architect** | Reviews feasibility of each pass; validates constraints are real limitations and NFR targets are measurable |
 | **Devil's Advocate** | Validates techspec artifacts for completeness and traceability. Uses skill: `validation-plan-artifacts` (phases: T0, T1) |
 
 ### Plan Workflow Agents

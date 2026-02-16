@@ -115,28 +115,28 @@ Each command produces artifacts you review before the next step. You stay in con
 │  └──────┬───────┘                                                   │
 │         │                                                           │
 │         ▼                Phase T0 (Core)                            │
-│  ┌──────────────────┐     ┌───────────────────┐                     │
-│  │   Technical      │────▶│   Devil's         │                     │
-│  │   Analyst        │     │   Advocate        │                     │
-│  └────────┬─────────┘     └─────────┬─────────┘                     │
-│           │                         │                               │
-│           ▼                         ▼                               │
-│  ┌────────────────┐         ┌──────────────────┐                    │
-│  │ requirements   │         │  constraints     │                    │
-│  │    .md         │         │     .md          │                    │
-│  └────────────────┘         └──────────────────┘                    │
+│  ┌──────────────────┐  ┌───────────────────┐  ┌─────────────────┐   │
+│  │   Technical      │─▶│   Principal       │─▶│   Devil's       │   │
+│  │   Analyst        │  │   Architect       │  │   Advocate      │   │
+│  └────────┬─────────┘  └───────────────────┘  └────────┬────────┘   │
+│           │              (feasibility)                  │           │
+│           ▼                                            ▼           │
+│  ┌────────────────┐  ┌──────────────────┐       ┌──────────┐       │
+│  │ requirements   │  │  constraints     │       │  gaps?   │       │
+│  │    .md         │  │     .md          │       └──────────┘       │
+│  └────────────────┘  └──────────────────┘                          │
 │                                                                     │
 │         │                Phase T1 (Supplementary)                   │
 │         ▼                                                           │
-│  ┌──────────────────┐     ┌───────────────────┐                     │
-│  │     Plan         │────▶│   Devil's         │                     │
-│  │     Architect    │     │   Advocate        │                     │
-│  └────────┬─────────┘     └─────────┬─────────┘                     │
-│           │                         │                               │
-│           ▼                         ▼                               │
-│  ┌──────────┐ ┌──────────────┐ ┌──────────────────┐                 │
-│  │ nfrs.md  │ │integrations  │ │data-sensitivity   │                 │
-│  │          │ │    .md       │ │       .md         │                 │
+│  ┌──────────────────┐  ┌───────────────────┐  ┌─────────────────┐   │
+│  │   Technical      │─▶│   Principal       │─▶│   Devil's       │   │
+│  │   Analyst        │  │   Architect       │  │   Advocate      │   │
+│  └────────┬─────────┘  └───────────────────┘  └────────┬────────┘   │
+│           │              (feasibility)                  │           │
+│           ▼                                            ▼           │
+│  ┌──────────┐ ┌──────────────┐ ┌──────────────────┐ ┌──────────┐   │
+│  │ nfrs.md  │ │integrations  │ │data-sensitivity   │ │  gaps?   │   │
+│  │          │ │    .md       │ │       .md         │ └──────────┘   │
 │  └──────────┘ └──────────────┘ └──────────────────┘                 │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
@@ -145,9 +145,9 @@ Each command produces artifacts you review before the next step. You stay in con
 **Output**: `specs/{feature}/technical/` — 5 traceable artifacts
 
 **Agents**:
-- **Technical Analyst** — Translates business FRs into technical requirements and constraints
-- **Plan Architect** — Produces NFRs, integration maps, and data sensitivity classifications
-- **Devil's Advocate** — Validates traceability, measurability, and cross-artifact consistency
+- **Technical Analyst** — Translates business FRs into technical requirements, constraints, NFRs, integrations, and data sensitivity
+- **Principal Architect** — Reviews feasibility of each pass; validates constraints and NFR measurability
+- **Devil's Advocate** — Validates traceability, completeness, and cross-artifact consistency
 
 </details>
 
@@ -160,7 +160,7 @@ Each command produces artifacts you review before the next step. You stay in con
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
 │  ┌──────────────┐                                                   │
-│  │  SUPERVISOR  │ ◄─── Reads spec.md                                │
+│  │  SUPERVISOR  │ ◄─── Reads spec.md + technical/                    │
 │  └──────┬───────┘                                                   │
 │         │                                                           │
 │         ▼                                                           │

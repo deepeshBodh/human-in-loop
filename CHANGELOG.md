@@ -21,9 +21,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 #### New Command
 - **/humaninloop:techspec** - Multi-agent technical specification workflow with three agents and validation loops
-  - Phase 1: Technical Analyst produces core artifacts (technical requirements, constraints, NFRs, integration maps, data sensitivity)
-  - Phase 2: Plan Architect reviews and produces supplementary artifacts (architecture recommendations, risk assessment)
-  - Phase 3: Devil's Advocate validates both core and supplementary artifacts
+  - Phase T0 (Core): Technical Analyst produces requirements and constraints, Principal Architect reviews feasibility, Devil's Advocate validates completeness
+  - Phase T1 (Supplementary): Technical Analyst produces NFRs, integration maps, and data sensitivity, Principal Architect reviews feasibility, Devil's Advocate validates completeness
   - Two-pass production with incremental validation between passes
   - Entry gate validates spec completion before proceeding
 
