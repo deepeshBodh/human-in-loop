@@ -13,7 +13,7 @@ HumanInLoop is a Claude Code plugin that enforces **specification-driven develop
 Instead of letting AI improvise your architecture, you guide it through a structured workflow:
 
 ```
-Idea → Specification → Plan → Tasks → Implementation
+Idea → Specification → Technical Spec → Plan → Tasks → Implementation
 ```
 
 Every step produces artifacts you can review, refine, and approve before moving forward.
@@ -23,34 +23,35 @@ Every step produces artifacts you can review, refine, and approve before moving 
 ## The Workflow
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                                                                             │
-│    ┌─────────┐     ┌─────────┐     ┌──────┐     ┌───────┐     ┌───────────┐│
-│    │  SETUP  │────▶│ SPECIFY │────▶│ PLAN │────▶│ TASKS │────▶│ IMPLEMENT ││
-│    └─────────┘     └─────────┘     └──────┘     └───────┘     └───────────┘│
-│         │               │              │             │              │       │
-│         ▼               ▼              ▼             ▼              ▼       │
-│    ┌─────────┐     ┌─────────┐     ┌──────┐     ┌───────┐     ┌───────────┐│
-│    │ consti- │     │  spec   │     │ plan │     │ tasks │     │   code    ││
-│    │ tution  │     │   .md   │     │  .md │     │  .md  │     │  changes  ││
-│    └─────────┘     └─────────┘     └──────┘     └───────┘     └───────────┘│
-│         │               │              │             │              │       │
-│         └───────────────┴──────────────┴─────────────┴──────────────┘       │
-│                                    │                                        │
-│                              ┌─────▼─────┐                                  │
-│                              │   AUDIT   │                                  │
-│                              │  (review) │                                  │
-│                              └───────────┘                                  │
-│                                                                             │
-│    ○────────○────────○────────○────────○  Human review checkpoints         │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                          │
+│  ┌─────────┐  ┌─────────┐  ┌──────────┐  ┌──────┐  ┌───────┐  ┌───────────┐             │
+│  │  SETUP  │─▶│ SPECIFY │─▶│ TECHSPEC │─▶│ PLAN │─▶│ TASKS │─▶│ IMPLEMENT │             │
+│  └─────────┘  └─────────┘  └──────────┘  └──────┘  └───────┘  └───────────┘             │
+│       │            │            │             │          │            │                   │
+│       ▼            ▼            ▼             ▼          ▼            ▼                   │
+│  ┌─────────┐  ┌─────────┐  ┌──────────┐  ┌──────┐  ┌───────┐  ┌───────────┐             │
+│  │ consti- │  │  spec   │  │technical/│  │ plan │  │ tasks │  │   code    │             │
+│  │ tution  │  │   .md   │  │ 5 files  │  │  .md │  │  .md  │  │  changes  │             │
+│  └─────────┘  └─────────┘  └──────────┘  └──────┘  └───────┘  └───────────┘             │
+│       │            │            │             │          │            │                   │
+│       └────────────┴────────────┴─────────────┴──────────┴────────────┘                   │
+│                                        │                                                 │
+│                                  ┌─────▼─────┐                                           │
+│                                  │   AUDIT   │                                           │
+│                                  │  (review) │                                           │
+│                                  └───────────┘                                           │
+│                                                                                          │
+│  ○────────○────────○────────○────────○────────○  Human review checkpoints               │
+│                                                                                          │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 | Stage | Command | What You Get |
 |-------|---------|--------------|
 | **Setup** | `/humaninloop:setup` | Project constitution with your standards |
 | **Specify** | `/humaninloop:specify` | Structured spec with user stories and requirements |
+| **Techspec** | `/humaninloop:techspec` | Technical requirements, constraints, NFRs, integrations, data sensitivity |
 | **Plan** | `/humaninloop:plan` | Implementation plan with data models and contracts |
 | **Tasks** | `/humaninloop:tasks` | Ordered task list with TDD cycles |
 | **Audit** | `/humaninloop:audit` | Quality analysis across all artifacts |
@@ -98,6 +99,55 @@ Each command produces artifacts you review before the next step. You stay in con
 **Agents**:
 - **Requirements Analyst** — Transforms feature requests into structured specs; no implementation details
 - **Devil's Advocate** — Reviews for gaps and ambiguity; asks clarifying questions
+
+</details>
+
+<details>
+<summary><strong>Techspec</strong> - Translate spec into technical artifacts</summary>
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        /humaninloop:techspec                        │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌──────────────┐                                                   │
+│  │  SUPERVISOR  │ ◄─── Reads spec.md                                │
+│  └──────┬───────┘                                                   │
+│         │                                                           │
+│         ▼                Phase T0 (Core)                            │
+│  ┌──────────────────┐     ┌───────────────────┐                     │
+│  │   Technical      │────▶│   Devil's         │                     │
+│  │   Analyst        │     │   Advocate        │                     │
+│  └────────┬─────────┘     └─────────┬─────────┘                     │
+│           │                         │                               │
+│           ▼                         ▼                               │
+│  ┌────────────────┐         ┌──────────────────┐                    │
+│  │ requirements   │         │  constraints     │                    │
+│  │    .md         │         │     .md          │                    │
+│  └────────────────┘         └──────────────────┘                    │
+│                                                                     │
+│         │                Phase T1 (Supplementary)                   │
+│         ▼                                                           │
+│  ┌──────────────────┐     ┌───────────────────┐                     │
+│  │     Plan         │────▶│   Devil's         │                     │
+│  │     Architect    │     │   Advocate        │                     │
+│  └────────┬─────────┘     └─────────┬─────────┘                     │
+│           │                         │                               │
+│           ▼                         ▼                               │
+│  ┌──────────┐ ┌──────────────┐ ┌──────────────────┐                 │
+│  │ nfrs.md  │ │integrations  │ │data-sensitivity   │                 │
+│  │          │ │    .md       │ │       .md         │                 │
+│  └──────────┘ └──────────────┘ └──────────────────┘                 │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**Output**: `specs/{feature}/technical/` — 5 traceable artifacts
+
+**Agents**:
+- **Technical Analyst** — Translates business FRs into technical requirements and constraints
+- **Plan Architect** — Produces NFRs, integration maps, and data sensitivity classifications
+- **Devil's Advocate** — Validates traceability, measurability, and cross-artifact consistency
 
 </details>
 
@@ -324,14 +374,14 @@ Each command produces artifacts you review before the next step. You stay in con
 
 ## What's Included
 
-### 6 Commands
-The full specify → plan → tasks → implement lifecycle.
+### 7 Commands
+The full specify → techspec → plan → tasks → implement lifecycle.
 
-### 19 Skills
-Claude automatically invokes these when relevant—authoring requirements, analyzing codebases, designing APIs, running verification tests, managing GitHub issues, and more.
+### 21 Skills
+Claude automatically invokes these when relevant—authoring requirements, technical specifications, analyzing codebases, designing APIs, running verification tests, managing GitHub issues, and more.
 
-### 6 Specialized Agents
-Focused responsibilities: requirements analyst, devil's advocate, plan architect, principal architect, task architect, testing agent.
+### 8 Specialized Agents
+Focused responsibilities: requirements analyst, technical analyst, devil's advocate, plan architect, principal architect, task architect, testing agent, UI designer.
 
 See the [plugin documentation](./plugins/humaninloop/README.md) for full details.
 
