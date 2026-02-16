@@ -1,11 +1,6 @@
 ---
 name: authoring-technical-requirements
-description: >
-  This skill MUST be invoked when the user says "write technical requirements",
-  "define constraints", "define NFRs", "map integrations", or "classify data
-  sensitivity". SHOULD also invoke when user mentions "TR-", "C-", "NFR-",
-  "INT-", "DS-", "non-functional", "system integration", or "data classification".
-  Produces five traceable technical artifacts from business specifications.
+description: This skill MUST be invoked when the user says "write technical requirements", "define constraints", "define NFRs", "map integrations", or "classify data sensitivity". SHOULD also invoke when user mentions "TR-", "C-", "NFR-", "INT-", "DS-", "non-functional", "system integration", or "data classification". Produces five traceable technical artifacts from business specifications.
 ---
 
 # Authoring Technical Requirements

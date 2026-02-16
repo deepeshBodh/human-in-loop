@@ -6,6 +6,49 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [2.0.0] - 2026-02-17
+
+**BREAKING CHANGE**: New techspec workflow stage required between specify and plan.
+
+### humaninloop 2.0.0
+
+#### Breaking Changes
+- **plan.md now requires techspec completion** - The `/humaninloop:plan` command entry gate validates that all 5 technical artifacts exist before proceeding. Users who previously ran `specify → plan` must now run `specify → techspec → plan`.
+
+#### Migration Guide
+1. For new features: run `/humaninloop:techspec` after `/humaninloop:specify` and before `/humaninloop:plan`
+2. For in-progress features with existing `spec.md` but no `technical/` directory: run `/humaninloop:techspec` to generate the required artifacts before continuing with `/humaninloop:plan`
+
+#### New Command
+- **/humaninloop:techspec** - Multi-agent technical specification workflow with three agents and validation loops
+  - Phase 1: Technical Analyst produces core artifacts (technical requirements, constraints, NFRs, integration maps, data sensitivity)
+  - Phase 2: Plan Architect reviews and produces supplementary artifacts (architecture recommendations, risk assessment)
+  - Phase 3: Devil's Advocate validates both core and supplementary artifacts
+  - Two-pass production with incremental validation between passes
+  - Entry gate validates spec completion before proceeding
+
+#### New Agent
+- **technical-analyst** - Senior technical analyst who translates business specifications into traceable technical artifacts
+  - Produces five artifact types: TR- (technical requirements), C- (constraints), NFR- (non-functional requirements), INT- (integration maps), DS- (data sensitivity classifications)
+  - Uses `authoring-technical-requirements` skill
+  - AGENT-GUIDELINES compliant with `<example>` invocation blocks
+
+#### New Skill
+- **authoring-technical-requirements** - Translate business specifications into five traceable technical artifacts
+  - Triggered by: "write technical requirements", "define constraints", "define NFRs", "map integrations", "classify data sensitivity"
+  - Reference files: ARTIFACT-TEMPLATES.md, TRACEABILITY-PATTERNS.md
+
+#### New Templates
+- `techspec-context-template.md` - Context artifact for techspec supervisor-agent communication
+- `techanalyst-report-template.md` - Report format for technical analyst output
+- `architect-report-template.md` - Report format for plan architect techspec review
+
+#### Changed
+- **plan.md** - Added techspec entry gate; plan command now validates that techspec workflow has completed before proceeding
+- **plan-context-template.md** - Added technical artifact rows for techspec outputs
+
+---
+
 ## [1.1.1] - 2026-02-08
 
 ### humaninloop 1.1.1
@@ -1044,6 +1087,9 @@ Initial marketplace scaffold.
 
 ---
 
+[2.0.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.0.0
+[1.1.1]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v1.1.1
+[1.1.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v1.1.0
 [1.0.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v1.0.0
 [0.8.10]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.10
 [0.8.9]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v0.8.9
