@@ -11,11 +11,13 @@ Find gaps in planning artifacts and generate issues that need resolution before 
 
 ## When to Use
 
+- Reviewing requirements.md + constraints.md after T0 (techspec core) phase completion
+- Reviewing nfrs.md + integrations.md + data-sensitivity.md after T1 (techspec supplementary) phase completion
 - Reviewing research.md after B0 phase completion
 - Reviewing data-model.md after B1 phase completion
 - Reviewing contracts/ after B2 phase completion
 - Validating cross-artifact consistency before task generation
-- When plan architect requests artifact review
+- When plan architect or technical analyst requests artifact review
 - Quality gate checks before phase transitions
 
 ## When NOT to Use
@@ -33,6 +35,8 @@ Each phase has specific checks to execute. The checks identify Critical, Importa
 | Phase | Focus Area | Key Checks |
 |-------|------------|------------|
 | A0 | Codebase Discovery | Coverage, entity/endpoint detection, collision assessment |
+| T0 | Techspec Core | FR coverage, orphan TRs, testable criteria, sourced constraints |
+| T1 | Techspec Supplementary | NFR measurability, integration completeness, data classification |
 | B0 | Research | Marker resolution, alternatives, rationale quality |
 | B1 | Data Model | Entity coverage, relationships, PII identification |
 | B2 | Contracts | Endpoint coverage, schemas, error handling |
@@ -138,7 +142,9 @@ For phases after the first artifact (data-model, contracts), use incremental rev
 
 | Phase | Full Review | Consistency Check |
 |-------|-------------|-------------------|
-| B0 (Research) | research.md | — (first artifact) |
+| T0 (Techspec Core) | requirements.md, constraints.md | — (first techspec artifact) |
+| T1 (Techspec Supplementary) | nfrs.md, integrations.md, data-sensitivity.md | requirements.md + constraints.md (2-3 min) |
+| B0 (Research) | research.md | — (first plan artifact) |
 | B1 (Data Model) | data-model.md | research.md (1-2 min) |
 | B2 (Contracts) | contracts/, quickstart.md | research.md + data-model.md (2-3 min) |
 

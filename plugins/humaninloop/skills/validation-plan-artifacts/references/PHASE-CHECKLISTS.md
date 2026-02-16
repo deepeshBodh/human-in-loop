@@ -22,6 +22,67 @@ This reference file contains detailed review checklists for each planning phase.
 
 ---
 
+## Phase T0: Techspec Core Review
+
+### Checklist Table
+
+| Check | Question | Severity |
+|-------|----------|----------|
+| FR coverage | Is every functional requirement from spec.md mapped to at least one TR? | Critical |
+| Orphan TRs | Are there technical requirements with no business source? | Critical |
+| Testable criteria | Does every TR have measurable acceptance criteria? | Critical |
+| Sourced constraints | Is every constraint traceable to a real limitation (not a preference)? | Critical |
+| TR-constraint contradictions | Do any requirements conflict with stated constraints? | Critical |
+| Dependency references | Do TRs reference relevant constraints and integrations? | Important |
+| Priority assignment | Are TR priorities consistent with source FR priorities? | Important |
+| RFC 2119 language | Do requirements use SHALL/SHOULD/MAY consistently? | Minor |
+
+### Key Questions
+
+- Which functional requirements have NO corresponding technical requirement?
+- Are any constraints actually disguised technology preferences?
+- Can each acceptance criterion be verified in a test?
+- Do any requirements and constraints contradict each other?
+
+---
+
+## Phase T1: Techspec Supplementary Review
+
+### Checklist Table
+
+| Check | Question | Severity |
+|-------|----------|----------|
+| NFR measurability | Does every NFR have a specific, measurable target? | Critical |
+| NFR measurement method | Is the measurement approach defined and feasible? | Critical |
+| Integration completeness | Are all external systems catalogued with protocols? | Critical |
+| Failure modes | Does every integration point have documented failure modes and fallbacks? | Critical |
+| Data classification | Is all PII and sensitive data identified and classified? | Critical |
+| Compliance coverage | Are relevant compliance requirements (GDPR, PCI, etc.) addressed? | Important |
+| NFR-constraint conflicts | Do any NFR targets contradict existing constraints? | Critical |
+| NFR source tracing | Do NFR sources trace to valid TRs or business requirements? | Important |
+| Integration-constraint alignment | Do integration patterns respect stated constraints? | Important |
+| Data sensitivity-requirements alignment | Does data classification cover all entities implied by requirements? | Important |
+| Retention policies | Are data retention and deletion policies specified? | Important |
+| Encryption standards | Are encryption requirements specified for each classification level? | Important |
+
+### Key Questions
+
+- Can each NFR target actually be measured with available tooling?
+- What external systems are implied by requirements but not catalogued?
+- Are fallback strategies realistic or aspirational?
+- Is every sensitive data field accounted for across all technical requirements?
+- Do any NFR targets conflict with each other (e.g., latency vs consistency)?
+
+### Cross-Artifact Consistency (with Core)
+
+| Check | Question | Severity |
+|-------|----------|----------|
+| NFR-TR alignment | Do NFR sources reference valid TR IDs from requirements.md? | Critical |
+| Integration-constraint alignment | Do integration protocols respect constraints from constraints.md? | Important |
+| Data sensitivity coverage | Does data classification cover entities implied by requirements.md? | Important |
+
+---
+
 ## Phase B0: Research Review
 
 ### Checklist Table

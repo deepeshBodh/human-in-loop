@@ -400,7 +400,7 @@ Review the technical requirements and constraints for completeness and gaps.
 - Report: `specs/{feature-id}/.workflow/advocate-report.md`
 
 **Use Skills**:
-- `validation-plan-artifacts` (phase: techspec-core)
+- `validation-plan-artifacts` (phase: T0)
 
 **Focus Areas**:
 - FR coverage: Is every functional requirement from spec.md mapped to at least one TR?
@@ -582,7 +582,7 @@ Update context for advocate:
 - Report: `specs/{feature-id}/.workflow/advocate-report.md`
 
 **Use Skills**:
-- `validation-plan-artifacts` (phase: techspec-supplementary, mode: incremental)
+- `validation-plan-artifacts` (phase: T1, mode: incremental)
 
 **Full Review Checks**:
 - NFR coverage: Are all quality attributes addressed?
