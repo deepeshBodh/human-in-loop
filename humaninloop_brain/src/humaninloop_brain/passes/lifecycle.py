@@ -10,7 +10,7 @@ from humaninloop_brain.entities.catalog import NodeCatalog
 from humaninloop_brain.entities.dag_pass import DAGPass, ExecutionTraceEntry
 from humaninloop_brain.entities.edges import Edge
 from humaninloop_brain.entities.enums import NodeType, PassOutcome, TYPE_STATUS_MAP
-from humaninloop_brain.entities.nodes import GraphNode
+from humaninloop_brain.entities.nodes import EvidenceAttachment, GraphNode
 from humaninloop_brain.graph.inference import infer_edges
 
 
@@ -109,6 +109,52 @@ def add_trace_entry(dag: DAGPass, entry: ExecutionTraceEntry) -> DAGPass:
     if dag.outcome is not None:
         raise FrozenPassError("Cannot add trace entries to a frozen pass")
     dag.execution_trace.append(entry)
+    return dag
+
+
+def add_evidence(
+    dag: DAGPass, node_id: str, evidence: list[EvidenceAttachment]
+) -> DAGPass:
+    """Append evidence attachments to a node.
+
+    Creates a new GraphNode with combined evidence (frozen model requires replacement).
+    """
+    if dag.outcome is not None:
+        raise FrozenPassError("Cannot add evidence to a frozen pass")
+
+    for i, node in enumerate(dag.nodes):
+        if node.id == node_id:
+            new_node = GraphNode(
+                id=node.id,
+                type=node.type,
+                name=node.name,
+                description=node.description,
+                status=node.status,
+                contract=node.contract,
+                agent=node.agent,
+                evidence=list(node.evidence) + list(evidence),
+            )
+            dag.nodes[i] = new_node
+            return dag
+
+    raise ValueError(f"Node '{node_id}' not found in DAG")
+
+
+def record_analysis(
+    dag: DAGPass,
+    node_id: str,
+    status: str,
+    evidence: list[EvidenceAttachment],
+    trace_entry: ExecutionTraceEntry,
+) -> DAGPass:
+    """Record analysis results: update status, append evidence, add trace entry.
+
+    Compound operation — if any step raises, nothing is persisted
+    (the CLI only saves on full success).
+    """
+    dag = update_node_status(dag, node_id, status)
+    dag = add_evidence(dag, node_id, evidence)
+    dag = add_trace_entry(dag, trace_entry)
     return dag
 
 
