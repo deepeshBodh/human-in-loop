@@ -6,6 +6,31 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [2.1.2] - 2026-02-18
+
+Patch release: Align specify.md with DAG architecture design documents after dry run.
+
+### humaninloop 2.1.2
+
+#### Fixed
+
+- **specify.md**: Enforce mandatory `parse-report` after every domain agent execution (was being skipped entirely)
+- **specify.md**: Enforce mandatory State Briefer briefing at start of every pass, not just pass 1
+- **specify.md**: Route all domain node status updates through DAG Assembler's `parse-report`, not direct `hil-dag status` CLI
+- **specify.md**: Route all pass freezing through DAG Assembler's `freeze-pass` action, not direct `hil-dag freeze` CLI
+- **specify.md**: Route clarification question extraction through parse-report `unresolved` field, not direct report reading
+
+#### Added
+
+- **specify.md**: Context Protection section with 5 NEVER/ALWAYS rules preventing Supervisor context window pollution
+- **specify.md**: Responsibility Boundaries table mapping 11 operations to Supervisor/DAG Assembler/State Briefer ownership
+- **specify.md**: Recurring gap escalation at pass 3+ when convergence stalls (from `strategy-core` Pass Evolution pattern)
+- **specify.md**: Supervisor halt escape hatch for unexpected situations with `outcome: "halted"` freeze pattern
+- **specify.md**: On-demand State Briefer re-briefing option mid-pass after unexpected results
+- **specify.md**: New Pass Procedure with lettered steps (A-D) replacing ambiguous inline CLI blocks
+
+---
+
 ## [2.1.1] - 2026-02-18
 
 Patch release: 8 bug fixes from first end-to-end dry run of the specify workflow.
@@ -1158,6 +1183,7 @@ Initial marketplace scaffold.
 
 ---
 
+[2.1.2]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.1.2
 [2.1.1]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.1.1
 [2.1.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.1.0
 [2.0.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.0.0
