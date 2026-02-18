@@ -1,11 +1,11 @@
 ---
 name: strategy-core
-description: Universal workflow patterns (validation, gap classification, pass evolution, halt escalation) consumed by the State Briefer to inform Supervisor briefings.
+description: Universal workflow patterns (validation, gap classification, pass evolution, halt escalation) consumed by the State Analyst to inform Supervisor briefings.
 ---
 
 # Strategy: Core
 
-Universal workflow patterns consumed by the State Briefer to inform Supervisor briefings. These are advisory patterns with rationale — not prescriptive rules. The Supervisor uses judgment informed by these patterns and may deviate when context warrants it.
+Universal workflow patterns consumed by the State Analyst to inform Supervisor briefings. These are advisory patterns with rationale — not prescriptive rules. The Supervisor uses judgment informed by these patterns and may deviate when context warrants it.
 
 ## Validation
 
