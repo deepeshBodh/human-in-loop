@@ -36,6 +36,7 @@ from humaninloop_brain.entities.catalog import (
     NodeCatalog,
     SystemInvariant,
 )
+from humaninloop_brain.entities.strategy_graph import StrategyGraph
 from humaninloop_brain.entities.validation import (
     ValidationResult,
     ValidationViolation,
@@ -70,6 +71,8 @@ __all__ = [
     "HistoryContext",
     "HistoryPass",
     "PassEntry",
+    # StrategyGraph
+    "StrategyGraph",
     # Catalog
     "CatalogNodeDefinition",
     "EdgeConstraint",

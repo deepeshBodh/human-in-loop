@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, model_validator
 
-from humaninloop_brain.entities.enums import NodeType, TYPE_STATUS_MAP
+from humaninloop_brain.entities.enums import NodeType, TYPE_STATUS_MAP, V3_TYPE_STATUS_MAP
 
 
 class ArtifactConsumption(BaseModel):
@@ -66,11 +66,17 @@ class GraphNode(BaseModel):
     history: list[NodeHistoryEntry] = []
     verdict: str | None = None
     last_active_pass: int | None = None
+    schema_version: str | None = None
 
     @model_validator(mode="after")
     def validate_type_status(self) -> GraphNode:
-        """Ensure status is valid for the node's type."""
-        status_enum = TYPE_STATUS_MAP[self.type]
+        """Ensure status is valid for the node's type.
+
+        Uses V3_TYPE_STATUS_MAP when schema_version is "3.0.0",
+        otherwise uses the v2 TYPE_STATUS_MAP.
+        """
+        status_map = V3_TYPE_STATUS_MAP if self.schema_version == "3.0.0" else TYPE_STATUS_MAP
+        status_enum = status_map[self.type]
         valid_values = {s.value for s in status_enum}
         if self.status not in valid_values:
             raise ValueError(
