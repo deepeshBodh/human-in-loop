@@ -8,23 +8,31 @@ import sys
 from pathlib import Path
 
 from humaninloop_brain.entities.catalog import NodeCatalog
-from humaninloop_brain.entities.dag_pass import DAGPass
-from humaninloop_brain.entities.enums import PassOutcome
+from humaninloop_brain.entities.dag_pass import DAGPass, ExecutionTraceEntry
+from humaninloop_brain.entities.nodes import EvidenceAttachment
+from humaninloop_brain.entities.strategy_graph import StrategyGraph
 from humaninloop_brain.entities.validation import ValidationResult
 from humaninloop_brain.graph.sort import execution_order
-from humaninloop_brain.entities.dag_pass import ExecutionTraceEntry
-from humaninloop_brain.entities.nodes import EvidenceAttachment
 from humaninloop_brain.passes.lifecycle import (
     FrozenPassError,
     add_node,
-    create_pass,
-    freeze_pass,
+    freeze_pass as v2_freeze_pass,
     load_pass,
     record_analysis,
     save_pass,
     update_node_status,
 )
+from humaninloop_brain.passes.v3_lifecycle import (
+    FrozenEntryError,
+    add_or_reopen_node,
+    create_strategy_graph,
+    freeze_current_pass,
+    save_graph,
+    update_node_history,
+)
 from humaninloop_brain.validators.structural import validate_structure
+
+_VALID_OUTCOMES = frozenset({"completed", "halted"})
 
 
 def validation_result_to_output(result: ValidationResult) -> dict:
@@ -66,8 +74,12 @@ def _load_catalog(path: str) -> NodeCatalog:
     return NodeCatalog.model_validate(data)
 
 
-def _load_dag(path: str) -> DAGPass:
-    return load_pass(path)
+def _load_any_dag(path: str) -> DAGPass | StrategyGraph:
+    """Load DAG file, auto-detecting v2 DAGPass or v3 StrategyGraph."""
+    data = json.loads(Path(path).read_text())
+    if data.get("schema_version") == "3.0.0":
+        return StrategyGraph.model_validate(data)
+    return DAGPass.model_validate(data)
 
 
 def _output(data: dict, exit_code: int = 0) -> int:
@@ -75,8 +87,13 @@ def _output(data: dict, exit_code: int = 0) -> int:
     return exit_code
 
 
+# ---------------------------------------------------------------------------
+# Commands
+# ---------------------------------------------------------------------------
+
+
 def cmd_validate(args: argparse.Namespace) -> int:
-    dag = _load_dag(args.dag)
+    dag = _load_any_dag(args.dag)
     catalog = _load_catalog(args.catalog)
     result = validate_structure(dag, catalog)
     output = validation_result_to_output(result)
@@ -84,35 +101,44 @@ def cmd_validate(args: argparse.Namespace) -> int:
 
 
 def cmd_sort(args: argparse.Namespace) -> int:
-    dag = _load_dag(args.dag)
+    dag = _load_any_dag(args.dag)
     order = execution_order(dag)
     return _output({"order": order})
 
 
-def cmd_create(args: argparse.Namespace) -> int:
-    dag = create_pass(args.workflow, args.pass_number)
-    save_pass(dag, args.output)
-    return _output({
-        "status": "success",
-        "dag_path": str(args.output),
-        "pass_number": args.pass_number,
-    })
-
-
 def cmd_assemble(args: argparse.Namespace) -> int:
-    dag = _load_dag(args.dag)
     catalog = _load_catalog(args.catalog)
+    path = Path(args.dag)
+
+    if not path.exists():
+        # Bootstrap: create new StrategyGraph
+        if not args.workflow:
+            return _output({
+                "status": "error",
+                "message": "--workflow required when DAG file does not exist (bootstrap)",
+            }, 1)
+        dag = create_strategy_graph(args.workflow)
+    else:
+        dag = _load_any_dag(str(path))
+
+    if isinstance(dag, StrategyGraph):
+        return _assemble_v3(dag, args, catalog, path)
+    return _assemble_v2(dag, args, catalog, path)
+
+
+def _assemble_v2(
+    dag: DAGPass, args: argparse.Namespace, catalog: NodeCatalog, path: Path,
+) -> int:
     try:
         dag, inferred = add_node(dag, args.node, catalog)
     except (ValueError, FrozenPassError) as e:
         return _output({"status": "error", "message": str(e)}, 1)
 
-    # Validate after assembly — only persist if valid (transactional)
     result = validate_structure(dag, catalog)
     if result.valid:
-        save_pass(dag, args.dag)
+        save_pass(dag, str(path))
     added_node = next(n for n in dag.nodes if n.id == args.node)
-    output = {
+    return _output({
         "status": "valid" if result.valid else "invalid",
         "node_added": {
             "id": added_node.id,
@@ -121,12 +147,59 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         },
         "edges_inferred": len(inferred),
         "validation": validation_result_to_output(result),
-    }
-    return _output(output, 0 if result.valid else 1)
+    }, 0 if result.valid else 1)
+
+
+def _assemble_v3(
+    graph: StrategyGraph, args: argparse.Namespace, catalog: NodeCatalog, path: Path,
+) -> int:
+    if graph.status == "completed":
+        return _output({
+            "status": "error",
+            "message": "Cannot add nodes to a completed graph",
+        }, 1)
+
+    pass_number = args.pass_number or graph.current_pass
+    try:
+        graph, inferred = add_or_reopen_node(graph, args.node, catalog, pass_number)
+    except (ValueError, FrozenEntryError) as e:
+        return _output({"status": "error", "message": str(e)}, 1)
+
+    result = validate_structure(graph, catalog)
+
+    # Invariant auto-resolution: carry_forward gate
+    if not result.valid:
+        inv002 = [v for v in result.violations if v.code == "INV-002"]
+        if inv002:
+            const_gate_def = catalog.get_node("constitution-gate")
+            if const_gate_def and const_gate_def.carry_forward:
+                graph, _ = add_or_reopen_node(
+                    graph, "constitution-gate", catalog, pass_number,
+                )
+                graph = update_node_history(
+                    graph, "constitution-gate", pass_number, "completed",
+                )
+                result = validate_structure(graph, catalog)
+
+    if result.valid:
+        save_graph(graph, str(path))
+
+    added_node = next(n for n in graph.nodes if n.id == args.node)
+    return _output({
+        "status": "valid" if result.valid else "invalid",
+        "node_added": {
+            "id": added_node.id,
+            "type": added_node.type.value,
+            "status": added_node.status,
+        },
+        "edges_inferred": len(inferred),
+        "validation": validation_result_to_output(result),
+    }, 0 if result.valid else 1)
 
 
 def cmd_status(args: argparse.Namespace) -> int:
-    dag = _load_dag(args.dag)
+    dag = _load_any_dag(args.dag)
+
     # Find current status
     old_status = None
     for node in dag.nodes:
@@ -136,12 +209,20 @@ def cmd_status(args: argparse.Namespace) -> int:
     if old_status is None:
         return _output({"status": "error", "message": f"Node '{args.node}' not found"}, 1)
 
-    try:
-        update_node_status(dag, args.node, args.status)
-    except (ValueError, FrozenPassError) as e:
-        return _output({"status": "error", "message": str(e)}, 1)
+    if isinstance(dag, StrategyGraph):
+        pass_number = args.pass_number or dag.current_pass
+        try:
+            dag = update_node_history(dag, args.node, pass_number, args.status)
+        except (ValueError, FrozenEntryError) as e:
+            return _output({"status": "error", "message": str(e)}, 1)
+        save_graph(dag, args.dag)
+    else:
+        try:
+            update_node_status(dag, args.node, args.status)
+        except (ValueError, FrozenPassError) as e:
+            return _output({"status": "error", "message": str(e)}, 1)
+        save_pass(dag, args.dag)
 
-    save_pass(dag, args.dag)
     return _output({
         "status": "success",
         "node_id": args.node,
@@ -151,7 +232,7 @@ def cmd_status(args: argparse.Namespace) -> int:
 
 
 def cmd_record(args: argparse.Namespace) -> int:
-    dag = _load_dag(args.dag)
+    dag = _load_any_dag(args.dag)
 
     # Find current status
     old_status = None
@@ -177,17 +258,28 @@ def cmd_record(args: argparse.Namespace) -> int:
         trace_raw = json.loads(args.trace)
     except json.JSONDecodeError as e:
         return _output({"status": "error", "message": f"Invalid trace JSON: {e}"}, 1)
-    try:
-        trace_entry = ExecutionTraceEntry.model_validate(trace_raw)
-    except Exception as e:
-        return _output({"status": "error", "message": f"Invalid trace schema: {e}"}, 1)
 
-    try:
-        record_analysis(dag, args.node, args.status, evidence, trace_entry)
-    except (ValueError, FrozenPassError) as e:
-        return _output({"status": "error", "message": str(e)}, 1)
+    if isinstance(dag, StrategyGraph):
+        pass_number = args.pass_number or dag.current_pass
+        try:
+            dag = update_node_history(
+                dag, args.node, pass_number, args.status,
+                evidence=evidence, trace=trace_raw,
+            )
+        except (ValueError, FrozenEntryError) as e:
+            return _output({"status": "error", "message": str(e)}, 1)
+        save_graph(dag, args.dag)
+    else:
+        try:
+            trace_entry = ExecutionTraceEntry.model_validate(trace_raw)
+        except Exception as e:
+            return _output({"status": "error", "message": f"Invalid trace schema: {e}"}, 1)
+        try:
+            record_analysis(dag, args.node, args.status, evidence, trace_entry)
+        except (ValueError, FrozenPassError) as e:
+            return _output({"status": "error", "message": str(e)}, 1)
+        save_pass(dag, args.dag)
 
-    save_pass(dag, args.dag)
     return _output({
         "status": "success",
         "node_id": args.node,
@@ -199,30 +291,78 @@ def cmd_record(args: argparse.Namespace) -> int:
 
 
 def cmd_freeze(args: argparse.Namespace) -> int:
-    dag = _load_dag(args.dag)
-    try:
-        outcome = PassOutcome(args.outcome)
-    except ValueError:
+    # Validate outcome
+    if args.outcome not in _VALID_OUTCOMES:
         return _output({
             "status": "error",
-            "message": f"Invalid outcome: '{args.outcome}'. Must be 'completed' or 'halted'",
+            "message": (
+                f"Invalid outcome: '{args.outcome}'. "
+                f"Must be 'completed' or 'halted'"
+            ),
         }, 1)
 
-    try:
-        freeze_pass(dag, outcome, args.detail, args.rationale)
-    except FrozenPassError as e:
-        return _output({"status": "error", "message": str(e)}, 1)
+    dag = _load_any_dag(args.dag)
 
-    save_pass(dag, args.dag)
-    return _output({
-        "status": "success",
-        "pass_frozen": True,
-        "dag_path": str(args.dag),
-        "outcome": args.outcome,
-        "outcome_detail": args.detail,
-        "nodes_executed": len(dag.nodes),
-        "edges_total": len(dag.edges),
-    })
+    if isinstance(dag, StrategyGraph):
+        # Check double-freeze
+        current_entry = next(
+            (p for p in dag.passes if p.pass_number == dag.current_pass), None,
+        )
+        if current_entry and current_entry.frozen:
+            return _output({
+                "status": "error",
+                "message": "Current pass is already frozen",
+            }, 1)
+
+        triggered = args.triggered_nodes or None
+        try:
+            dag = freeze_current_pass(
+                dag, args.outcome, args.detail,
+                triggered_nodes=triggered,
+                reason=args.reason,
+            )
+        except FrozenEntryError as e:
+            return _output({"status": "error", "message": str(e)}, 1)
+
+        save_graph(dag, args.dag)
+        return _output({
+            "status": "success",
+            "pass_frozen": True,
+            "dag_path": str(args.dag),
+            "outcome": args.outcome,
+            "outcome_detail": args.detail,
+            "nodes_total": len(dag.nodes),
+            "edges_total": len(dag.edges),
+        })
+    else:
+        from humaninloop_brain.entities.enums import PassOutcome
+
+        try:
+            outcome = PassOutcome(args.outcome)
+        except ValueError:
+            return _output({
+                "status": "error",
+                "message": (
+                    f"Invalid outcome: '{args.outcome}'. "
+                    f"Must be 'completed' or 'halted'"
+                ),
+            }, 1)
+
+        try:
+            v2_freeze_pass(dag, outcome, args.detail or "", args.rationale or "")
+        except FrozenPassError as e:
+            return _output({"status": "error", "message": str(e)}, 1)
+
+        save_pass(dag, args.dag)
+        return _output({
+            "status": "success",
+            "pass_frozen": True,
+            "dag_path": str(args.dag),
+            "outcome": args.outcome,
+            "outcome_detail": args.detail or "",
+            "nodes_executed": len(dag.nodes),
+            "edges_total": len(dag.edges),
+        })
 
 
 def cmd_catalog_validate(args: argparse.Namespace) -> int:
@@ -235,11 +375,9 @@ def cmd_catalog_validate(args: argparse.Namespace) -> int:
             "summary": {"total": 1, "passed": 0, "failed": 1},
         }, 1)
 
-    # Basic catalog validation
     checks = []
     issues_count = 0
 
-    # Check node IDs unique
     ids = [n.id for n in catalog.nodes]
     if len(ids) != len(set(ids)):
         checks.append({"check": "unique_node_ids", "passed": False, "issues": ["Duplicate node IDs"]})
@@ -247,14 +385,21 @@ def cmd_catalog_validate(args: argparse.Namespace) -> int:
     else:
         checks.append({"check": "unique_node_ids", "passed": True, "issues": []})
 
-    # Check all edge types have constraints
     from humaninloop_brain.entities.enums import EdgeType
     for et in EdgeType:
         if catalog.get_edge_constraint(et) is None:
-            checks.append({"check": f"edge_constraint_{et.value}", "passed": False, "issues": [f"Missing constraint for {et.value}"]})
+            checks.append({
+                "check": f"edge_constraint_{et.value}",
+                "passed": False,
+                "issues": [f"Missing constraint for {et.value}"],
+            })
             issues_count += 1
         else:
-            checks.append({"check": f"edge_constraint_{et.value}", "passed": True, "issues": []})
+            checks.append({
+                "check": f"edge_constraint_{et.value}",
+                "passed": True,
+                "issues": [],
+            })
 
     total = len(checks)
     return _output({
@@ -262,6 +407,11 @@ def cmd_catalog_validate(args: argparse.Namespace) -> int:
         "checks": checks,
         "summary": {"total": total, "passed": total - issues_count, "failed": issues_count},
     }, 0 if issues_count == 0 else 1)
+
+
+# ---------------------------------------------------------------------------
+# Parser
+# ---------------------------------------------------------------------------
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -272,53 +422,64 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # validate
-    p_val = subparsers.add_parser("validate", help="Validate a DAG pass")
-    p_val.add_argument("dag", help="Path to DAG pass JSON")
+    p_val = subparsers.add_parser("validate", help="Validate a DAG")
+    p_val.add_argument("dag", help="Path to DAG JSON")
     p_val.add_argument("--catalog", required=True, help="Path to node catalog JSON")
     p_val.set_defaults(func=cmd_validate)
 
     # sort
     p_sort = subparsers.add_parser("sort", help="Topological sort of DAG nodes")
-    p_sort.add_argument("dag", help="Path to DAG pass JSON")
+    p_sort.add_argument("dag", help="Path to DAG JSON")
     p_sort.set_defaults(func=cmd_sort)
-
-    # create
-    p_create = subparsers.add_parser("create", help="Create a new empty DAG pass")
-    p_create.add_argument("workflow", help="Workflow ID")
-    p_create.add_argument("--pass", dest="pass_number", type=int, required=True, help="Pass number")
-    p_create.add_argument("--output", required=True, help="Output file path")
-    p_create.set_defaults(func=cmd_create)
 
     # assemble
     p_asm = subparsers.add_parser("assemble", help="Add a node from catalog to DAG")
-    p_asm.add_argument("dag", help="Path to DAG pass JSON")
+    p_asm.add_argument("dag", help="Path to DAG JSON (created if missing)")
     p_asm.add_argument("--catalog", required=True, help="Path to node catalog JSON")
     p_asm.add_argument("--node", required=True, help="Node ID from catalog")
+    p_asm.add_argument("--workflow", help="Workflow ID (required for bootstrap)")
+    p_asm.add_argument(
+        "--pass", dest="pass_number", type=int, default=None,
+        help="Target pass number (v3)",
+    )
     p_asm.set_defaults(func=cmd_assemble)
 
     # status
     p_stat = subparsers.add_parser("status", help="Update a node's status")
-    p_stat.add_argument("dag", help="Path to DAG pass JSON")
+    p_stat.add_argument("dag", help="Path to DAG JSON")
     p_stat.add_argument("--node", required=True, help="Node ID")
     p_stat.add_argument("--status", required=True, help="New status")
+    p_stat.add_argument(
+        "--pass", dest="pass_number", type=int, default=None,
+        help="Target pass number (v3)",
+    )
     p_stat.set_defaults(func=cmd_status)
-
-    # freeze
-    p_frz = subparsers.add_parser("freeze", help="Freeze a completed pass")
-    p_frz.add_argument("dag", help="Path to DAG pass JSON")
-    p_frz.add_argument("--outcome", required=True, help="completed or halted")
-    p_frz.add_argument("--detail", required=True, help="Outcome detail")
-    p_frz.add_argument("--rationale", required=True, help="Assembly rationale")
-    p_frz.set_defaults(func=cmd_freeze)
 
     # record
     p_rec = subparsers.add_parser("record", help="Record analysis results for a node")
-    p_rec.add_argument("dag", help="Path to DAG pass JSON")
+    p_rec.add_argument("dag", help="Path to DAG JSON")
     p_rec.add_argument("--node", required=True, help="Node ID")
     p_rec.add_argument("--status", required=True, help="New status")
     p_rec.add_argument("--evidence", required=True, help="JSON array of evidence entries")
     p_rec.add_argument("--trace", required=True, help="JSON object for execution trace entry")
+    p_rec.add_argument(
+        "--pass", dest="pass_number", type=int, default=None,
+        help="Target pass number (v3)",
+    )
     p_rec.set_defaults(func=cmd_record)
+
+    # freeze
+    p_frz = subparsers.add_parser("freeze", help="Freeze a completed pass")
+    p_frz.add_argument("dag", help="Path to DAG JSON")
+    p_frz.add_argument("--outcome", required=True, help="completed or halted")
+    p_frz.add_argument("--detail", required=True, help="Outcome detail")
+    p_frz.add_argument("--rationale", default="", help="Assembly rationale (v2 only)")
+    p_frz.add_argument(
+        "--triggered-nodes", nargs="*", default=None,
+        help="Node IDs to trigger in next pass (v3)",
+    )
+    p_frz.add_argument("--reason", default=None, help="Reason for triggered-by edges (v3)")
+    p_frz.set_defaults(func=cmd_freeze)
 
     # catalog-validate
     p_cat = subparsers.add_parser("catalog-validate", help="Validate a node catalog")

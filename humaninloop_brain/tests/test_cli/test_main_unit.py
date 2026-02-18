@@ -1,4 +1,8 @@
-"""Unit tests for CLI — in-process to capture coverage."""
+"""Unit tests for CLI — in-process to capture coverage.
+
+Tests cover both v3 StrategyGraph (primary) and v2 DAGPass (backward compat)
+code paths through the CLI.
+"""
 
 import json
 from pathlib import Path
@@ -9,6 +13,24 @@ from humaninloop_brain.cli.main import main, validation_result_to_output
 from humaninloop_brain.entities.validation import ValidationResult, ValidationViolation
 
 FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
+CATALOG = str(FIXTURES_DIR / "specify-catalog.json")
+
+
+def _bootstrap_graph(tmp_path, capsys, workflow="test-wf", nodes=None):
+    """Bootstrap a v3 StrategyGraph and assemble nodes.
+
+    Default: constitution-gate only.
+    """
+    nodes = nodes or ["constitution-gate"]
+    dag_path = str(tmp_path / "strategy.json")
+    for i, node_id in enumerate(nodes):
+        args = ["assemble", dag_path, "--catalog", CATALOG, "--node", node_id]
+        if i == 0:
+            args.extend(["--workflow", workflow])
+        code = main(args)
+        assert code == 0, f"Bootstrap failed at {node_id}"
+    capsys.readouterr()
+    return dag_path
 
 
 class TestValidationResultToOutput:
@@ -40,7 +62,7 @@ class TestValidateCommand:
         code = main([
             "validate",
             str(FIXTURES_DIR / "pass-normal.json"),
-            "--catalog", str(FIXTURES_DIR / "specify-catalog.json"),
+            "--catalog", CATALOG,
         ])
         assert code == 0
         out = json.loads(capsys.readouterr().out)
@@ -50,7 +72,7 @@ class TestValidateCommand:
         code = main([
             "validate",
             str(FIXTURES_DIR / "invalid-cycle.json"),
-            "--catalog", str(FIXTURES_DIR / "specify-catalog.json"),
+            "--catalog", CATALOG,
         ])
         assert code == 1
 
@@ -63,112 +85,158 @@ class TestSortCommand:
         assert out["order"] == ["input-enrichment", "analyst-review", "advocate-review"]
 
 
-class TestCreateCommand:
-    def test_create(self, tmp_path, capsys):
-        output_path = tmp_path / "dag.json"
+class TestAssembleCommand:
+    def test_bootstrap_and_assemble(self, tmp_path, capsys):
+        """First assemble creates StrategyGraph (bootstrap)."""
+        dag_path = str(tmp_path / "strategy.json")
         code = main([
-            "create", "my-workflow",
-            "--pass", "1",
-            "--output", str(output_path),
+            "assemble", dag_path,
+            "--catalog", CATALOG,
+            "--node", "constitution-gate",
+            "--workflow", "test-wf",
         ])
         assert code == 0
         out = json.loads(capsys.readouterr().out)
-        assert out["status"] == "success"
-        assert output_path.exists()
+        assert out["status"] == "valid"
+        assert out["node_added"]["id"] == "constitution-gate"
+        assert out["node_added"]["type"] == "gate"
+        assert Path(dag_path).exists()
 
+        # Verify it's a v3 StrategyGraph
+        data = json.loads(Path(dag_path).read_text())
+        assert data["schema_version"] == "3.0.0"
 
-class TestAssembleCommand:
-    def test_assemble(self, tmp_path, capsys):
-        dag_path = tmp_path / "dag.json"
-        main(["create", "w", "--pass", "1", "--output", str(dag_path)])
-        capsys.readouterr()  # Clear
-
+    def test_assemble_to_existing(self, tmp_path, capsys):
+        """Second assemble adds to existing graph."""
+        dag_path = _bootstrap_graph(tmp_path, capsys)
         code = main([
-            "assemble", str(dag_path),
-            "--catalog", str(FIXTURES_DIR / "specify-catalog.json"),
+            "assemble", dag_path,
+            "--catalog", CATALOG,
             "--node", "input-enrichment",
         ])
         assert code == 0
         out = json.loads(capsys.readouterr().out)
         assert out["node_added"]["id"] == "input-enrichment"
         assert out["node_added"]["type"] == "task"
-        assert out["node_added"]["status"] == "pending"
 
-    def test_assemble_unknown(self, tmp_path, capsys):
-        dag_path = tmp_path / "dag.json"
-        main(["create", "w", "--pass", "1", "--output", str(dag_path)])
-        capsys.readouterr()
-
+    def test_bootstrap_requires_workflow(self, tmp_path, capsys):
+        """Bootstrap without --workflow fails."""
+        dag_path = str(tmp_path / "strategy.json")
         code = main([
-            "assemble", str(dag_path),
-            "--catalog", str(FIXTURES_DIR / "specify-catalog.json"),
+            "assemble", dag_path,
+            "--catalog", CATALOG,
+            "--node", "constitution-gate",
+        ])
+        assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert "workflow" in out["message"].lower()
+
+    def test_assemble_unknown_node(self, tmp_path, capsys):
+        """Unknown node ID returns error."""
+        dag_path = _bootstrap_graph(tmp_path, capsys)
+        code = main([
+            "assemble", dag_path,
+            "--catalog", CATALOG,
             "--node", "nonexistent",
         ])
         assert code == 1
 
     def test_assemble_rollback_on_invariant_violation(self, tmp_path, capsys):
-        """Assemble must not persist the DAG when validation fails (transactional)."""
-        dag_path = tmp_path / "dag.json"
-        main(["create", "w", "--pass", "1", "--output", str(dag_path)])
-        capsys.readouterr()
-
-        # Add analyst-review WITHOUT constitution-gate → INV-002 violation
+        """INV-002 violation prevents file creation (transactional)."""
+        dag_path = str(tmp_path / "strategy.json")
+        # Assemble analyst-review without constitution-gate → INV-002
         code = main([
-            "assemble", str(dag_path),
-            "--catalog", str(FIXTURES_DIR / "specify-catalog.json"),
+            "assemble", dag_path,
+            "--catalog", CATALOG,
             "--node", "analyst-review",
+            "--workflow", "test-wf",
         ])
         assert code == 1
         out = json.loads(capsys.readouterr().out)
         assert out["status"] == "invalid"
+        # File should NOT exist (bootstrap + invalid = not persisted)
+        assert not Path(dag_path).exists()
 
-        # DAG on disk should NOT contain the invalid node
-        from humaninloop_brain.passes.lifecycle import load_pass
-        dag = load_pass(str(dag_path))
-        assert len(dag.nodes) == 0, "Invalid node should not be persisted"
-
-    def test_assemble_frozen(self, tmp_path, capsys):
-        dag_path = tmp_path / "dag.json"
-        main(["create", "w", "--pass", "1", "--output", str(dag_path)])
-        main(["freeze", str(dag_path), "--outcome", "completed", "--detail", "d", "--rationale", "r"])
+    def test_assemble_completed_graph_rejected(self, tmp_path, capsys):
+        """Cannot assemble to a completed graph."""
+        dag_path = _bootstrap_graph(tmp_path, capsys)
+        main(["freeze", dag_path, "--outcome", "completed", "--detail", "done"])
         capsys.readouterr()
 
         code = main([
-            "assemble", str(dag_path),
-            "--catalog", str(FIXTURES_DIR / "specify-catalog.json"),
+            "assemble", dag_path,
+            "--catalog", CATALOG,
             "--node", "input-enrichment",
         ])
         assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert "completed" in out["message"].lower()
+
+    def test_assemble_auto_resolution(self, tmp_path, capsys):
+        """INV-002 auto-resolved when carry_forward is set."""
+        # Create a catalog with carry_forward on constitution-gate
+        catalog_data = json.loads(Path(CATALOG).read_text())
+        for node in catalog_data["nodes"]:
+            if node["id"] == "constitution-gate":
+                node["carry_forward"] = True
+        custom_catalog = str(tmp_path / "catalog.json")
+        Path(custom_catalog).write_text(json.dumps(catalog_data))
+
+        dag_path = str(tmp_path / "strategy.json")
+        code = main([
+            "assemble", dag_path,
+            "--catalog", custom_catalog,
+            "--node", "analyst-review",
+            "--workflow", "test-wf",
+        ])
+        assert code == 0
+        out = json.loads(capsys.readouterr().out)
+        assert out["status"] == "valid"
+
+        # constitution-gate should have been auto-added
+        graph_data = json.loads(Path(dag_path).read_text())
+        node_ids = {n["id"] for n in graph_data["nodes"]}
+        assert "constitution-gate" in node_ids
+        assert "analyst-review" in node_ids
 
 
 class TestStatusCommand:
     def test_update(self, tmp_path, capsys):
-        dag_path = tmp_path / "dag.json"
-        main(["create", "w", "--pass", "1", "--output", str(dag_path)])
-        main(["assemble", str(dag_path), "--catalog", str(FIXTURES_DIR / "specify-catalog.json"), "--node", "input-enrichment"])
-        capsys.readouterr()
-
-        code = main(["status", str(dag_path), "--node", "input-enrichment", "--status", "completed"])
+        dag_path = _bootstrap_graph(
+            tmp_path, capsys, nodes=["constitution-gate", "input-enrichment"],
+        )
+        code = main(["status", dag_path, "--node", "input-enrichment", "--status", "completed"])
         assert code == 0
         out = json.loads(capsys.readouterr().out)
         assert out["old_status"] == "pending"
         assert out["new_status"] == "completed"
 
     def test_unknown_node(self, tmp_path, capsys):
-        dag_path = tmp_path / "dag.json"
-        main(["create", "w", "--pass", "1", "--output", str(dag_path)])
-        capsys.readouterr()
-
-        code = main(["status", str(dag_path), "--node", "nonexistent", "--status", "pending"])
+        dag_path = _bootstrap_graph(tmp_path, capsys)
+        code = main(["status", dag_path, "--node", "nonexistent", "--status", "pending"])
         assert code == 1
 
     def test_invalid_status(self, tmp_path, capsys):
-        dag_path = tmp_path / "dag.json"
-        main(["create", "w", "--pass", "1", "--output", str(dag_path)])
-        main(["assemble", str(dag_path), "--catalog", str(FIXTURES_DIR / "specify-catalog.json"), "--node", "input-enrichment"])
-        capsys.readouterr()
+        dag_path = _bootstrap_graph(
+            tmp_path, capsys, nodes=["constitution-gate", "input-enrichment"],
+        )
+        # "passed" is not valid for task nodes in v3
+        code = main(["status", dag_path, "--node", "input-enrichment", "--status", "passed"])
+        assert code == 1
 
-        code = main(["status", str(dag_path), "--node", "input-enrichment", "--status", "passed"])
+    def test_gate_uses_completed_not_passed(self, tmp_path, capsys):
+        """V3 gates use GateLifecycleStatus: completed, not passed."""
+        dag_path = _bootstrap_graph(tmp_path, capsys)
+        # "completed" is valid for gate in v3
+        code = main(["status", dag_path, "--node", "constitution-gate", "--status", "completed"])
+        assert code == 0
+        out = json.loads(capsys.readouterr().out)
+        assert out["new_status"] == "completed"
+
+    def test_gate_rejects_passed(self, tmp_path, capsys):
+        """V3 gates reject 'passed' status (v2-only value)."""
+        dag_path = _bootstrap_graph(tmp_path, capsys)
+        code = main(["status", dag_path, "--node", "constitution-gate", "--status", "passed"])
         assert code == 1
 
 
@@ -188,16 +256,14 @@ class TestRecordCommand:
     })
 
     def _setup_dag(self, tmp_path, capsys):
-        dag_path = tmp_path / "dag.json"
-        main(["create", "w", "--pass", "1", "--output", str(dag_path)])
-        main(["assemble", str(dag_path), "--catalog", str(FIXTURES_DIR / "specify-catalog.json"), "--node", "input-enrichment"])
-        capsys.readouterr()
-        return dag_path
+        return _bootstrap_graph(
+            tmp_path, capsys, nodes=["constitution-gate", "input-enrichment"],
+        )
 
     def test_record_success(self, tmp_path, capsys):
         dag_path = self._setup_dag(tmp_path, capsys)
         code = main([
-            "record", str(dag_path),
+            "record", dag_path,
             "--node", "input-enrichment",
             "--status", "completed",
             "--evidence", self.EVIDENCE,
@@ -214,7 +280,7 @@ class TestRecordCommand:
     def test_record_unknown_node(self, tmp_path, capsys):
         dag_path = self._setup_dag(tmp_path, capsys)
         code = main([
-            "record", str(dag_path),
+            "record", dag_path,
             "--node", "nonexistent",
             "--status", "completed",
             "--evidence", self.EVIDENCE,
@@ -225,7 +291,7 @@ class TestRecordCommand:
     def test_record_invalid_status(self, tmp_path, capsys):
         dag_path = self._setup_dag(tmp_path, capsys)
         code = main([
-            "record", str(dag_path),
+            "record", dag_path,
             "--node", "input-enrichment",
             "--status", "passed",
             "--evidence", self.EVIDENCE,
@@ -236,7 +302,7 @@ class TestRecordCommand:
     def test_record_invalid_evidence_json(self, tmp_path, capsys):
         dag_path = self._setup_dag(tmp_path, capsys)
         code = main([
-            "record", str(dag_path),
+            "record", dag_path,
             "--node", "input-enrichment",
             "--status", "completed",
             "--evidence", "not-json",
@@ -249,7 +315,7 @@ class TestRecordCommand:
     def test_record_invalid_trace_json(self, tmp_path, capsys):
         dag_path = self._setup_dag(tmp_path, capsys)
         code = main([
-            "record", str(dag_path),
+            "record", dag_path,
             "--node", "input-enrichment",
             "--status", "completed",
             "--evidence", self.EVIDENCE,
@@ -259,12 +325,13 @@ class TestRecordCommand:
         out = json.loads(capsys.readouterr().out)
         assert "Invalid trace JSON" in out["message"]
 
-    def test_record_frozen_pass(self, tmp_path, capsys):
+    def test_record_frozen_entry(self, tmp_path, capsys):
         dag_path = self._setup_dag(tmp_path, capsys)
-        main(["freeze", str(dag_path), "--outcome", "completed", "--detail", "d", "--rationale", "r"])
+        main(["freeze", dag_path, "--outcome", "completed", "--detail", "done"])
         capsys.readouterr()
+
         code = main([
-            "record", str(dag_path),
+            "record", dag_path,
             "--node", "input-enrichment",
             "--status", "completed",
             "--evidence", self.EVIDENCE,
@@ -275,27 +342,30 @@ class TestRecordCommand:
     def test_record_persists_to_disk(self, tmp_path, capsys):
         dag_path = self._setup_dag(tmp_path, capsys)
         main([
-            "record", str(dag_path),
+            "record", dag_path,
             "--node", "input-enrichment",
             "--status", "completed",
             "--evidence", self.EVIDENCE,
             "--trace", self.TRACE,
         ])
         capsys.readouterr()
+
         # Reload and verify
-        from humaninloop_brain.passes.lifecycle import load_pass
-        dag = load_pass(str(dag_path))
-        assert dag.nodes[0].status == "completed"
-        assert len(dag.nodes[0].evidence) == 1
-        assert dag.nodes[0].evidence[0].id == "E1"
-        assert len(dag.execution_trace) == 1
-        assert dag.execution_trace[0].verdict == "completed"
+        data = json.loads(Path(dag_path).read_text())
+        node = next(n for n in data["nodes"] if n["id"] == "input-enrichment")
+        assert node["status"] == "completed"
+        # Check history entry
+        entry = next(e for e in node["history"] if e["pass_number"] == 1)
+        assert entry["status"] == "completed"
+        assert entry["trace"] is not None
+        assert len(entry["evidence"]) == 1
+        assert entry["evidence"][0]["id"] == "E1"
 
     def test_record_evidence_schema(self, tmp_path, capsys):
         dag_path = self._setup_dag(tmp_path, capsys)
         bad_evidence = json.dumps([{"id": "E1"}])  # Missing required fields
         code = main([
-            "record", str(dag_path),
+            "record", dag_path,
             "--node", "input-enrichment",
             "--status", "completed",
             "--evidence", bad_evidence,
@@ -308,39 +378,56 @@ class TestRecordCommand:
 
 class TestFreezeCommand:
     def test_freeze(self, tmp_path, capsys):
-        dag_path = tmp_path / "dag.json"
-        main(["create", "w", "--pass", "1", "--output", str(dag_path)])
-        capsys.readouterr()
-
-        code = main(["freeze", str(dag_path), "--outcome", "completed", "--detail", "d", "--rationale", "r"])
+        dag_path = _bootstrap_graph(tmp_path, capsys)
+        code = main(["freeze", dag_path, "--outcome", "completed", "--detail", "done"])
         assert code == 0
         out = json.loads(capsys.readouterr().out)
         assert out["pass_frozen"] is True
-        assert out["dag_path"] == str(dag_path)
-        assert out["nodes_executed"] == 0
+        assert out["dag_path"] == dag_path
+        assert out["nodes_total"] == 1
         assert out["edges_total"] == 0
 
-    def test_invalid_outcome(self, tmp_path, capsys):
-        dag_path = tmp_path / "dag.json"
-        main(["create", "w", "--pass", "1", "--output", str(dag_path)])
-        capsys.readouterr()
+    def test_freeze_with_triggered_nodes(self, tmp_path, capsys):
+        dag_path = _bootstrap_graph(
+            tmp_path, capsys,
+            nodes=["constitution-gate", "analyst-review", "advocate-review"],
+        )
+        code = main([
+            "freeze", dag_path,
+            "--outcome", "completed",
+            "--detail", "needs-revision",
+            "--triggered-nodes", "analyst-review", "advocate-review",
+            "--reason", "Gaps found",
+        ])
+        assert code == 0
+        out = json.loads(capsys.readouterr().out)
+        assert out["pass_frozen"] is True
 
-        code = main(["freeze", str(dag_path), "--outcome", "invalid", "--detail", "d", "--rationale", "r"])
+        # Verify triggered_by edges and next pass
+        data = json.loads(Path(dag_path).read_text())
+        assert data["current_pass"] == 2
+        triggered_edges = [e for e in data["edges"] if e["type"] == "triggered-by"]
+        assert len(triggered_edges) == 2
+
+    def test_invalid_outcome(self, tmp_path, capsys):
+        dag_path = _bootstrap_graph(tmp_path, capsys)
+        code = main(["freeze", dag_path, "--outcome", "invalid", "--detail", "d"])
         assert code == 1
 
     def test_double_freeze(self, tmp_path, capsys):
-        dag_path = tmp_path / "dag.json"
-        main(["create", "w", "--pass", "1", "--output", str(dag_path)])
-        main(["freeze", str(dag_path), "--outcome", "completed", "--detail", "d", "--rationale", "r"])
+        dag_path = _bootstrap_graph(tmp_path, capsys)
+        main(["freeze", dag_path, "--outcome", "completed", "--detail", "done"])
         capsys.readouterr()
 
-        code = main(["freeze", str(dag_path), "--outcome", "halted", "--detail", "d", "--rationale", "r"])
+        code = main(["freeze", dag_path, "--outcome", "halted", "--detail", "retry"])
         assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert "frozen" in out["message"].lower()
 
 
 class TestCatalogValidateCommand:
     def test_valid(self, capsys):
-        code = main(["catalog-validate", str(FIXTURES_DIR / "specify-catalog.json")])
+        code = main(["catalog-validate", CATALOG])
         assert code == 0
         out = json.loads(capsys.readouterr().out)
         assert out["status"] == "valid"
