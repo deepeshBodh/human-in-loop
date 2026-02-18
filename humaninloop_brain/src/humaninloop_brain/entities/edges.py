@@ -14,3 +14,6 @@ class Edge(BaseModel):
     source: str
     target: str
     type: EdgeType
+    source_pass: int | None = None
+    target_pass: int | None = None
+    reason: str | None = None

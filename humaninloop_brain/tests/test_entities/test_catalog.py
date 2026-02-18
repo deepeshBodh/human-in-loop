@@ -87,6 +87,45 @@ class TestCatalogNodeDefinition:
         with pytest.raises(ValidationError):
             node.id = "other"
 
+    def test_with_capabilities(self):
+        node = CatalogNodeDefinition(
+            id="n",
+            type=NodeType.task,
+            name="n",
+            description="d",
+            valid_statuses=["pending"],
+            capabilities=["specification-writing", "requirements-analysis"],
+        )
+        assert len(node.capabilities) == 2
+        assert "specification-writing" in node.capabilities
+
+    def test_with_carry_forward(self):
+        node = CatalogNodeDefinition(
+            id="g",
+            type=NodeType.gate,
+            name="g",
+            description="d",
+            valid_statuses=["pending", "passed"],
+            carry_forward=True,
+            gate_type="deterministic",
+        )
+        assert node.carry_forward is True
+        assert node.gate_type == "deterministic"
+
+    def test_backward_compatible(self):
+        """V2 data (no capabilities/carry_forward/gate_type) still deserializes."""
+        data = {
+            "id": "n",
+            "type": "task",
+            "name": "n",
+            "description": "d",
+            "valid_statuses": ["pending"],
+        }
+        node = CatalogNodeDefinition.model_validate(data)
+        assert node.capabilities == []
+        assert node.carry_forward is False
+        assert node.gate_type is None
+
 
 class TestEdgeConstraint:
     def test_basic(self):

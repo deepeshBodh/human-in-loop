@@ -9,6 +9,7 @@ from humaninloop_brain.entities.dag_pass import (
     ExecutionTraceEntry,
     HistoryContext,
     HistoryPass,
+    PassEntry,
 )
 from humaninloop_brain.entities.nodes import GraphNode
 from humaninloop_brain.entities.edges import Edge
@@ -73,6 +74,40 @@ class TestHistoryContext:
             ]
         )
         assert len(hc.previous_passes) == 1
+
+
+class TestPassEntry:
+    def test_construct(self):
+        entry = PassEntry(pass_number=1)
+        assert entry.pass_number == 1
+        assert entry.outcome is None
+        assert entry.detail is None
+        assert entry.created_at is None
+        assert entry.completed_at is None
+        assert entry.frozen is False
+
+    def test_with_all_fields(self):
+        entry = PassEntry(
+            pass_number=2,
+            outcome="completed",
+            detail="advocate-verdict-needs-revision",
+            created_at="2026-01-15T10:00:00Z",
+            completed_at="2026-01-15T10:30:00Z",
+            frozen=True,
+        )
+        assert entry.outcome == "completed"
+        assert entry.frozen is True
+
+    def test_frozen(self):
+        entry = PassEntry(pass_number=1)
+        with pytest.raises(Exception):
+            entry.outcome = "completed"
+
+    def test_serialization_roundtrip(self):
+        entry = PassEntry(pass_number=1, outcome="completed", detail="done")
+        data = entry.model_dump()
+        restored = PassEntry.model_validate(data)
+        assert restored == entry
 
 
 class TestDAGPass:

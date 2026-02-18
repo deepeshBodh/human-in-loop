@@ -37,6 +37,19 @@ class EvidenceAttachment(BaseModel):
     reference: str
 
 
+class NodeHistoryEntry(BaseModel):
+    """A single pass's history entry for a node in a StrategyGraph."""
+
+    model_config = {"frozen": True}
+
+    pass_number: int
+    status: str
+    verdict: str | None = None
+    frozen: bool = False
+    evidence: list[EvidenceAttachment] = []
+    trace: dict | None = None
+
+
 class GraphNode(BaseModel):
     """A node in a DAG pass graph."""
 
@@ -50,6 +63,9 @@ class GraphNode(BaseModel):
     contract: NodeContract = NodeContract()
     agent: str | None = None
     evidence: list[EvidenceAttachment] = []
+    history: list[NodeHistoryEntry] = []
+    verdict: str | None = None
+    last_active_pass: int | None = None
 
     @model_validator(mode="after")
     def validate_type_status(self) -> GraphNode:

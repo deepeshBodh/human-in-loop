@@ -8,6 +8,7 @@ from humaninloop_brain.entities.nodes import (
     EvidenceAttachment,
     GraphNode,
     NodeContract,
+    NodeHistoryEntry,
 )
 from humaninloop_brain.entities.enums import NodeType
 
@@ -69,6 +70,43 @@ class TestEvidenceAttachment:
         )
         with pytest.raises(ValidationError):
             ev.id = "ev-02"
+
+
+class TestNodeHistoryEntry:
+    def test_construct(self):
+        entry = NodeHistoryEntry(pass_number=1, status="pending")
+        assert entry.pass_number == 1
+        assert entry.status == "pending"
+        assert entry.verdict is None
+        assert entry.frozen is False
+        assert entry.evidence == []
+        assert entry.trace is None
+
+    def test_with_all_fields(self):
+        ev = EvidenceAttachment(id="ev-01", type="file", description="d", reference="r")
+        entry = NodeHistoryEntry(
+            pass_number=2,
+            status="completed",
+            verdict="ready",
+            frozen=True,
+            evidence=[ev],
+            trace={"node_id": "n", "started_at": "2026-01-15T10:00:00Z"},
+        )
+        assert entry.verdict == "ready"
+        assert entry.frozen is True
+        assert len(entry.evidence) == 1
+        assert entry.trace["node_id"] == "n"
+
+    def test_frozen(self):
+        entry = NodeHistoryEntry(pass_number=1, status="pending")
+        with pytest.raises(ValidationError):
+            entry.status = "completed"
+
+    def test_serialization_roundtrip(self):
+        entry = NodeHistoryEntry(pass_number=1, status="in-progress", verdict="needs-revision")
+        data = entry.model_dump()
+        restored = NodeHistoryEntry.model_validate(data)
+        assert restored == entry
 
 
 class TestGraphNode:
@@ -213,3 +251,33 @@ class TestGraphNode:
         json_str = node.model_dump_json()
         restored = GraphNode.model_validate_json(json_str)
         assert restored == node
+
+    def test_with_history(self):
+        entry = NodeHistoryEntry(pass_number=1, status="pending")
+        node = GraphNode(
+            id="t",
+            type=NodeType.task,
+            name="n",
+            description="d",
+            status="pending",
+            history=[entry],
+            verdict=None,
+            last_active_pass=1,
+        )
+        assert len(node.history) == 1
+        assert node.history[0].pass_number == 1
+        assert node.last_active_pass == 1
+
+    def test_backward_compatible(self):
+        """V2 data (no history/verdict/last_active_pass) still deserializes."""
+        data = {
+            "id": "t",
+            "type": "task",
+            "name": "n",
+            "description": "d",
+            "status": "pending",
+        }
+        node = GraphNode.model_validate(data)
+        assert node.history == []
+        assert node.verdict is None
+        assert node.last_active_pass is None

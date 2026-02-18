@@ -41,6 +41,19 @@ class HistoryContext(BaseModel):
     previous_passes: list[HistoryPass] = []
 
 
+class PassEntry(BaseModel):
+    """A pass entry in a StrategyGraph — tracks pass-level metadata."""
+
+    model_config = {"frozen": True}
+
+    pass_number: int
+    outcome: str | None = None
+    detail: str | None = None
+    created_at: str | None = None
+    completed_at: str | None = None
+    frozen: bool = False
+
+
 class DAGPass(BaseModel):
     """A single DAG pass — mutable during assembly, frozen after completion.
 

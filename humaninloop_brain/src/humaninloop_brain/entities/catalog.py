@@ -29,6 +29,9 @@ class CatalogNodeDefinition(BaseModel):
     valid_statuses: list[str] = []
     verdict_field: str | None = None
     verdict_values: list[str] | None = None
+    capabilities: list[str] = []
+    carry_forward: bool = False
+    gate_type: str | None = None
 
     @model_validator(mode="after")
     def validate_statuses_match_type(self) -> CatalogNodeDefinition:
