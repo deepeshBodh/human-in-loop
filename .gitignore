@@ -58,6 +58,10 @@ venv/
 # .hil/
 # .specify/
 
+# Docker sandbox (local development, not committed)
+Dockerfile.sandbox
+setup-network.sh
+
 # Build outputs
 dist/
 build/

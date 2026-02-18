@@ -1,0 +1,94 @@
+{
+  "id": "specify-pass-002-research",
+  "workflow_id": "specify-feature-auth",
+  "schema_version": "1.0.0",
+  "pass_number": 2,
+  "outcome": null,
+  "nodes": [
+    {
+      "id": "targeted-research",
+      "type": "task",
+      "name": "Targeted Research",
+      "description": "Investigate specific knowledge gaps identified by validation",
+      "status": "pending",
+      "contract": {
+        "consumes": [{"artifact": "advocate-report.md", "required": true}],
+        "produces": ["research-findings"]
+      },
+      "agent": "Explore"
+    },
+    {
+      "id": "analyst-review",
+      "type": "task",
+      "name": "Requirements Analysis",
+      "description": "Write specification with user stories and functional requirements",
+      "status": "pending",
+      "contract": {
+        "consumes": [
+          {"artifact": "research-findings", "required": true},
+          {"artifact": "raw-input", "required": true}
+        ],
+        "produces": ["spec.md", "analyst-report.md"]
+      },
+      "agent": "requirements-analyst"
+    },
+    {
+      "id": "advocate-review",
+      "type": "gate",
+      "name": "Specification Validation",
+      "description": "Adversarial review of specification completeness",
+      "status": "pending",
+      "contract": {
+        "consumes": [
+          {"artifact": "spec.md", "required": true},
+          {"artifact": "analyst-report.md", "required": true}
+        ],
+        "produces": ["advocate-report.md"]
+      },
+      "agent": "devils-advocate"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-dep-research-analyst",
+      "source": "targeted-research",
+      "target": "analyst-review",
+      "type": "depends-on"
+    },
+    {
+      "id": "edge-dep-analyst-advocate",
+      "source": "analyst-review",
+      "target": "advocate-review",
+      "type": "depends-on"
+    },
+    {
+      "id": "edge-prod-research-analyst",
+      "source": "targeted-research",
+      "target": "analyst-review",
+      "type": "produces"
+    },
+    {
+      "id": "edge-prod-analyst-advocate",
+      "source": "analyst-review",
+      "target": "advocate-review",
+      "type": "produces"
+    },
+    {
+      "id": "edge-val-advocate-analyst",
+      "source": "advocate-review",
+      "target": "analyst-review",
+      "type": "validates"
+    }
+  ],
+  "execution_trace": [],
+  "history_context": {
+    "previous_passes": [
+      {
+        "pass_number": 1,
+        "outcome": "completed",
+        "outcome_detail": "advocate-verdict-needs-revision",
+        "summary": "Analyst produced spec, advocate found 3 knowledge gaps requiring research"
+      }
+    ]
+  }
+}

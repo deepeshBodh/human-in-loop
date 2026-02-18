@@ -1,0 +1,85 @@
+"""Enumeration types for the DAG-first execution architecture."""
+
+from enum import Enum
+
+
+class NodeType(str, Enum):
+    """The four node types in the DAG catalog model."""
+
+    task = "task"
+    gate = "gate"
+    decision = "decision"
+    milestone = "milestone"
+
+
+class EdgeType(str, Enum):
+    """The five edge types with distinct cascade semantics."""
+
+    depends_on = "depends-on"
+    produces = "produces"
+    validates = "validates"
+    constrained_by = "constrained-by"
+    informed_by = "informed-by"
+
+
+class PassOutcome(str, Enum):
+    """Outcome of a completed DAG pass."""
+
+    completed = "completed"
+    halted = "halted"
+
+
+class TaskStatus(str, Enum):
+    """Valid statuses for task nodes."""
+
+    pending = "pending"
+    in_progress = "in-progress"
+    completed = "completed"
+    skipped = "skipped"
+    halted = "halted"
+
+
+class GateStatus(str, Enum):
+    """Valid statuses for gate nodes."""
+
+    pending = "pending"
+    in_progress = "in-progress"
+    passed = "passed"
+    failed = "failed"
+    needs_revision = "needs-revision"
+
+
+class DecisionStatus(str, Enum):
+    """Valid statuses for decision nodes."""
+
+    pending = "pending"
+    decided = "decided"
+
+
+class MilestoneStatus(str, Enum):
+    """Valid statuses for milestone nodes."""
+
+    pending = "pending"
+    achieved = "achieved"
+
+
+class InvariantEnforcement(str, Enum):
+    """When an invariant is checked."""
+
+    assembly_time = "assembly-time"
+    runtime = "runtime"
+
+
+class InvariantSeverity(str, Enum):
+    """Severity of an invariant violation."""
+
+    error = "error"
+    warning = "warning"
+
+
+TYPE_STATUS_MAP: dict[NodeType, type[Enum]] = {
+    NodeType.task: TaskStatus,
+    NodeType.gate: GateStatus,
+    NodeType.decision: DecisionStatus,
+    NodeType.milestone: MilestoneStatus,
+}

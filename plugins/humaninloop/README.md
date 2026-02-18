@@ -21,6 +21,16 @@ Add the plugin to your Claude Code project:
 claude-code plugins add humaninloop
 ```
 
+## Prerequisites
+
+The `/humaninloop:specify` command requires the `hil-dag` CLI from the `humaninloop_brain` package:
+
+```bash
+cd humaninloop_brain && uv sync
+```
+
+This installs the `hil-dag` CLI used by the DAG Assembler agent for deterministic graph operations.
+
 ## Getting Started
 
 First, set up your project constitution:
@@ -84,13 +94,14 @@ Create a feature specification with integrated quality validation.
 /humaninloop:specify Add user authentication with OAuth2 support
 ```
 
-**Workflow:**
+**Workflow (DAG-based execution):**
 1. Generate short name from description (2-4 words, e.g., `user-auth`)
 2. Create feature branch and directory using `create-new-feature.sh` script
-3. Requirements Analyst generates structured specification
-4. Devil's Advocate reviews and finds gaps
-5. User answers clarifying questions
-6. Loop until specification is ready or user accepts
+3. State Briefer produces workflow briefing from DAG history, catalog, and strategy skills
+4. Supervisor makes assembly decision; DAG Assembler validates and builds graph node
+5. Domain agents execute (Requirements Analyst produces spec, Devil's Advocate reviews)
+6. DAG Assembler parses agent reports, updates node status
+7. Loop until advocate verdict is `ready` or user accepts current state
 
 **Branch Format:** `###-short-name` (e.g., `001-user-auth`)
 - Branch name = spec directory name = feature ID
@@ -205,6 +216,8 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 
 | Agent | Purpose |
 |-------|---------|
+| **DAG Assembler** | Deterministic graph assembly specialist that translates Supervisor decisions into validated DAG mutations via the `hil-dag` CLI. Constructs prompts for domain agents from catalog contracts. Uses skill: `dag-operations` |
+| **State Briefer** | Reads DAG history, current pass state, strategy skills, and catalog to produce structured workflow briefings for the Supervisor |
 | **Requirements Analyst** | Transforms feature requests into precise specifications with user stories, requirements, and acceptance criteria |
 | **Devil's Advocate** | Adversarial reviewer who stress-tests specs, finds gaps, challenges assumptions, and generates clarifying questions |
 
@@ -281,6 +294,9 @@ specs/<###-feature-name>/
     ├── context.md             # Specify workflow context
     ├── analyst-report.md      # Requirements Analyst output
     ├── advocate-report.md     # Devil's Advocate output
+    ├── dags/                  # DAG pass history (specify workflow)
+    │   ├── pass-001.json      # First pass DAG
+    │   └── pass-NNN.json      # Subsequent passes
     ├── techspec-context.md    # Techspec workflow state
     ├── plan-context.md        # Plan workflow state
     └── tasks-context.md       # Tasks workflow state
@@ -394,6 +410,7 @@ Comprehensive artifact analysis with two output modes.
 The plugin uses:
 - `${CLAUDE_PLUGIN_ROOT}/templates/` - Workflow templates
 - `${CLAUDE_PLUGIN_ROOT}/skills/` - Agent skills (validation, patterns, authoring)
+- `${CLAUDE_PLUGIN_ROOT}/catalogs/` - Node catalogs defining available nodes, edge constraints, and system invariants for DAG-based workflows
 - `.humaninloop/memory/constitution.md` - Project principles (user project)
 
 ## License

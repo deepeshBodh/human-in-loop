@@ -1,0 +1,49 @@
+{
+  "id": "specify-pass-invalid-cycle",
+  "workflow_id": "specify-feature-auth",
+  "schema_version": "1.0.0",
+  "pass_number": 1,
+  "outcome": null,
+  "nodes": [
+    {
+      "id": "analyst-review",
+      "type": "task",
+      "name": "Requirements Analysis",
+      "description": "Write specification",
+      "status": "pending",
+      "contract": {
+        "consumes": [{"artifact": "raw-input", "required": true}],
+        "produces": ["spec.md"]
+      },
+      "agent": "requirements-analyst"
+    },
+    {
+      "id": "advocate-review",
+      "type": "gate",
+      "name": "Specification Validation",
+      "description": "Review specification",
+      "status": "pending",
+      "contract": {
+        "consumes": [{"artifact": "spec.md", "required": true}],
+        "produces": ["advocate-report.md"]
+      },
+      "agent": "devils-advocate"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-dep-analyst-advocate",
+      "source": "analyst-review",
+      "target": "advocate-review",
+      "type": "depends-on"
+    },
+    {
+      "id": "edge-dep-advocate-analyst",
+      "source": "advocate-review",
+      "target": "analyst-review",
+      "type": "depends-on"
+    }
+  ],
+  "execution_trace": [],
+  "history_context": {"previous_passes": []}
+}
