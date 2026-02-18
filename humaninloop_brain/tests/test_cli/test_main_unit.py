@@ -172,6 +172,140 @@ class TestStatusCommand:
         assert code == 1
 
 
+class TestRecordCommand:
+    EVIDENCE = json.dumps([{
+        "id": "E1",
+        "type": "report-summary",
+        "description": "Analyst completed review",
+        "reference": "specs/001/.workflow/analyst-report.md",
+    }])
+    TRACE = json.dumps({
+        "node_id": "input-enrichment",
+        "started_at": "2026-01-15T10:00:00Z",
+        "completed_at": "2026-01-15T10:05:00Z",
+        "verdict": "completed",
+        "agent_report_summary": "Task finished",
+    })
+
+    def _setup_dag(self, tmp_path, capsys):
+        dag_path = tmp_path / "dag.json"
+        main(["create", "w", "--pass", "1", "--output", str(dag_path)])
+        main(["assemble", str(dag_path), "--catalog", str(FIXTURES_DIR / "specify-catalog.json"), "--node", "input-enrichment"])
+        capsys.readouterr()
+        return dag_path
+
+    def test_record_success(self, tmp_path, capsys):
+        dag_path = self._setup_dag(tmp_path, capsys)
+        code = main([
+            "record", str(dag_path),
+            "--node", "input-enrichment",
+            "--status", "completed",
+            "--evidence", self.EVIDENCE,
+            "--trace", self.TRACE,
+        ])
+        assert code == 0
+        out = json.loads(capsys.readouterr().out)
+        assert out["status"] == "success"
+        assert out["old_status"] == "pending"
+        assert out["new_status"] == "completed"
+        assert out["evidence_added"] == 1
+        assert out["trace_recorded"] is True
+
+    def test_record_unknown_node(self, tmp_path, capsys):
+        dag_path = self._setup_dag(tmp_path, capsys)
+        code = main([
+            "record", str(dag_path),
+            "--node", "nonexistent",
+            "--status", "completed",
+            "--evidence", self.EVIDENCE,
+            "--trace", self.TRACE,
+        ])
+        assert code == 1
+
+    def test_record_invalid_status(self, tmp_path, capsys):
+        dag_path = self._setup_dag(tmp_path, capsys)
+        code = main([
+            "record", str(dag_path),
+            "--node", "input-enrichment",
+            "--status", "passed",
+            "--evidence", self.EVIDENCE,
+            "--trace", self.TRACE,
+        ])
+        assert code == 1
+
+    def test_record_invalid_evidence_json(self, tmp_path, capsys):
+        dag_path = self._setup_dag(tmp_path, capsys)
+        code = main([
+            "record", str(dag_path),
+            "--node", "input-enrichment",
+            "--status", "completed",
+            "--evidence", "not-json",
+            "--trace", self.TRACE,
+        ])
+        assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert "Invalid evidence JSON" in out["message"]
+
+    def test_record_invalid_trace_json(self, tmp_path, capsys):
+        dag_path = self._setup_dag(tmp_path, capsys)
+        code = main([
+            "record", str(dag_path),
+            "--node", "input-enrichment",
+            "--status", "completed",
+            "--evidence", self.EVIDENCE,
+            "--trace", "not-json",
+        ])
+        assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert "Invalid trace JSON" in out["message"]
+
+    def test_record_frozen_pass(self, tmp_path, capsys):
+        dag_path = self._setup_dag(tmp_path, capsys)
+        main(["freeze", str(dag_path), "--outcome", "completed", "--detail", "d", "--rationale", "r"])
+        capsys.readouterr()
+        code = main([
+            "record", str(dag_path),
+            "--node", "input-enrichment",
+            "--status", "completed",
+            "--evidence", self.EVIDENCE,
+            "--trace", self.TRACE,
+        ])
+        assert code == 1
+
+    def test_record_persists_to_disk(self, tmp_path, capsys):
+        dag_path = self._setup_dag(tmp_path, capsys)
+        main([
+            "record", str(dag_path),
+            "--node", "input-enrichment",
+            "--status", "completed",
+            "--evidence", self.EVIDENCE,
+            "--trace", self.TRACE,
+        ])
+        capsys.readouterr()
+        # Reload and verify
+        from humaninloop_brain.passes.lifecycle import load_pass
+        dag = load_pass(str(dag_path))
+        assert dag.nodes[0].status == "completed"
+        assert len(dag.nodes[0].evidence) == 1
+        assert dag.nodes[0].evidence[0].id == "E1"
+        assert len(dag.execution_trace) == 1
+        assert dag.execution_trace[0].verdict == "completed"
+
+    def test_record_evidence_schema(self, tmp_path, capsys):
+        dag_path = self._setup_dag(tmp_path, capsys)
+        bad_evidence = json.dumps([{"id": "E1"}])  # Missing required fields
+        code = main([
+            "record", str(dag_path),
+            "--node", "input-enrichment",
+            "--status", "completed",
+            "--evidence", bad_evidence,
+            "--trace", self.TRACE,
+        ])
+        assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert "Invalid evidence schema" in out["message"]
+
+
 class TestFreezeCommand:
     def test_freeze(self, tmp_path, capsys):
         dag_path = tmp_path / "dag.json"
