@@ -3,7 +3,9 @@
 from humaninloop_brain.entities.enums import (
     DecisionStatus,
     EdgeType,
+    GateLifecycleStatus,
     GateStatus,
+    GateVerdict,
     InvariantEnforcement,
     InvariantSeverity,
     MilestoneStatus,
@@ -11,6 +13,7 @@ from humaninloop_brain.entities.enums import (
     PassOutcome,
     TaskStatus,
     TYPE_STATUS_MAP,
+    V3_TYPE_STATUS_MAP,
 )
 
 
@@ -42,12 +45,17 @@ class TestEdgeType:
             EdgeType.validates,
             EdgeType.constrained_by,
             EdgeType.informed_by,
+            EdgeType.triggered_by,
         }
+
+    def test_count(self):
+        assert len(EdgeType) == 6
 
     def test_kebab_case_values(self):
         assert EdgeType.depends_on.value == "depends-on"
         assert EdgeType.constrained_by.value == "constrained-by"
         assert EdgeType.informed_by.value == "informed-by"
+        assert EdgeType.triggered_by.value == "triggered-by"
 
 
 class TestPassOutcome:
@@ -90,6 +98,28 @@ class TestInvariantEnums:
         assert InvariantSeverity.warning.value == "warning"
 
 
+class TestGateVerdict:
+    def test_all_values(self):
+        expected = {"ready", "needs-revision", "critical-gaps"}
+        assert {v.value for v in GateVerdict} == expected
+
+    def test_str_base(self):
+        assert GateVerdict.ready == "ready"
+        assert GateVerdict.needs_revision == "needs-revision"
+        assert GateVerdict.critical_gaps == "critical-gaps"
+
+
+class TestGateLifecycleStatus:
+    def test_all_values(self):
+        expected = {"pending", "in-progress", "completed"}
+        assert {s.value for s in GateLifecycleStatus} == expected
+
+    def test_str_base(self):
+        assert GateLifecycleStatus.pending == "pending"
+        assert GateLifecycleStatus.in_progress == "in-progress"
+        assert GateLifecycleStatus.completed == "completed"
+
+
 class TestTypeStatusMap:
     def test_all_node_types_mapped(self):
         for nt in NodeType:
@@ -100,3 +130,17 @@ class TestTypeStatusMap:
         assert TYPE_STATUS_MAP[NodeType.gate] is GateStatus
         assert TYPE_STATUS_MAP[NodeType.decision] is DecisionStatus
         assert TYPE_STATUS_MAP[NodeType.milestone] is MilestoneStatus
+
+
+class TestV3TypeStatusMap:
+    def test_all_node_types_mapped(self):
+        for nt in NodeType:
+            assert nt in V3_TYPE_STATUS_MAP
+
+    def test_gate_uses_lifecycle_status(self):
+        assert V3_TYPE_STATUS_MAP[NodeType.gate] is GateLifecycleStatus
+
+    def test_non_gate_types_unchanged(self):
+        assert V3_TYPE_STATUS_MAP[NodeType.task] is TaskStatus
+        assert V3_TYPE_STATUS_MAP[NodeType.decision] is DecisionStatus
+        assert V3_TYPE_STATUS_MAP[NodeType.milestone] is MilestoneStatus

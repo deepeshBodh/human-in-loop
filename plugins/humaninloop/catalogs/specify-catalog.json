@@ -144,6 +144,11 @@
       "valid_sources": ["task", "gate", "decision"],
       "valid_targets": ["task", "gate", "decision"],
       "note": "Context flow — not a hard dependency, may cross pass boundaries"
+    },
+    "triggered-by": {
+      "valid_sources": ["task", "gate", "decision", "milestone"],
+      "valid_targets": ["task", "gate", "decision", "milestone"],
+      "note": "Cross-pass trigger — links a node in a new pass to the gate verdict that triggered revision"
     }
   },
   "invariants": [

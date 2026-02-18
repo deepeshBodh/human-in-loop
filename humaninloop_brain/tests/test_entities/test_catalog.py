@@ -135,7 +135,7 @@ class TestNodeCatalog:
         assert catalog.catalog_version == "1.0.0"
         assert catalog.workflow == "specify"
         assert len(catalog.nodes) == 7
-        assert len(catalog.edge_constraints) == 5
+        assert len(catalog.edge_constraints) == 6
         assert len(catalog.invariants) == 5
 
     def test_get_node(self, load_fixture):

@@ -13,13 +13,14 @@ class NodeType(str, Enum):
 
 
 class EdgeType(str, Enum):
-    """The five edge types with distinct cascade semantics."""
+    """The six edge types with distinct cascade semantics."""
 
     depends_on = "depends-on"
     produces = "produces"
     validates = "validates"
     constrained_by = "constrained-by"
     informed_by = "informed-by"
+    triggered_by = "triggered-by"
 
 
 class PassOutcome(str, Enum):
@@ -77,9 +78,32 @@ class InvariantSeverity(str, Enum):
     warning = "warning"
 
 
+class GateVerdict(str, Enum):
+    """Verdict outcomes for gate nodes in v3 schema."""
+
+    ready = "ready"
+    needs_revision = "needs-revision"
+    critical_gaps = "critical-gaps"
+
+
+class GateLifecycleStatus(str, Enum):
+    """Lifecycle statuses for gate nodes in v3 schema."""
+
+    pending = "pending"
+    in_progress = "in-progress"
+    completed = "completed"
+
+
 TYPE_STATUS_MAP: dict[NodeType, type[Enum]] = {
     NodeType.task: TaskStatus,
     NodeType.gate: GateStatus,
+    NodeType.decision: DecisionStatus,
+    NodeType.milestone: MilestoneStatus,
+}
+
+V3_TYPE_STATUS_MAP: dict[NodeType, type[Enum]] = {
+    NodeType.task: TaskStatus,
+    NodeType.gate: GateLifecycleStatus,
     NodeType.decision: DecisionStatus,
     NodeType.milestone: MilestoneStatus,
 }
