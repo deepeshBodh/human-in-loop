@@ -27,6 +27,8 @@
     "./agents/task-architect.md",
     "./agents/technical-analyst.md",
     "./agents/testing-agent.md",
-    "./agents/ui-designer.md"
+    "./agents/ui-designer.md",
+    "./agents/state-briefer.md",
+    "./agents/dag-assembler.md"
   ]
 }

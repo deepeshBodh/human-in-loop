@@ -39,7 +39,7 @@
 
 **Status**: {{verdict}}
 
-**Verdict options**: ready | needs-clarification | major-gaps
+**Verdict options**: ready | needs-revision | critical-gaps
 
 **Rationale**: {{verdict_rationale}}
 
