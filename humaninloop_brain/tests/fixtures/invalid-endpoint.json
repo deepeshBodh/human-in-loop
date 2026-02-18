@@ -1,0 +1,43 @@
+{
+  "id": "specify-pass-invalid-endpoint",
+  "workflow_id": "specify-feature-auth",
+  "schema_version": "1.0.0",
+  "pass_number": 1,
+  "outcome": null,
+  "nodes": [
+    {
+      "id": "constitution-gate",
+      "type": "gate",
+      "name": "Constitution Check",
+      "description": "Verify constitution exists",
+      "status": "pending",
+      "contract": {
+        "consumes": [{"artifact": "constitution.md", "required": true}],
+        "produces": []
+      },
+      "agent": null
+    },
+    {
+      "id": "analyst-review",
+      "type": "task",
+      "name": "Requirements Analysis",
+      "description": "Write specification",
+      "status": "pending",
+      "contract": {
+        "consumes": [{"artifact": "raw-input", "required": true}],
+        "produces": ["spec.md"]
+      },
+      "agent": "requirements-analyst"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-prod-gate-analyst",
+      "source": "constitution-gate",
+      "target": "analyst-review",
+      "type": "produces"
+    }
+  ],
+  "execution_trace": [],
+  "history_context": {"previous_passes": []}
+}
