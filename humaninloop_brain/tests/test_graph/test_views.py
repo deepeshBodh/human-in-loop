@@ -1,6 +1,5 @@
 """Tests for subgraph views."""
 
-from humaninloop_brain.entities.dag_pass import DAGPass
 from humaninloop_brain.entities.edges import Edge
 from humaninloop_brain.entities.enums import EdgeType, NodeType
 from humaninloop_brain.entities.nodes import GraphNode
@@ -18,7 +17,7 @@ from humaninloop_brain.graph.views import (
 
 class TestDependsOnView:
     def test_normal_pass(self, load_fixture):
-        dag = DAGPass.model_validate(load_fixture("pass-normal.json"))
+        dag = StrategyGraph.model_validate(load_fixture("pass-normal.json"))
         g = load_graph(dag)
         view = depends_on_view(g)
         edges = list(view.edges(keys=True))
@@ -26,7 +25,7 @@ class TestDependsOnView:
         assert len(edges) == 2
 
     def test_empty(self):
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         g = load_graph(dag)
         view = depends_on_view(g)
         assert len(list(view.edges())) == 0
@@ -34,7 +33,7 @@ class TestDependsOnView:
 
 class TestProducesView:
     def test_normal_pass(self, load_fixture):
-        dag = DAGPass.model_validate(load_fixture("pass-normal.json"))
+        dag = StrategyGraph.model_validate(load_fixture("pass-normal.json"))
         g = load_graph(dag)
         view = produces_view(g)
         edges = list(view.edges(keys=True))
@@ -44,7 +43,7 @@ class TestProducesView:
 
 class TestValidatesView:
     def test_normal_pass(self, load_fixture):
-        dag = DAGPass.model_validate(load_fixture("pass-normal.json"))
+        dag = StrategyGraph.model_validate(load_fixture("pass-normal.json"))
         g = load_graph(dag)
         view = validates_view(g)
         edges = list(view.edges(keys=True))
@@ -58,7 +57,7 @@ class TestValidatesView:
 
 class TestConstrainedByView:
     def test_no_constrained_by_in_normal(self, load_fixture):
-        dag = DAGPass.model_validate(load_fixture("pass-normal.json"))
+        dag = StrategyGraph.model_validate(load_fixture("pass-normal.json"))
         g = load_graph(dag)
         view = constrained_by_view(g)
         assert len(list(view.edges())) == 0
@@ -66,7 +65,7 @@ class TestConstrainedByView:
 
 class TestInformedByView:
     def test_no_informed_by_in_normal(self, load_fixture):
-        dag = DAGPass.model_validate(load_fixture("pass-normal.json"))
+        dag = StrategyGraph.model_validate(load_fixture("pass-normal.json"))
         g = load_graph(dag)
         view = informed_by_view(g)
         assert len(list(view.edges())) == 0
@@ -101,8 +100,8 @@ class TestTriggeredByView:
         assert len(edges) == 1
         assert edges[0][2] == "triggered-by"
 
-    def test_no_triggered_by_in_dag_pass(self, load_fixture):
-        dag = DAGPass.model_validate(load_fixture("pass-normal.json"))
+    def test_no_triggered_by_in_normal_graph(self, load_fixture):
+        dag = StrategyGraph.model_validate(load_fixture("pass-normal.json"))
         g = load_graph(dag)
         view = triggered_by_view(g)
         assert len(list(view.edges())) == 0

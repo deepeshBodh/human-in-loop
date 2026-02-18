@@ -1,7 +1,7 @@
 """Tests for edge inference."""
 
 from humaninloop_brain.entities.catalog import NodeCatalog
-from humaninloop_brain.entities.dag_pass import DAGPass
+from humaninloop_brain.entities.strategy_graph import StrategyGraph
 from humaninloop_brain.entities.enums import EdgeType, NodeType
 from humaninloop_brain.entities.nodes import GraphNode, NodeContract, ArtifactConsumption
 from humaninloop_brain.entities.edges import Edge
@@ -16,7 +16,7 @@ class TestInferEdges:
     def test_analyst_after_enrichment(self, load_fixture):
         """Adding analyst-review when enrichment exists should infer edges."""
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
 
         # Add enrichment node
         dag.nodes.append(
@@ -43,7 +43,7 @@ class TestInferEdges:
     def test_advocate_after_analyst(self, load_fixture):
         """Adding advocate-review (gate) after analyst (task) infers validates."""
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
 
         dag.nodes.append(
             GraphNode(
@@ -68,20 +68,20 @@ class TestInferEdges:
     def test_no_edges_for_first_node(self, load_fixture):
         """First node in DAG has no upstream — no edges inferred."""
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         edges = infer_edges("input-enrichment", dag, catalog)
         assert edges == []
 
     def test_unknown_node_returns_empty(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         edges = infer_edges("nonexistent", dag, catalog)
         assert edges == []
 
     def test_no_duplicate_edges(self, load_fixture):
         """Inferred edges should not duplicate existing edges."""
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
 
         dag.nodes.append(
             GraphNode(
@@ -111,7 +111,7 @@ class TestInferEdges:
     def test_edge_id_format(self, load_fixture):
         """Inferred edge IDs follow the naming convention."""
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
 
         dag.nodes.append(
             GraphNode(
@@ -134,7 +134,7 @@ class TestInferEdges:
     def test_scenario_skip_enrichment(self, load_fixture):
         """Scenario 1: When no enrichment exists, analyst has no upstream."""
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
 
         # Add constitution gate (produces nothing useful for analyst)
         dag.nodes.append(
@@ -158,7 +158,7 @@ class TestInferEdges:
     def test_scenario_research_before_analyst(self, load_fixture):
         """Scenario 2: Research produces findings consumed by analyst."""
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
 
         dag.nodes.append(
             GraphNode(
@@ -181,7 +181,7 @@ class TestInferEdges:
     def test_skip_reopened_node(self, load_fixture):
         """skip_reopened=True returns empty list immediately."""
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         dag.nodes.append(
             GraphNode(
                 id="input-enrichment",
@@ -201,7 +201,7 @@ class TestInferEdges:
     def test_gate_does_not_get_produces_from_gate(self, load_fixture):
         """Produces edges only come from task sources."""
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
 
         # constitution-gate is a gate, not a task
         dag.nodes.append(

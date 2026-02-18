@@ -1,4 +1,4 @@
-"""Load a DAGPass or StrategyGraph into a NetworkX MultiDiGraph."""
+"""Load a StrategyGraph into a NetworkX MultiDiGraph."""
 
 from __future__ import annotations
 
@@ -13,14 +13,14 @@ if TYPE_CHECKING:
 
 @runtime_checkable
 class HasNodesAndEdges(Protocol):
-    """Protocol for DAGPass and StrategyGraph — both have .nodes and .edges."""
+    """Protocol for graph containers with .nodes and .edges."""
 
     nodes: list[GraphNode]
     edges: list[Edge]
 
 
 def load_graph(dag: HasNodesAndEdges) -> nx.MultiDiGraph:
-    """Convert a DAGPass or StrategyGraph into a NetworkX MultiDiGraph.
+    """Convert a graph container into a NetworkX MultiDiGraph.
 
     Nodes carry attributes: type, status, contract, agent, verdict.
     Edges are keyed by type and carry edge_id attribute.

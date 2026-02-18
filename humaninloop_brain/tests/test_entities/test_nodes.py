@@ -130,7 +130,7 @@ class TestGraphNode:
             assert node.status == status
 
     def test_valid_gate_all_statuses(self):
-        for status in ["pending", "in-progress", "passed", "failed", "needs-revision"]:
+        for status in ["pending", "in-progress", "completed"]:
             node = GraphNode(
                 id="g", type=NodeType.gate, name="n", description="d", status=status
             )
@@ -175,7 +175,7 @@ class TestGraphNode:
                 type=NodeType.gate,
                 name="n",
                 description="d",
-                status="completed",
+                status="passed",
             )
 
     def test_invalid_decision_status(self):

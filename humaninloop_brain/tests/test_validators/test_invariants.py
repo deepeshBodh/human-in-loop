@@ -1,7 +1,6 @@
 """Tests for invariant checker."""
 
 from humaninloop_brain.entities.catalog import NodeCatalog
-from humaninloop_brain.entities.dag_pass import DAGPass
 from humaninloop_brain.entities.edges import Edge
 from humaninloop_brain.entities.enums import EdgeType, NodeType
 from humaninloop_brain.entities.nodes import (
@@ -23,7 +22,7 @@ class TestINV001:
     def test_valid_with_gate_before_milestone(self, load_fixture):
         """Task -> Gate -> Milestone is valid."""
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         dag.nodes = [
             GraphNode(
                 id="task-1", type=NodeType.task, name="t", description="d",
@@ -50,7 +49,7 @@ class TestINV001:
     def test_invalid_task_to_milestone_no_gate(self, load_fixture):
         """Task -> Milestone without gate violates INV-001."""
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         dag.nodes = [
             GraphNode(
                 id="task-1", type=NodeType.task, name="t", description="d",
@@ -71,7 +70,7 @@ class TestINV001:
     def test_no_milestone_no_violation(self, load_fixture):
         """If no milestones exist, INV-001 does not apply."""
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass.model_validate(load_fixture("pass-normal.json"))
+        dag = StrategyGraph.model_validate(load_fixture("pass-normal.json"))
         result = check_invariants(dag, catalog)
         inv001 = [v for v in result.violations if v.code == "INV-001"]
         assert len(inv001) == 0
@@ -81,7 +80,7 @@ class TestINV002:
     """Constitution gate must exist before spec task nodes."""
 
     def test_valid_with_constitution_gate(self, load_fixture):
-        dag = DAGPass.model_validate(load_fixture("pass-skip-enrichment.json"))
+        dag = StrategyGraph.model_validate(load_fixture("pass-skip-enrichment.json"))
         catalog = _make_catalog(load_fixture)
         result = check_invariants(dag, catalog)
         inv002 = [v for v in result.violations if v.code == "INV-002"]
@@ -90,7 +89,7 @@ class TestINV002:
     def test_invalid_no_constitution_gate(self, load_fixture):
         """Task consuming constitution.md without constitution gate."""
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         dag.nodes = [
             GraphNode(
                 id="analyst", type=NodeType.task, name="a", description="d",
@@ -109,7 +108,7 @@ class TestINV003:
     """validates edges must originate from gate nodes."""
 
     def test_valid_validates_from_gate(self, load_fixture):
-        dag = DAGPass.model_validate(load_fixture("pass-normal.json"))
+        dag = StrategyGraph.model_validate(load_fixture("pass-normal.json"))
         catalog = _make_catalog(load_fixture)
         result = check_invariants(dag, catalog)
         inv003 = [v for v in result.violations if v.code == "INV-003"]
@@ -118,7 +117,7 @@ class TestINV003:
     def test_invalid_validates_from_task(self, load_fixture):
         """validates edge from task node violates INV-003."""
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         dag.nodes = [
             GraphNode(
                 id="task-1", type=NodeType.task, name="t", description="d",
@@ -158,27 +157,19 @@ class TestINV004:
         assert len(inv004) == 1
         assert inv004[0].severity == "warning"
 
-    def test_dag_pass_no_check(self, load_fixture):
-        """DAGPass has no current_pass attr — INV-004 not checked."""
-        catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
-        result = check_invariants(dag, catalog)
-        inv004 = [v for v in result.violations if v.code == "INV-004"]
-        assert len(inv004) == 0
-
 
 class TestINV005:
     """depends-on edges must be acyclic."""
 
     def test_cycle_detected(self, load_fixture):
-        dag = DAGPass.model_validate(load_fixture("invalid-cycle.json"))
+        dag = StrategyGraph.model_validate(load_fixture("invalid-cycle.json"))
         catalog = _make_catalog(load_fixture)
         result = check_invariants(dag, catalog)
         inv005 = [v for v in result.violations if v.code == "INV-005"]
         assert len(inv005) == 1
 
     def test_no_cycle(self, load_fixture):
-        dag = DAGPass.model_validate(load_fixture("pass-normal.json"))
+        dag = StrategyGraph.model_validate(load_fixture("pass-normal.json"))
         catalog = _make_catalog(load_fixture)
         result = check_invariants(dag, catalog)
         inv005 = [v for v in result.violations if v.code == "INV-005"]

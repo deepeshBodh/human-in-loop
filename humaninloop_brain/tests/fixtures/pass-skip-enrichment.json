@@ -1,9 +1,10 @@
 {
   "id": "specify-pass-001-skip",
   "workflow_id": "specify-feature-auth",
-  "schema_version": "1.0.0",
-  "pass_number": 1,
-  "outcome": null,
+  "schema_version": "3.0.0",
+  "current_pass": 1,
+  "status": "in-progress",
+  "passes": [{"pass_number": 1}],
   "nodes": [
     {
       "id": "constitution-gate",
@@ -73,9 +74,5 @@
       "target": "analyst-review",
       "type": "validates"
     }
-  ],
-  "execution_trace": [],
-  "history_context": {
-    "previous_passes": []
-  }
+  ]
 }

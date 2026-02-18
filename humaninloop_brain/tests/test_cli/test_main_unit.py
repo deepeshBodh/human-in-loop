@@ -1,7 +1,6 @@
 """Unit tests for CLI — in-process to capture coverage.
 
-Tests cover both v3 StrategyGraph (primary) and v2 DAGPass (backward compat)
-code paths through the CLI.
+Tests cover StrategyGraph v3 schema operations through the CLI.
 """
 
 import json
@@ -141,21 +140,21 @@ class TestAssembleCommand:
         ])
         assert code == 1
 
-    def test_assemble_rollback_on_invariant_violation(self, tmp_path, capsys):
-        """INV-002 violation prevents file creation (transactional)."""
+    def test_assemble_auto_resolves_inv002(self, tmp_path, capsys):
+        """INV-002 auto-resolved via carry_forward constitution-gate."""
         dag_path = str(tmp_path / "strategy.json")
-        # Assemble analyst-review without constitution-gate → INV-002
+        # Assemble analyst-review without constitution-gate → auto-resolution
         code = main([
             "assemble", dag_path,
             "--catalog", CATALOG,
             "--node", "analyst-review",
             "--workflow", "test-wf",
         ])
-        assert code == 1
+        assert code == 0
         out = json.loads(capsys.readouterr().out)
-        assert out["status"] == "invalid"
-        # File should NOT exist (bootstrap + invalid = not persisted)
-        assert not Path(dag_path).exists()
+        assert out["status"] == "valid"
+        # File should exist (auto-resolution succeeded)
+        assert Path(dag_path).exists()
 
     def test_assemble_completed_graph_rejected(self, tmp_path, capsys):
         """Cannot assemble to a completed graph."""
@@ -234,7 +233,7 @@ class TestStatusCommand:
         assert out["new_status"] == "completed"
 
     def test_gate_rejects_passed(self, tmp_path, capsys):
-        """V3 gates reject 'passed' status (v2-only value)."""
+        """Gates reject 'passed' status (not a valid GateLifecycleStatus)."""
         dag_path = _bootstrap_graph(tmp_path, capsys)
         code = main(["status", dag_path, "--node", "constitution-gate", "--status", "passed"])
         assert code == 1

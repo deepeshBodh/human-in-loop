@@ -10,9 +10,8 @@ from humaninloop_brain.entities.nodes import GraphNode
 class StrategyGraph(BaseModel):
     """A single DAG containing the full workflow history across passes.
 
-    Unlike DAGPass (one file per pass), StrategyGraph accumulates nodes
-    and edges across multiple passes, with node-level history entries
-    tracking per-pass status evolution.
+    Accumulates nodes and edges across multiple passes, with node-level
+    history entries tracking per-pass status evolution.
     """
 
     id: str

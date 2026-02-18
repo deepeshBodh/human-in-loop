@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 from humaninloop_brain.entities.catalog import NodeCatalog
-from humaninloop_brain.entities.dag_pass import DAGPass, PassEntry
 from humaninloop_brain.entities.edges import Edge
 from humaninloop_brain.entities.enums import EdgeType, NodeType
 from humaninloop_brain.entities.nodes import (
@@ -24,7 +23,7 @@ def _make_catalog(load_fixture):
 class TestStep1UniqueNodeIds:
     def test_duplicate_node_id(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         dag.nodes = [
             GraphNode(id="dup", type=NodeType.task, name="n", description="d", status="pending"),
             GraphNode(id="dup", type=NodeType.task, name="n2", description="d", status="pending"),
@@ -36,7 +35,7 @@ class TestStep1UniqueNodeIds:
 class TestStep2EdgeReferences:
     def test_dangling_source(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         dag.nodes = [
             GraphNode(id="a", type=NodeType.task, name="n", description="d", status="pending"),
         ]
@@ -48,7 +47,7 @@ class TestStep2EdgeReferences:
 
     def test_dangling_target(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         dag.nodes = [
             GraphNode(id="a", type=NodeType.task, name="n", description="d", status="pending"),
         ]
@@ -62,7 +61,7 @@ class TestStep2EdgeReferences:
 class TestStep4SelfLoops:
     def test_self_loop(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         dag.nodes = [
             GraphNode(id="a", type=NodeType.task, name="n", description="d", status="pending"),
         ]
@@ -76,7 +75,7 @@ class TestStep4SelfLoops:
 class TestStep5DuplicateEdges:
     def test_duplicate_edge(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         dag.nodes = [
             GraphNode(id="a", type=NodeType.task, name="n", description="d", status="pending"),
             GraphNode(id="b", type=NodeType.task, name="n", description="d", status="pending"),
@@ -93,7 +92,7 @@ class TestStep6EndpointConstraints:
     def test_invalid_produces_source(self, load_fixture):
         """produces edge from gate (only task allowed)."""
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass.model_validate(load_fixture("invalid-endpoint.json"))
+        dag = StrategyGraph.model_validate(load_fixture("invalid-endpoint.json"))
         result = validate_structure(dag, catalog)
         assert any(v.code == "INVALID_EDGE_SOURCE" for v in result.violations)
 
@@ -101,7 +100,7 @@ class TestStep6EndpointConstraints:
 class TestStep7Acyclicity:
     def test_cycle(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass.model_validate(load_fixture("invalid-cycle.json"))
+        dag = StrategyGraph.model_validate(load_fixture("invalid-cycle.json"))
         result = validate_structure(dag, catalog)
         assert any(v.code == "CYCLE" for v in result.violations)
 
@@ -109,7 +108,7 @@ class TestStep7Acyclicity:
 class TestStep8Contracts:
     def test_unsatisfied_contract(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass.model_validate(load_fixture("invalid-contract.json"))
+        dag = StrategyGraph.model_validate(load_fixture("invalid-contract.json"))
         result = validate_structure(dag, catalog)
         assert any(v.code == "UNSATISFIED_CONTRACT" for v in result.violations)
 
@@ -117,31 +116,31 @@ class TestStep8Contracts:
 class TestValidPasses:
     def test_normal_pass(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass.model_validate(load_fixture("pass-normal.json"))
+        dag = StrategyGraph.model_validate(load_fixture("pass-normal.json"))
         result = validate_structure(dag, catalog)
         assert result.valid is True
 
     def test_skip_enrichment(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass.model_validate(load_fixture("pass-skip-enrichment.json"))
+        dag = StrategyGraph.model_validate(load_fixture("pass-skip-enrichment.json"))
         result = validate_structure(dag, catalog)
         assert result.valid is True
 
     def test_with_research(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass.model_validate(load_fixture("pass-with-research.json"))
+        dag = StrategyGraph.model_validate(load_fixture("pass-with-research.json"))
         result = validate_structure(dag, catalog)
         assert result.valid is True
 
     def test_with_clarification(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass.model_validate(load_fixture("pass-with-clarification.json"))
+        dag = StrategyGraph.model_validate(load_fixture("pass-with-clarification.json"))
         result = validate_structure(dag, catalog)
         assert result.valid is True
 
     def test_empty_dag(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         result = validate_structure(dag, catalog)
         assert result.valid is True
 
@@ -217,7 +216,7 @@ class TestCollectsAllViolations:
     def test_multiple_violations(self, load_fixture):
         """Structural validator collects ALL violations, not just first."""
         catalog = _make_catalog(load_fixture)
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         dag.nodes = [
             GraphNode(id="a", type=NodeType.task, name="n", description="d", status="pending"),
             GraphNode(id="a", type=NodeType.task, name="n2", description="d", status="pending"),

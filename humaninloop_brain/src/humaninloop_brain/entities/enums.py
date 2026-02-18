@@ -40,14 +40,12 @@ class TaskStatus(str, Enum):
     halted = "halted"
 
 
-class GateStatus(str, Enum):
-    """Valid statuses for gate nodes."""
+class GateLifecycleStatus(str, Enum):
+    """Lifecycle statuses for gate nodes."""
 
     pending = "pending"
     in_progress = "in-progress"
-    passed = "passed"
-    failed = "failed"
-    needs_revision = "needs-revision"
+    completed = "completed"
 
 
 class DecisionStatus(str, Enum):
@@ -79,29 +77,14 @@ class InvariantSeverity(str, Enum):
 
 
 class GateVerdict(str, Enum):
-    """Verdict outcomes for gate nodes in v3 schema."""
+    """Verdict outcomes for gate nodes."""
 
     ready = "ready"
     needs_revision = "needs-revision"
     critical_gaps = "critical-gaps"
 
 
-class GateLifecycleStatus(str, Enum):
-    """Lifecycle statuses for gate nodes in v3 schema."""
-
-    pending = "pending"
-    in_progress = "in-progress"
-    completed = "completed"
-
-
 TYPE_STATUS_MAP: dict[NodeType, type[Enum]] = {
-    NodeType.task: TaskStatus,
-    NodeType.gate: GateStatus,
-    NodeType.decision: DecisionStatus,
-    NodeType.milestone: MilestoneStatus,
-}
-
-V3_TYPE_STATUS_MAP: dict[NodeType, type[Enum]] = {
     NodeType.task: TaskStatus,
     NodeType.gate: GateLifecycleStatus,
     NodeType.decision: DecisionStatus,

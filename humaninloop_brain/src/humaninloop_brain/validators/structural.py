@@ -1,9 +1,9 @@
-"""Structural validator — 9-step validation collecting all violations."""
+"""Structural validator — 10-step validation collecting all violations."""
 
 from __future__ import annotations
 
 from humaninloop_brain.entities.catalog import NodeCatalog
-from humaninloop_brain.entities.enums import EdgeType, TYPE_STATUS_MAP, V3_TYPE_STATUS_MAP
+from humaninloop_brain.entities.enums import EdgeType, TYPE_STATUS_MAP
 from humaninloop_brain.entities.validation import ValidationResult, ValidationViolation
 from humaninloop_brain.graph.guard import check_acyclicity
 from humaninloop_brain.graph.loader import HasNodesAndEdges
@@ -11,24 +11,20 @@ from humaninloop_brain.validators.contracts import check_contracts
 from humaninloop_brain.validators.invariants import check_invariants
 
 
-def _is_v3(dag: HasNodesAndEdges) -> bool:
-    """Detect v3 schema by checking for schema_version attribute."""
-    return getattr(dag, "schema_version", None) == "3.0.0"
-
-
 def validate_structure(dag: HasNodesAndEdges, catalog: NodeCatalog) -> ValidationResult:
-    """Run 9-step structural validation, collecting all violations.
+    """Run 10-step structural validation, collecting all violations.
 
     Steps:
     1. Unique node IDs
     2. Edge references exist
     3. Type-status validity (defense in depth)
-    4. No self-loops
-    5. No duplicate edges (same source+target+type)
+    4. No self-loops (triggered-by self-loops are valid cross-pass links)
+    5. No duplicate edges (same source+target+type; triggered-by includes pass info)
     6. Edge endpoint constraints match catalog
     7. Acyclicity (delegates to guard)
     8. Contract satisfiability (delegates to contracts.py)
     9. Invariant compliance (delegates to invariants.py)
+    10. Entry-level immutability (frozen history entries)
     """
     violations: list[ValidationViolation] = []
 
@@ -75,11 +71,9 @@ def validate_structure(dag: HasNodesAndEdges, catalog: NodeCatalog) -> Validatio
             )
 
     # Step 3: Type-status validity (defense in depth)
-    v3 = _is_v3(dag)
-    status_map = V3_TYPE_STATUS_MAP if v3 else TYPE_STATUS_MAP
     node_types = {n.id: n.type for n in dag.nodes}
     for node in dag.nodes:
-        status_enum = status_map[node.type]
+        status_enum = TYPE_STATUS_MAP[node.type]
         valid_values = {s.value for s in status_enum}
         if node.status not in valid_values:
             violations.append(
@@ -178,22 +172,21 @@ def validate_structure(dag: HasNodesAndEdges, catalog: NodeCatalog) -> Validatio
         if v.code != "INV-005":
             violations.append(v)
 
-    # Step 10 (v3 only): Entry-level immutability — frozen history entries must not differ from prior validation
-    if v3:
-        for node in dag.nodes:
-            for entry in getattr(node, "history", []):
-                if entry.frozen and entry.status == "":
-                    violations.append(
-                        ValidationViolation(
-                            code="FROZEN_ENTRY_EMPTY",
-                            severity="error",
-                            message=(
-                                f"Node '{node.id}' pass {entry.pass_number} "
-                                f"has a frozen entry with empty status"
-                            ),
-                            node_id=node.id,
-                        )
+    # Step 10: Entry-level immutability — frozen history entries must not have empty status
+    for node in dag.nodes:
+        for entry in getattr(node, "history", []):
+            if entry.frozen and entry.status == "":
+                violations.append(
+                    ValidationViolation(
+                        code="FROZEN_ENTRY_EMPTY",
+                        severity="error",
+                        message=(
+                            f"Node '{node.id}' pass {entry.pass_number} "
+                            f"has a frozen entry with empty status"
+                        ),
+                        node_id=node.id,
                     )
+                )
 
     return ValidationResult(
         valid=len([v for v in violations if v.severity == "error"]) == 0,

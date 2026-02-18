@@ -36,7 +36,7 @@ class TestCatalogNodeDefinition:
             type=NodeType.gate,
             name="Advocate",
             description="desc",
-            valid_statuses=["pending", "passed", "failed"],
+            valid_statuses=["pending", "in-progress", "completed"],
             verdict_field="verdict",
             verdict_values=["ready", "needs-revision"],
         )
@@ -105,7 +105,7 @@ class TestCatalogNodeDefinition:
             type=NodeType.gate,
             name="g",
             description="d",
-            valid_statuses=["pending", "passed"],
+            valid_statuses=["pending", "completed"],
             carry_forward=True,
             gate_type="deterministic",
         )
@@ -171,7 +171,7 @@ class TestNodeCatalog:
     def test_load_fixture(self, load_fixture):
         data = load_fixture("specify-catalog.json")
         catalog = NodeCatalog.model_validate(data)
-        assert catalog.catalog_version == "1.0.0"
+        assert catalog.catalog_version == "2.0.0"
         assert catalog.workflow == "specify"
         assert len(catalog.nodes) == 7
         assert len(catalog.edge_constraints) == 6

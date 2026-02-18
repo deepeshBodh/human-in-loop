@@ -1,7 +1,7 @@
 """Tests for contract checker."""
 
 from humaninloop_brain.entities.catalog import NodeCatalog
-from humaninloop_brain.entities.dag_pass import DAGPass
+from humaninloop_brain.entities.strategy_graph import StrategyGraph
 from humaninloop_brain.entities.enums import NodeType
 from humaninloop_brain.entities.nodes import (
     ArtifactConsumption,
@@ -13,19 +13,19 @@ from humaninloop_brain.validators.contracts import SYSTEM_ARTIFACTS, check_contr
 
 class TestCheckContracts:
     def test_valid_normal_pass(self, load_fixture):
-        dag = DAGPass.model_validate(load_fixture("pass-normal.json"))
+        dag = StrategyGraph.model_validate(load_fixture("pass-normal.json"))
         catalog = NodeCatalog.model_validate(load_fixture("specify-catalog.json"))
         result = check_contracts(dag, catalog)
         assert result.valid is True
 
     def test_valid_skip_enrichment(self, load_fixture):
-        dag = DAGPass.model_validate(load_fixture("pass-skip-enrichment.json"))
+        dag = StrategyGraph.model_validate(load_fixture("pass-skip-enrichment.json"))
         catalog = NodeCatalog.model_validate(load_fixture("specify-catalog.json"))
         result = check_contracts(dag, catalog)
         assert result.valid is True
 
     def test_invalid_contract(self, load_fixture):
-        dag = DAGPass.model_validate(load_fixture("invalid-contract.json"))
+        dag = StrategyGraph.model_validate(load_fixture("invalid-contract.json"))
         catalog = NodeCatalog.model_validate(load_fixture("specify-catalog.json"))
         result = check_contracts(dag, catalog)
         assert result.valid is False
@@ -40,7 +40,7 @@ class TestCheckContracts:
     def test_system_artifacts_satisfy_contracts(self, load_fixture):
         """Nodes consuming system artifacts don't need producers."""
         catalog = NodeCatalog.model_validate(load_fixture("specify-catalog.json"))
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         dag.nodes.append(
             GraphNode(
                 id="test",
@@ -61,7 +61,7 @@ class TestCheckContracts:
 
     def test_optional_artifacts_no_violation(self, load_fixture):
         catalog = NodeCatalog.model_validate(load_fixture("specify-catalog.json"))
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         dag.nodes.append(
             GraphNode(
                 id="test",
@@ -83,6 +83,6 @@ class TestCheckContracts:
 
     def test_empty_dag(self, load_fixture):
         catalog = NodeCatalog.model_validate(load_fixture("specify-catalog.json"))
-        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag = StrategyGraph(id="sg", workflow_id="w")
         result = check_contracts(dag, catalog)
         assert result.valid is True

@@ -1,5 +1,5 @@
 {
-  "catalog_version": "1.0.0",
+  "catalog_version": "2.0.0",
   "workflow": "specify",
   "nodes": [
     {
@@ -15,7 +15,8 @@
         ],
         "produces": ["enriched-input"]
       },
-      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"]
+      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"],
+      "capabilities": ["input-enrichment", "who-problem-value"]
     },
     {
       "id": "analyst-review",
@@ -35,7 +36,8 @@
         ],
         "produces": ["spec.md", "analyst-report.md"]
       },
-      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"]
+      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"],
+      "capabilities": ["requirements-analysis", "specification-writing"]
     },
     {
       "id": "advocate-review",
@@ -51,9 +53,10 @@
         ],
         "produces": ["advocate-report.md"]
       },
-      "valid_statuses": ["pending", "in-progress", "passed", "needs-revision", "failed"],
+      "valid_statuses": ["pending", "in-progress", "completed"],
       "verdict_field": "verdict",
-      "verdict_values": ["ready", "needs-revision", "critical-gaps"]
+      "verdict_values": ["ready", "needs-revision", "critical-gaps"],
+      "capabilities": ["specification-validation", "gap-detection"]
     },
     {
       "id": "human-clarification",
@@ -68,7 +71,8 @@
         ],
         "produces": ["clarification-answers"]
       },
-      "valid_statuses": ["pending", "decided"]
+      "valid_statuses": ["pending", "decided"],
+      "capabilities": ["user-clarification", "preference-resolution"]
     },
     {
       "id": "targeted-research",
@@ -83,7 +87,8 @@
         ],
         "produces": ["research-findings"]
       },
-      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"]
+      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"],
+      "capabilities": ["research", "knowledge-gap-resolution"]
     },
     {
       "id": "constitution-gate",
@@ -98,9 +103,12 @@
         ],
         "produces": []
       },
-      "valid_statuses": ["pending", "passed", "failed"],
+      "valid_statuses": ["pending", "in-progress", "completed"],
       "verdict_field": "verdict",
-      "verdict_values": ["pass", "fail"]
+      "verdict_values": ["pass", "fail"],
+      "capabilities": ["constitution-verification"],
+      "carry_forward": true,
+      "gate_type": "deterministic"
     },
     {
       "id": "spec-complete",
@@ -116,7 +124,8 @@
         "produces": []
       },
       "valid_statuses": ["pending", "achieved"],
-      "note": "Consumes only advocate-report.md (not spec.md) to ensure edge inference routes through the advocate gate, satisfying INV-001"
+      "note": "Consumes only advocate-report.md (not spec.md) to ensure edge inference routes through the advocate gate, satisfying INV-001",
+      "capabilities": ["milestone-tracking"]
     }
   ],
   "edge_constraints": {

@@ -1,9 +1,13 @@
 {
   "id": "specify-pass-002-research",
   "workflow_id": "specify-feature-auth",
-  "schema_version": "1.0.0",
-  "pass_number": 2,
-  "outcome": null,
+  "schema_version": "3.0.0",
+  "current_pass": 2,
+  "status": "in-progress",
+  "passes": [
+    {"pass_number": 1, "outcome": "completed", "detail": "advocate-verdict-needs-revision", "frozen": true},
+    {"pass_number": 2}
+  ],
   "nodes": [
     {
       "id": "targeted-research",
@@ -79,16 +83,5 @@
       "target": "analyst-review",
       "type": "validates"
     }
-  ],
-  "execution_trace": [],
-  "history_context": {
-    "previous_passes": [
-      {
-        "pass_number": 1,
-        "outcome": "completed",
-        "outcome_detail": "advocate-verdict-needs-revision",
-        "summary": "Analyst produced spec, advocate found 3 knowledge gaps requiring research"
-      }
-    ]
-  }
+  ]
 }

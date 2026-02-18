@@ -1,309 +1,304 @@
 """Tests for pass lifecycle manager."""
 
+import json
+from pathlib import Path
+
 import pytest
 
 from humaninloop_brain.entities.catalog import NodeCatalog
-from humaninloop_brain.entities.dag_pass import DAGPass, ExecutionTraceEntry
-from humaninloop_brain.entities.enums import PassOutcome
-from humaninloop_brain.entities.nodes import EvidenceAttachment
+from humaninloop_brain.entities.enums import EdgeType, NodeType
+from humaninloop_brain.entities.nodes import EvidenceAttachment, NodeHistoryEntry
 from humaninloop_brain.passes.lifecycle import (
-    FrozenPassError,
-    add_evidence,
-    add_node,
-    add_trace_entry,
-    create_pass,
-    freeze_pass,
-    load_pass,
-    record_analysis,
-    save_pass,
-    update_node_status,
+    FrozenEntryError,
+    add_or_reopen_node,
+    create_strategy_graph,
+    freeze_current_pass,
+    load_graph_file,
+    save_graph,
+    update_node_history,
 )
+
+FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
 
 
 @pytest.fixture
-def catalog(load_fixture):
-    return NodeCatalog.model_validate(load_fixture("specify-catalog.json"))
+def catalog():
+    data = json.loads((FIXTURES_DIR / "specify-catalog.json").read_text())
+    return NodeCatalog.model_validate(data)
 
 
-class TestCreatePass:
+@pytest.fixture
+def graph():
+    return create_strategy_graph("specify-auth")
+
+
+class TestCreateStrategyGraph:
     def test_basic(self):
-        dag = create_pass("specify-feature-auth", 1)
-        assert dag.workflow_id == "specify-feature-auth"
-        assert dag.pass_number == 1
-        assert dag.created_at is not None
-        assert dag.outcome is None
-        assert dag.nodes == []
+        g = create_strategy_graph("specify-auth")
+        assert g.id == "specify-auth-strategy"
+        assert g.workflow_id == "specify-auth"
+        assert g.schema_version == "3.0.0"
+        assert g.current_pass == 1
+        assert g.status == "in-progress"
+        assert len(g.passes) == 1
+        assert g.passes[0].pass_number == 1
+        assert g.passes[0].created_at is not None
 
-    def test_id_format(self):
-        dag = create_pass("my-workflow", 3)
-        assert dag.id == "my-workflow-pass-003"
+    def test_created_at_set(self):
+        g = create_strategy_graph("w")
+        assert g.created_at is not None
 
 
-class TestAddNode:
-    def test_add_single_node(self, catalog):
-        dag = create_pass("w", 1)
-        dag, edges = add_node(dag, "input-enrichment", catalog)
-        assert len(dag.nodes) == 1
-        assert dag.nodes[0].id == "input-enrichment"
-        assert dag.nodes[0].status == "pending"
+class TestAddOrReopenNode:
+    def test_add_new_node(self, graph, catalog):
+        graph, edges = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        assert len(graph.nodes) == 1
+        node = graph.nodes[0]
+        assert node.id == "analyst-review"
+        assert node.type == NodeType.task
+        assert node.status == "pending"
+        assert len(node.history) == 1
+        assert node.history[0].pass_number == 1
+        assert node.last_active_pass == 1
 
-    def test_add_with_edge_inference(self, catalog):
-        dag = create_pass("w", 1)
-        dag, _ = add_node(dag, "input-enrichment", catalog)
-        dag, edges = add_node(dag, "analyst-review", catalog)
-        assert len(dag.nodes) == 2
-        assert len(edges) > 0  # Should infer depends-on and produces
+    def test_add_multiple_nodes_infers_edges(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph, edges = add_or_reopen_node(graph, "advocate-review", catalog, 1)
+        assert len(graph.nodes) == 2
+        # advocate-review consumes spec.md + analyst-report.md produced by analyst-review
+        assert len(edges) > 0
+        edge_types = {e.type for e in edges}
+        assert EdgeType.depends_on in edge_types
 
-    def test_reject_duplicate(self, catalog):
-        dag = create_pass("w", 1)
-        dag, _ = add_node(dag, "input-enrichment", catalog)
-        with pytest.raises(ValueError, match="already exists"):
-            add_node(dag, "input-enrichment", catalog)
+    def test_reopen_existing_node(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        assert len(graph.nodes[0].history) == 1
 
-    def test_reject_unknown_node(self, catalog):
-        dag = create_pass("w", 1)
+        # Reopen for pass 2
+        graph, edges = add_or_reopen_node(graph, "analyst-review", catalog, 2)
+        assert len(graph.nodes) == 1  # Still one node
+        assert len(graph.nodes[0].history) == 2  # Two history entries
+        assert graph.nodes[0].history[1].pass_number == 2
+        assert graph.nodes[0].last_active_pass == 2
+        assert edges == []  # No new edges on reopen
+
+    def test_node_not_in_catalog(self, graph, catalog):
         with pytest.raises(ValueError, match="not found in catalog"):
-            add_node(dag, "nonexistent", catalog)
+            add_or_reopen_node(graph, "nonexistent", catalog, 1)
 
-    def test_reject_frozen_pass(self, catalog):
-        dag = create_pass("w", 1)
-        freeze_pass(dag, PassOutcome.completed, "done", "rationale")
-        with pytest.raises(FrozenPassError):
-            add_node(dag, "input-enrichment", catalog)
+    def test_add_gate_node(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "constitution-gate", catalog, 1)
+        node = graph.nodes[0]
+        assert node.type == NodeType.gate
+        assert node.status == "pending"
+
+    def test_add_milestone_node(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "spec-complete", catalog, 1)
+        node = graph.nodes[0]
+        assert node.type == NodeType.milestone
 
 
-class TestUpdateNodeStatus:
-    def test_update_status(self, catalog):
-        dag = create_pass("w", 1)
-        dag, _ = add_node(dag, "input-enrichment", catalog)
-        update_node_status(dag, "input-enrichment", "completed")
-        assert dag.nodes[0].status == "completed"
+class TestUpdateNodeHistory:
+    def test_update_status(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph = update_node_history(graph, "analyst-review", 1, "in-progress")
+        node = graph.nodes[0]
+        assert node.status == "in-progress"
+        assert node.history[0].status == "in-progress"
+        assert node.last_active_pass == 1
 
-    def test_invalid_status(self, catalog):
-        dag = create_pass("w", 1)
-        dag, _ = add_node(dag, "input-enrichment", catalog)
+    def test_update_with_verdict(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph, _ = add_or_reopen_node(graph, "advocate-review", catalog, 1)
+        graph = update_node_history(
+            graph, "advocate-review", 1, "completed", verdict="ready"
+        )
+        node = next(n for n in graph.nodes if n.id == "advocate-review")
+        assert node.status == "completed"
+        assert node.verdict == "ready"
+        assert node.history[0].verdict == "ready"
+
+    def test_update_with_evidence(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        ev = EvidenceAttachment(
+            id="ev-01", type="file", description="Spec", reference="spec.md"
+        )
+        graph = update_node_history(
+            graph, "analyst-review", 1, "completed", evidence=[ev]
+        )
+        assert len(graph.nodes[0].history[0].evidence) == 1
+
+    def test_update_with_trace(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        trace = {"node_id": "analyst-review", "started_at": "2026-01-15T10:00:00Z"}
+        graph = update_node_history(
+            graph, "analyst-review", 1, "completed", trace=trace
+        )
+        assert graph.nodes[0].history[0].trace is not None
+
+    def test_frozen_entry_rejected(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph = update_node_history(graph, "analyst-review", 1, "completed")
+        graph = freeze_current_pass(graph, "completed", "done")
+        # Entry is now frozen
+        with pytest.raises(FrozenEntryError):
+            update_node_history(graph, "analyst-review", 1, "in-progress")
+
+    def test_invalid_status_rejected(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
         with pytest.raises(ValueError, match="not valid for node type"):
-            update_node_status(dag, "input-enrichment", "passed")
+            update_node_history(graph, "analyst-review", 1, "passed")
 
-    def test_unknown_node(self, catalog):
-        dag = create_pass("w", 1)
+    def test_node_not_found(self, graph):
         with pytest.raises(ValueError, match="not found"):
-            update_node_status(dag, "nonexistent", "pending")
+            update_node_history(graph, "nonexistent", 1, "pending")
 
-    def test_reject_frozen_pass(self, catalog):
-        dag = create_pass("w", 1)
-        dag, _ = add_node(dag, "input-enrichment", catalog)
-        freeze_pass(dag, PassOutcome.completed, "d", "r")
-        with pytest.raises(FrozenPassError):
-            update_node_status(dag, "input-enrichment", "completed")
+    def test_creates_entry_for_new_pass(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph = update_node_history(graph, "analyst-review", 2, "in-progress")
+        assert len(graph.nodes[0].history) == 2
+        assert graph.nodes[0].history[1].pass_number == 2
 
-
-class TestAddTraceEntry:
-    def test_add_entry(self, catalog):
-        dag = create_pass("w", 1)
-        entry = ExecutionTraceEntry(
-            node_id="input-enrichment",
-            started_at="2026-01-15T10:00:00Z",
-            completed_at="2026-01-15T10:05:00Z",
-        )
-        add_trace_entry(dag, entry)
-        assert len(dag.execution_trace) == 1
-
-    def test_reject_frozen_pass(self):
-        dag = create_pass("w", 1)
-        freeze_pass(dag, PassOutcome.completed, "d", "r")
-        entry = ExecutionTraceEntry(
-            node_id="n", started_at="2026-01-15T10:00:00Z"
-        )
-        with pytest.raises(FrozenPassError):
-            add_trace_entry(dag, entry)
+    def test_derived_fields_recomputed(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph = update_node_history(graph, "analyst-review", 1, "completed")
+        node = graph.nodes[0]
+        # Derived from latest history entry
+        assert node.status == "completed"
+        assert node.last_active_pass == 1
 
 
-class TestAddEvidence:
-    def _make_evidence(self, id: str = "E1") -> EvidenceAttachment:
-        return EvidenceAttachment(
-            id=id,
-            type="report-summary",
-            description="Test evidence",
-            reference="test/path.md",
-        )
+class TestFreezeCurrentPass:
+    def test_basic_freeze(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph = update_node_history(graph, "analyst-review", 1, "completed")
+        graph = freeze_current_pass(graph, "completed", "done")
 
-    def test_add_single_evidence(self, catalog):
-        dag = create_pass("w", 1)
-        dag, _ = add_node(dag, "input-enrichment", catalog)
-        ev = self._make_evidence()
-        add_evidence(dag, "input-enrichment", [ev])
-        assert len(dag.nodes[0].evidence) == 1
-        assert dag.nodes[0].evidence[0].id == "E1"
+        assert graph.passes[0].frozen is True
+        assert graph.passes[0].outcome == "completed"
+        assert graph.passes[0].completed_at is not None
+        # History entry also frozen
+        assert graph.nodes[0].history[0].frozen is True
 
-    def test_add_multiple_evidence(self, catalog):
-        dag = create_pass("w", 1)
-        dag, _ = add_node(dag, "input-enrichment", catalog)
-        evs = [self._make_evidence("E1"), self._make_evidence("E2")]
-        add_evidence(dag, "input-enrichment", evs)
-        assert len(dag.nodes[0].evidence) == 2
+    def test_freeze_marks_graph_completed(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph = freeze_current_pass(graph, "completed", "done")
+        assert graph.status == "completed"
+        assert graph.completed_at is not None
 
-    def test_append_to_existing(self, catalog):
-        dag = create_pass("w", 1)
-        dag, _ = add_node(dag, "input-enrichment", catalog)
-        add_evidence(dag, "input-enrichment", [self._make_evidence("E1")])
-        add_evidence(dag, "input-enrichment", [self._make_evidence("E2")])
-        assert len(dag.nodes[0].evidence) == 2
-        assert dag.nodes[0].evidence[0].id == "E1"
-        assert dag.nodes[0].evidence[1].id == "E2"
-
-    def test_unknown_node(self):
-        dag = create_pass("w", 1)
-        with pytest.raises(ValueError, match="not found"):
-            add_evidence(dag, "nonexistent", [self._make_evidence()])
-
-    def test_reject_frozen_pass(self, catalog):
-        dag = create_pass("w", 1)
-        dag, _ = add_node(dag, "input-enrichment", catalog)
-        freeze_pass(dag, PassOutcome.completed, "d", "r")
-        with pytest.raises(FrozenPassError):
-            add_evidence(dag, "input-enrichment", [self._make_evidence()])
-
-    def test_preserves_other_fields(self, catalog):
-        dag = create_pass("w", 1)
-        dag, _ = add_node(dag, "input-enrichment", catalog)
-        original = dag.nodes[0]
-        add_evidence(dag, "input-enrichment", [self._make_evidence()])
-        updated = dag.nodes[0]
-        assert updated.id == original.id
-        assert updated.type == original.type
-        assert updated.name == original.name
-        assert updated.status == original.status
-        assert updated.contract == original.contract
-
-
-class TestRecordAnalysis:
-    def _make_evidence(self) -> EvidenceAttachment:
-        return EvidenceAttachment(
-            id="E1",
-            type="report-summary",
-            description="Test evidence",
-            reference="test/path.md",
+    def test_freeze_with_triggered_nodes(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph = update_node_history(graph, "analyst-review", 1, "completed")
+        graph = freeze_current_pass(
+            graph,
+            "completed",
+            "advocate-verdict-needs-revision",
+            triggered_nodes=["analyst-review"],
+            reason="advocate verdict needs-revision",
         )
 
-    def _make_trace(self, node_id: str = "input-enrichment") -> ExecutionTraceEntry:
-        return ExecutionTraceEntry(
-            node_id=node_id,
-            started_at="2026-01-15T10:00:00Z",
-            completed_at="2026-01-15T10:05:00Z",
-            verdict="completed",
-            agent_report_summary="Task completed successfully",
+        # Should have a triggered_by edge
+        trig_edges = [e for e in graph.edges if e.type == EdgeType.triggered_by]
+        assert len(trig_edges) == 1
+        assert trig_edges[0].source_pass == 1
+        assert trig_edges[0].target_pass == 2
+        assert trig_edges[0].reason == "advocate verdict needs-revision"
+
+        # Should have created pass 2
+        assert len(graph.passes) == 2
+        assert graph.passes[1].pass_number == 2
+        assert graph.current_pass == 2
+
+        # Graph NOT marked completed (has next pass)
+        assert graph.status == "in-progress"
+
+    def test_freeze_halted(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph = freeze_current_pass(graph, "halted", "critical gaps")
+        assert graph.passes[0].outcome == "halted"
+        # Halted without triggered nodes => completed
+        assert graph.status == "completed"
+
+
+class TestMultiPassScenario:
+    def test_two_pass_workflow(self, graph, catalog):
+        # Pass 1: add analyst + advocate, advocate says needs-revision
+        graph, _ = add_or_reopen_node(graph, "constitution-gate", catalog, 1)
+        graph = update_node_history(graph, "constitution-gate", 1, "completed")
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph = update_node_history(graph, "analyst-review", 1, "completed")
+        graph, _ = add_or_reopen_node(graph, "advocate-review", catalog, 1)
+        graph = update_node_history(
+            graph, "advocate-review", 1, "completed", verdict="needs-revision"
         )
 
-    def test_full_record(self, catalog):
-        dag = create_pass("w", 1)
-        dag, _ = add_node(dag, "input-enrichment", catalog)
-        record_analysis(
-            dag, "input-enrichment", "completed",
-            [self._make_evidence()], self._make_trace(),
+        # Freeze pass 1, trigger pass 2
+        graph = freeze_current_pass(
+            graph,
+            "completed",
+            "advocate-verdict-needs-revision",
+            triggered_nodes=["analyst-review"],
+            reason="needs-revision",
         )
-        assert dag.nodes[0].status == "completed"
-        assert len(dag.nodes[0].evidence) == 1
-        assert len(dag.execution_trace) == 1
+        assert graph.current_pass == 2
 
-    def test_invalid_status_aborts(self, catalog):
-        dag = create_pass("w", 1)
-        dag, _ = add_node(dag, "input-enrichment", catalog)
-        with pytest.raises(ValueError, match="not valid for node type"):
-            record_analysis(
-                dag, "input-enrichment", "passed",
-                [self._make_evidence()], self._make_trace(),
-            )
-        # Evidence and trace should NOT have been added
-        assert len(dag.nodes[0].evidence) == 0
-        assert len(dag.execution_trace) == 0
+        # Pass 2: reopen analyst, add advocate again
+        graph, reopened_edges = add_or_reopen_node(graph, "analyst-review", catalog, 2)
+        assert reopened_edges == []
+        assert len(graph.nodes[1].history) == 2  # analyst has 2 entries
 
-    def test_reject_frozen_pass(self, catalog):
-        dag = create_pass("w", 1)
-        dag, _ = add_node(dag, "input-enrichment", catalog)
-        freeze_pass(dag, PassOutcome.completed, "d", "r")
-        with pytest.raises(FrozenPassError):
-            record_analysis(
-                dag, "input-enrichment", "completed",
-                [self._make_evidence()], self._make_trace(),
-            )
+        graph = update_node_history(graph, "analyst-review", 2, "completed")
+        graph, _ = add_or_reopen_node(graph, "advocate-review", catalog, 2)
+        graph = update_node_history(
+            graph, "advocate-review", 2, "completed", verdict="ready"
+        )
 
+        # Freeze pass 2 as completed (no triggered_nodes => graph completes)
+        graph = freeze_current_pass(graph, "completed", "advocate-verdict-ready")
+        assert graph.status == "completed"
+        assert len(graph.passes) == 2
 
-class TestFreezePass:
-    def test_freeze(self):
-        dag = create_pass("w", 1)
-        freeze_pass(dag, PassOutcome.completed, "advocate-verdict-ready", "All checks passed")
-        assert dag.outcome == PassOutcome.completed
-        assert dag.outcome_detail == "advocate-verdict-ready"
-        assert dag.completed_at is not None
+        # Verify final state
+        analyst = next(n for n in graph.nodes if n.id == "analyst-review")
+        assert len(analyst.history) == 2
+        # Derived from latest history entry (pass 2)
+        assert analyst.status == "completed"
+        assert analyst.last_active_pass == 2
 
-    def test_double_freeze_rejected(self):
-        dag = create_pass("w", 1)
-        freeze_pass(dag, PassOutcome.completed, "d", "r")
-        with pytest.raises(FrozenPassError, match="already frozen"):
-            freeze_pass(dag, PassOutcome.halted, "d2", "r2")
+        advocate = next(n for n in graph.nodes if n.id == "advocate-review")
+        # advocate has 2 history entries (pass 1 + pass 2), latest has verdict=ready
+        assert advocate.verdict == "ready"
 
 
-class TestSaveAndLoad:
-    def test_roundtrip(self, tmp_path, catalog):
-        dag = create_pass("specify-feature-auth", 1)
-        dag, _ = add_node(dag, "input-enrichment", catalog)
-        dag, _ = add_node(dag, "analyst-review", catalog)
-        dag, _ = add_node(dag, "advocate-review", catalog)
-        update_node_status(dag, "input-enrichment", "completed")
-        freeze_pass(dag, PassOutcome.completed, "done", "rationale")
+class TestSaveLoadGraph:
+    def test_save_and_load(self, graph, catalog, tmp_path):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph = update_node_history(graph, "analyst-review", 1, "completed")
 
-        path = tmp_path / "dag.json"
-        save_pass(dag, path)
-        loaded = load_pass(path)
+        path = tmp_path / "test-graph.json"
+        save_graph(graph, path)
 
-        assert loaded.id == dag.id
-        assert loaded.workflow_id == dag.workflow_id
-        assert loaded.outcome == PassOutcome.completed
-        assert len(loaded.nodes) == 3
+        loaded = load_graph_file(path)
+        assert loaded.id == graph.id
+        assert len(loaded.nodes) == 1
         assert loaded.nodes[0].status == "completed"
+        assert loaded.nodes[0].history[0].status == "completed"
 
-    def test_full_lifecycle(self, tmp_path, catalog):
-        """Full lifecycle: create -> add 3 nodes -> update -> freeze -> save -> load."""
-        # Create
-        dag = create_pass("specify-feature-auth", 1)
-        assert dag.outcome is None
-
-        # Add nodes
-        dag, e1 = add_node(dag, "input-enrichment", catalog)
-        dag, e2 = add_node(dag, "analyst-review", catalog)
-        dag, e3 = add_node(dag, "advocate-review", catalog)
-        assert len(dag.nodes) == 3
-        total_edges = len(dag.edges)
-        assert total_edges > 0
-
-        # Update statuses
-        update_node_status(dag, "input-enrichment", "completed")
-        update_node_status(dag, "analyst-review", "completed")
-        update_node_status(dag, "advocate-review", "passed")
-
-        # Add trace
-        add_trace_entry(
-            dag,
-            ExecutionTraceEntry(
-                node_id="input-enrichment",
-                started_at="2026-01-15T10:00:00Z",
-                completed_at="2026-01-15T10:01:00Z",
-            ),
+    def test_roundtrip_preserves_structure(self, graph, catalog, tmp_path):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph = update_node_history(graph, "analyst-review", 1, "completed")
+        graph = freeze_current_pass(
+            graph, "completed", "done",
+            triggered_nodes=["analyst-review"], reason="test",
         )
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 2)
 
-        # Freeze
-        freeze_pass(dag, PassOutcome.completed, "advocate-verdict-ready", "All done")
-        assert dag.outcome == PassOutcome.completed
+        path = tmp_path / "graph.json"
+        save_graph(graph, path)
+        loaded = load_graph_file(path)
 
-        # Save + Load
-        path = tmp_path / "pass.json"
-        save_pass(dag, path)
-        loaded = load_pass(path)
-
-        assert loaded.id == dag.id
-        assert loaded.outcome == PassOutcome.completed
-        assert len(loaded.nodes) == 3
-        assert len(loaded.edges) == total_edges
-        assert len(loaded.execution_trace) == 1
-        assert loaded.nodes[2].status == "passed"
+        assert loaded.current_pass == 2
+        assert len(loaded.passes) == 2
+        node = loaded.nodes[0]
+        assert len(node.history) == 2
+        assert node.history[0].frozen is True
