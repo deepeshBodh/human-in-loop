@@ -15,7 +15,7 @@
         "consumes": [{"artifact": "advocate-report.md", "required": true}],
         "produces": ["research-findings"]
       },
-      "agent": "exploration"
+      "agent": "Explore"
     },
     {
       "id": "analyst-review",

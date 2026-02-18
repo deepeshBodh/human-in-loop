@@ -29,6 +29,7 @@
           {"artifact": "enriched-input", "required": false, "note": "one of enriched or raw required"},
           {"artifact": "raw-input", "required": false},
           {"artifact": "constitution.md", "required": true},
+          {"artifact": "advocate-report.md", "required": false, "note": "present on revision passes"},
           {"artifact": "clarification-answers", "required": false},
           {"artifact": "research-findings", "required": false}
         ],
@@ -74,7 +75,7 @@
       "type": "task",
       "name": "Targeted Research",
       "description": "Investigate specific knowledge gaps identified by validation",
-      "agent": "exploration",
+      "agent": "Explore",
       "skill": null,
       "contract": {
         "consumes": [

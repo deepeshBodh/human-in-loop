@@ -90,7 +90,9 @@ class TestAssembleCommand:
         ])
         assert code == 0
         out = json.loads(capsys.readouterr().out)
-        assert out["node_added"] == "input-enrichment"
+        assert out["node_added"]["id"] == "input-enrichment"
+        assert out["node_added"]["type"] == "task"
+        assert out["node_added"]["status"] == "pending"
 
     def test_assemble_unknown(self, tmp_path, capsys):
         dag_path = tmp_path / "dag.json"
@@ -103,6 +105,27 @@ class TestAssembleCommand:
             "--node", "nonexistent",
         ])
         assert code == 1
+
+    def test_assemble_rollback_on_invariant_violation(self, tmp_path, capsys):
+        """Assemble must not persist the DAG when validation fails (transactional)."""
+        dag_path = tmp_path / "dag.json"
+        main(["create", "w", "--pass", "1", "--output", str(dag_path)])
+        capsys.readouterr()
+
+        # Add analyst-review WITHOUT constitution-gate → INV-002 violation
+        code = main([
+            "assemble", str(dag_path),
+            "--catalog", str(FIXTURES_DIR / "specify-catalog.json"),
+            "--node", "analyst-review",
+        ])
+        assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert out["status"] == "invalid"
+
+        # DAG on disk should NOT contain the invalid node
+        from humaninloop_brain.passes.lifecycle import load_pass
+        dag = load_pass(str(dag_path))
+        assert len(dag.nodes) == 0, "Invalid node should not be persisted"
 
     def test_assemble_frozen(self, tmp_path, capsys):
         dag_path = tmp_path / "dag.json"
@@ -159,6 +182,9 @@ class TestFreezeCommand:
         assert code == 0
         out = json.loads(capsys.readouterr().out)
         assert out["pass_frozen"] is True
+        assert out["dag_path"] == str(dag_path)
+        assert out["nodes_executed"] == 0
+        assert out["edges_total"] == 0
 
     def test_invalid_outcome(self, tmp_path, capsys):
         dag_path = tmp_path / "dag.json"

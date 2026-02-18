@@ -54,34 +54,40 @@ Add a node to the current DAG pass, validate, and construct the domain agent pro
 }
 ```
 
-**Process**:
-1. Read node contract from catalog
-2. Add node to DAG: `dag-assemble.sh <dag_path> <catalog_path> <node_id>`
-3. Validate against catalog invariants: `dag-validate.sh <dag_path> <catalog_path>`
-4. Construct NL prompt for domain agent (see NL Prompt Construction Patterns)
-5. Return validation result + NL prompt + agent type
+**Process** (CLI steps use `hil-dag`; agent steps are DAG Assembler logic):
+1. Read node contract from catalog _(agent)_
+2. Add node to DAG: `dag-assemble.sh <dag_path> <catalog_path> <node_id>` _(CLI — returns `node_added`, `edges_inferred`, `validation`)_
+3. If CLI returns `"status": "invalid"`, stop and return the validation result _(agent)_
+4. Construct NL prompt for domain agent (see NL Prompt Construction Patterns) _(agent)_
+5. Return combined output: CLI graph result + agent-constructed prompt fields _(agent)_
 
-**Output** (to Supervisor):
+**Output** (to Supervisor — combines CLI result + agent-constructed fields):
 ```json
 {
   "status": "valid",
   "node_added": {"id": "analyst-review", "type": "task", "status": "pending"},
   "edges_inferred": 2,
+  "validation": {"status": "valid", "checks": [...], "summary": {...}},
   "agent_prompt": "Read your instructions from: specs/001-feature/.workflow/context.md",
   "agent_type": "humaninloop:requirements-analyst"
 }
 ```
 
+Fields `status`, `node_added`, `edges_inferred`, and `validation` come from the CLI. Fields `agent_prompt`, `agent_type` (or their alternatives below) are constructed by the DAG Assembler agent from the catalog contract and NL Prompt Construction Patterns.
+
 **Special cases by node type**:
 
-| Node Type | Agent | Output |
-|-----------|-------|--------|
-| task (with agent) | Named agent | `agent_prompt` + `agent_type` |
+| Node Type | Agent | Agent-Constructed Output |
+|-----------|-------|--------------------------|
+| task (with plugin agent) | Plugin agent (e.g., requirements-analyst) | `agent_prompt` + `agent_type` as `humaninloop:<name>` |
+| task (with built-in agent) | Built-in agent (e.g., Explore) | `agent_prompt` + `agent_type` as bare name (e.g., `"Explore"`) |
 | task (skill-based, agent: null) | Skill invocation | `skill_to_invoke` + `skill_args` instead of agent_prompt |
-| gate (with agent) | Named agent | `agent_prompt` + `agent_type` (same as task) |
+| gate (with plugin agent) | Plugin agent (e.g., devils-advocate) | `agent_prompt` + `agent_type` as `humaninloop:<name>` |
 | gate (no agent, e.g. constitution-gate) | Supervisor checks directly | `gate_type: "file-check"` + `check_path` + `check_description` |
 | decision | User interaction | `decision_type: "user-clarification"` + `questions` extracted from advocate report |
 | milestone | None | `milestone_type: "completion"` + `required_artifacts` to verify |
+
+**`agent_type` naming convention**: Plugin agents use `humaninloop:<agent-name>` (e.g., `humaninloop:requirements-analyst`). Built-in Claude Code agents use their bare Task subagent type (e.g., `Explore`).
 
 ### parse-report
 
@@ -98,19 +104,33 @@ Read a domain agent's report from disk and extract structured summary.
 }
 ```
 
-**Process**:
-1. Read node contract from catalog to determine expected artifacts
-2. Verify expected artifacts exist on disk at conventional paths
-3. Read domain agent report from disk
-4. Extract structured summary (see Report Parsing Patterns)
-5. Update node status: `dag-status.sh <dag_path> <node_id> completed`
+**Process** (all steps are agent logic except step 5 which uses the CLI):
+1. Read node contract from catalog to determine expected artifacts _(agent)_
+2. Verify expected artifacts exist on disk at conventional paths _(agent)_
+3. Read domain agent report from disk _(agent)_
+4. Extract structured summary (see Report Parsing Patterns) _(agent)_
+5. Update node status using type-aware value: `dag-status.sh <dag_path> <node_id> <status>` _(CLI)_
+
+   **Status by node type:**
+   | Node Type | Status Value | When |
+   |-----------|-------------|------|
+   | task | `completed` | Task finished normally |
+   | decision | `decided` | User provided input |
+   | milestone | `achieved` | All prerequisites met |
+
+   **Gate status derived from verdict:**
+   | Verdict | Status | Gate Nodes |
+   |---------|--------|------------|
+   | `ready` / `pass` | `passed` | advocate-review, constitution-gate |
+   | `needs-revision` | `needs-revision` | advocate-review only |
+   | `critical-gaps` / `fail` | `failed` | advocate-review, constitution-gate |
 6. Return structured summary
 
 **Output** (to Supervisor):
 ```json
 {
   "node_id": "advocate-review",
-  "status": "completed",
+  "status": "passed",
   "summary": "Advocate found 3 gaps: 2 knowledge, 1 preference. Verdict: needs-revision.",
   "artifacts_produced": ["advocate-report.md"],
   "verdict": "needs-revision",
@@ -162,13 +182,17 @@ Update `context.md` with supervisor_instructions for this iteration, then point 
 
 **Context update** — write to `{feature_dir}/.workflow/context.md` supervisor_instructions section:
 ```markdown
-Revise the specification based on feedback.
+{if revision pass: Revise the specification based on feedback.}
+{if first pass: Write the initial specification from the enriched input.}
 
-**Focus gaps**: {parameters.focus_gaps — list gap IDs and descriptions}
+{if parameters.focus_gaps: **Focus gaps**: {parameters.focus_gaps — list gap IDs and descriptions}}
 
 **Read**:
-- Current spec: `{feature_dir}/spec.md`
-- Advocate report: `{feature_dir}/.workflow/advocate-report.md`
+- Constitution: `.humaninloop/memory/constitution.md`
+{if enriched-input exists: - Enriched input: `{feature_dir}/.workflow/enriched-input.md`}
+{if raw-input exists (first pass without enrichment): - Raw input: `{feature_dir}/.workflow/raw-input.md`}
+{if spec.md exists (revision pass): - Current spec: `{feature_dir}/spec.md`}
+{if advocate-report.md exists (revision pass): - Advocate report: `{feature_dir}/.workflow/advocate-report.md`}
 - Spec template: `${CLAUDE_PLUGIN_ROOT}/templates/spec-template.md`
 {if research-findings exists: - Research findings: `{feature_dir}/.workflow/research-findings.md`}
 {if clarification-answers exists: - User answers: `{feature_dir}/.workflow/clarification-answers.md`}
@@ -202,9 +226,9 @@ Review the specification and find gaps.
 
 **Agent prompt**: `"Read your instructions from: {feature_dir}/.workflow/context.md"`
 
-### For targeted-research (Explore agent)
+### For targeted-research (built-in Explore agent)
 
-Direct prompt without context.md (Explore agent uses direct prompts):
+Direct prompt without context.md (built-in `Explore` agent uses direct prompts, not a plugin agent):
 
 **Agent prompt**: `"Investigate the following knowledge gaps for the feature at {feature_dir}/:\n\n{gap_descriptions — formatted list}\n\nContext: {parameters.context}\n\nWrite your findings to: {feature_dir}/.workflow/research-findings.md"`
 
@@ -266,22 +290,24 @@ Free-form extraction:
 
 ## Artifact Path Convention
 
-All artifacts follow a consistent directory structure:
+All artifacts follow a consistent directory structure. Catalog contracts use logical names (e.g., `enriched-input`); physical paths append `.md` for markdown artifacts.
 
-| Artifact | Path |
-|----------|------|
+| Catalog Name | Physical Path |
+|--------------|---------------|
 | spec.md | `{feature_dir}/spec.md` |
 | analyst-report.md | `{feature_dir}/.workflow/analyst-report.md` |
 | advocate-report.md | `{feature_dir}/.workflow/advocate-report.md` |
-| research-findings.md | `{feature_dir}/.workflow/research-findings.md` |
-| clarification-answers.md | `{feature_dir}/.workflow/clarification-answers.md` |
-| enriched-input.md | `{feature_dir}/.workflow/enriched-input.md` |
+| research-findings | `{feature_dir}/.workflow/research-findings.md` |
+| clarification-answers | `{feature_dir}/.workflow/clarification-answers.md` |
+| enriched-input | `{feature_dir}/.workflow/enriched-input.md` |
+| raw-input | `{feature_dir}/.workflow/raw-input.md` |
+| constitution.md | `.humaninloop/memory/constitution.md` |
 | context.md | `{feature_dir}/.workflow/context.md` |
 | DAG passes | `{feature_dir}/.workflow/dags/pass-{NNN}.json` |
 
 ## Operational Rules
 
-- Never modify source artifacts (spec.md, reports) — only DAG JSON files and context.md
+- The DAG Assembler never directly modifies source artifacts (spec.md, reports) — it only writes DAG JSON files and context.md. Domain agents, operating under their own instructions, write to source artifacts.
 - Always validate invariants before confirming node assembly
 - Report ALL errors to Supervisor — never silently recover
 - Construct NL prompts following ADR-005 conventions (point agent at artifacts, minimal instructions)

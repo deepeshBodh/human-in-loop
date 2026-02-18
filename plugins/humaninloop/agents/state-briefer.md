@@ -83,7 +83,7 @@ Return a structured briefing as JSON:
     {
       "id": "targeted-research",
       "type": "task",
-      "agent": "exploration",
+      "agent": "Explore",
       "contract": {
         "consumes": ["advocate-report.md"],
         "produces": ["research-findings"]

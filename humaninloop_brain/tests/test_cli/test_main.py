@@ -97,7 +97,7 @@ class TestAssembleCommand:
             "--node", "input-enrichment",
         )
         assert code == 0
-        assert out["node_added"] == "input-enrichment"
+        assert out["node_added"]["id"] == "input-enrichment"
 
     def test_assemble_unknown_node(self, tmp_path):
         dag_path = tmp_path / "dag.json"

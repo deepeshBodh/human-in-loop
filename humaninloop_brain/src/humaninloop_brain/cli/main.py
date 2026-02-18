@@ -104,12 +104,18 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     except (ValueError, FrozenPassError) as e:
         return _output({"status": "error", "message": str(e)}, 1)
 
-    # Validate after assembly
+    # Validate after assembly — only persist if valid (transactional)
     result = validate_structure(dag, catalog)
-    save_pass(dag, args.dag)
+    if result.valid:
+        save_pass(dag, args.dag)
+    added_node = next(n for n in dag.nodes if n.id == args.node)
     output = {
         "status": "valid" if result.valid else "invalid",
-        "node_added": args.node,
+        "node_added": {
+            "id": added_node.id,
+            "type": added_node.type.value,
+            "status": added_node.status,
+        },
         "edges_inferred": len(inferred),
         "validation": validation_result_to_output(result),
     }
@@ -160,8 +166,11 @@ def cmd_freeze(args: argparse.Namespace) -> int:
     return _output({
         "status": "success",
         "pass_frozen": True,
+        "dag_path": str(args.dag),
         "outcome": args.outcome,
         "outcome_detail": args.detail,
+        "nodes_executed": len(dag.nodes),
+        "edges_total": len(dag.edges),
     })
 
 

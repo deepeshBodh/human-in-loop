@@ -35,13 +35,15 @@ class TestScenario1SkipEnrichment:
         code = main(["assemble", dag_path, "--catalog", CATALOG, "--node", "constitution-gate"])
         assert code == 0
         out = json.loads(capsys.readouterr().out)
-        assert out["node_added"] == "constitution-gate"
+        assert out["node_added"]["id"] == "constitution-gate"
+        assert out["node_added"]["type"] == "gate"
 
         # Step 4: Assemble analyst-review
         code = main(["assemble", dag_path, "--catalog", CATALOG, "--node", "analyst-review"])
         assert code == 0
         out = json.loads(capsys.readouterr().out)
-        assert out["node_added"] == "analyst-review"
+        assert out["node_added"]["id"] == "analyst-review"
+        assert out["node_added"]["type"] == "task"
 
         # Step 5: Update analyst status to completed
         code = main(["status", dag_path, "--node", "analyst-review", "--status", "completed"])
@@ -54,7 +56,8 @@ class TestScenario1SkipEnrichment:
         code = main(["assemble", dag_path, "--catalog", CATALOG, "--node", "advocate-review"])
         assert code == 0
         out = json.loads(capsys.readouterr().out)
-        assert out["node_added"] == "advocate-review"
+        assert out["node_added"]["id"] == "advocate-review"
+        assert out["node_added"]["type"] == "gate"
         # Should have inferred edges from analyst produces -> advocate consumes
         assert out["edges_inferred"] > 0
 
