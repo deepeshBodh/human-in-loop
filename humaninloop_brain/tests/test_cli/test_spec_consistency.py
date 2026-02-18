@@ -219,10 +219,12 @@ class TestStateAnalystCatalogConsistency:
         required_fields = [
             "state_summary",
             "gap_details",
-            "viable_nodes",
+            "recommendations",
             "relevant_patterns",
             "relevant_anti_patterns",
             "pass_context",
+            "outcome_trajectory",
+            "alternatives",
         ]
         for field in required_fields:
             assert field in analyst_text, (
@@ -234,9 +236,9 @@ class TestStateAnalystCatalogConsistency:
         assert "strategy-core" in analyst_text
         assert "strategy-specification" in analyst_text
 
-    def test_parse_report_action_documented(self, analyst_text):
-        """State Analyst documents parse-report action."""
-        assert "parse-report" in analyst_text
+    def test_parse_and_recommend_action_documented(self, analyst_text):
+        """State Analyst documents parse-and-recommend action."""
+        assert "parse-and-recommend" in analyst_text
 
     def test_hil_dag_record_referenced(self, analyst_text):
         """State Analyst references hil-dag record for atomic writes."""
