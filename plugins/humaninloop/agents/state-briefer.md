@@ -36,7 +36,6 @@ The Supervisor provides:
 
 ```json
 {
-  "request": "briefing",
   "workflow": "specify",
   "feature_id": "001-user-auth",
   "pass_number": 2,
@@ -64,14 +63,6 @@ Return a structured briefing as JSON:
 ```json
 {
   "state_summary": "Pass 2. Previous pass assembled: input-enrichment -> analyst-review -> advocate-review (verdict: needs-revision).",
-
-  "available_artifacts": [
-    {"artifact": "spec.md", "source": "analyst-review (pass 1)", "status": "produced"},
-    {"artifact": "analyst-report.md", "source": "analyst-review (pass 1)", "status": "produced"},
-    {"artifact": "advocate-report.md", "source": "advocate-review (pass 1)", "status": "produced"},
-    {"artifact": "enriched-input", "source": "input-enrichment (pass 1)", "status": "produced"},
-    {"artifact": "constitution.md", "source": "system", "status": "available"}
-  ],
 
   "gap_details": [
     {"id": "G1", "type": "knowledge", "description": "Unclear what authentication protocols the existing system uses", "severity": "high"},
@@ -131,7 +122,6 @@ Return a structured briefing as JSON:
 | Field | Content |
 |-------|---------|
 | `state_summary` | What happened in previous passes, where we are now |
-| `available_artifacts` | What exists on disk with source attribution |
 | `gap_details` | Specific gaps with type classification (knowledge/preference/scope) and content |
 | `viable_nodes` | Nodes whose contracts are satisfiable given available artifacts, with contracts included |
 | `relevant_patterns` | Strategy skill patterns applicable to the current state |
