@@ -6,6 +6,31 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [2.1.1] - 2026-02-18
+
+Patch release: 8 bug fixes from first end-to-end dry run of the specify workflow.
+
+### humaninloop 2.1.1
+
+#### Fixed
+
+- **specify.md**: Auto-resolve `hil-dag` PATH from venv instead of hard-failing when CLI not on PATH
+- **specify.md**: Use absolute `$PROJECT_ROOT` paths for all subagent invocations (prevents files created in wrong directory)
+- **specify.md**: Add `hil-dag` CLI reference section with exact command signatures for all 7 subcommands
+- **specify.md**: Add explicit freeze/create syntax in pass-transition instructions with correct flag names
+- **specify.md**: Re-add `constitution-gate` on new passes to satisfy INV-002 invariant
+- **specify.md**: Instruct Read-then-Edit for `spec.md` (already created by `create-new-feature.sh`)
+- **dag-assembler.md**: Fix `outcome_detail` → `detail` field naming to match `hil-dag freeze --detail` CLI flag
+- **specify-catalog.json**: Remove `spec.md` from `spec-complete` milestone consumes to fix INV-001 invariant violation (route through advocate gate instead)
+- **dag-operations scripts**: Add `hil-dag` availability guard with structured JSON error to all 7 shell scripts
+
+#### Changed
+
+- **ui-designer agent**: Add `patterns-interface-design` skill to skills list
+- **README.md**: Add Design Workflow section documenting the ui-designer agent
+
+---
+
 ## [2.1.0] - 2026-02-18
 
 DAG-first infrastructure: deterministic graph execution replaces hardcoded supervisor loops.
@@ -1133,6 +1158,7 @@ Initial marketplace scaffold.
 
 ---
 
+[2.1.1]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.1.1
 [2.1.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.1.0
 [2.0.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.0.0
 [1.1.1]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v1.1.1
