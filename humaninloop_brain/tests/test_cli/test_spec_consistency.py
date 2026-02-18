@@ -148,7 +148,7 @@ class TestDAGAssemblerCatalogConsistency:
         assert DAG_ASSEMBLER.exists()
 
     def test_two_actions_documented(self, assembler_text):
-        """DAG Assembler documents its 2 actions (parse-report moved to State Analyst)."""
+        """DAG Assembler documents its 2 actions."""
         assert "assemble-and-prepare" in assembler_text
         assert "freeze-pass" in assembler_text
 

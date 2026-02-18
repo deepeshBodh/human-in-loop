@@ -9,19 +9,18 @@ Deterministic DAG infrastructure operations for workflow execution.
 
 ## Overview
 
-This skill wraps the `hil-dag` CLI from the `humaninloop_brain` package, providing the DAG Assembler and State Analyst agents with deterministic graph operations: creation, assembly, validation, sorting, status updates, analysis recording, and pass freezing.
+This skill wraps the `hil-dag` CLI from the `humaninloop_brain` package, providing the DAG Assembler and State Analyst agents with deterministic graph operations: assembly (with auto-bootstrap), validation, sorting, status updates, analysis recording, and pass freezing.
 
 ## Available Operations
 
 | Operation | Script | Purpose |
 |-----------|--------|---------|
-| `create` | `dag-create.sh` | Create a new empty DAG pass |
-| `assemble` | `dag-assemble.sh` | Add a catalog node with edge inference |
-| `validate` | `dag-validate.sh` | Run 9-step structural validation |
+| `assemble` | `dag-assemble.sh` | Add a catalog node with edge inference (auto-creates StrategyGraph if missing) |
+| `validate` | `dag-validate.sh` | Run structural validation |
 | `sort` | `dag-sort.sh` | Topological execution order |
 | `status` | `dag-status.sh` | Update node status |
 | `record` | `dag-record.sh` | Record analysis results (status + evidence + trace) |
-| `freeze` | `dag-freeze.sh` | Freeze a completed pass |
+| `freeze` | `dag-freeze.sh` | Freeze a completed pass (with triggered_by edges and next pass creation) |
 | `catalog-validate` | `dag-catalog-validate.sh` | Validate a node catalog |
 
 ## Output Format
@@ -40,14 +39,11 @@ Exit codes: 0=success, 1=validation failure, 2=unexpected error.
 
 ## Usage
 
-Scripts are invoked by the DAG Assembler agent during workflow execution. The agent passes file paths to DAG pass JSON and catalog JSON files.
+Scripts are invoked by the DAG Assembler agent during workflow execution. The agent passes file paths to the single StrategyGraph JSON file and catalog JSON files.
 
 ```bash
-# Create a new pass
-./scripts/dag-create.sh <workflow-id> <pass-number> <output-path>
-
-# Add a node
-./scripts/dag-assemble.sh <dag-path> <catalog-path> <node-id>
+# Add a node (auto-creates StrategyGraph if file missing; --workflow required for first call)
+./scripts/dag-assemble.sh <dag-path> <catalog-path> <node-id> [<workflow-id>]
 
 # Validate
 ./scripts/dag-validate.sh <dag-path> <catalog-path>
@@ -55,14 +51,14 @@ Scripts are invoked by the DAG Assembler agent during workflow execution. The ag
 # Sort
 ./scripts/dag-sort.sh <dag-path>
 
-# Update status
-./scripts/dag-status.sh <dag-path> <node-id> <new-status>
+# Update status (optional --pass to target specific pass)
+./scripts/dag-status.sh <dag-path> <node-id> <new-status> [<pass-number>]
 
-# Record analysis results (status + evidence + trace atomically)
-./scripts/dag-record.sh <dag-path> <node-id> <status> '<evidence-json-array>' '<trace-json-object>'
+# Record analysis results (optional --pass to target specific pass)
+./scripts/dag-record.sh <dag-path> <node-id> <status> '<evidence-json-array>' '<trace-json-object>' [<pass-number>]
 
-# Freeze
-./scripts/dag-freeze.sh <dag-path> <outcome> <detail> <rationale>
+# Freeze (optional triggered nodes and reason for triggered_by edges)
+./scripts/dag-freeze.sh <dag-path> <outcome> <detail> [<triggered-node-1> <triggered-node-2> ...] [--reason <reason>]
 
 # Validate catalog
 ./scripts/dag-catalog-validate.sh <catalog-path>
