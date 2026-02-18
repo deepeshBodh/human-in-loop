@@ -6,9 +6,10 @@
 
 Scenario tests validating the `dag-assembler` agent specification against the `hil-dag` CLI infrastructure. Tests cover all three agent actions (`assemble-and-prepare`, `parse-report`, `freeze-pass`), all four node types, error paths, invariant enforcement, and spec consistency.
 
-Two test runs performed:
+Three test runs performed:
 - **Run 1**: Initial CLI validation (scenarios 1–7h). Found and fixed findings 1–4.
 - **Run 2**: Comprehensive 4-suite parallel test (topology, errors, spec-CLI consistency, internal consistency). Found and fixed findings 5–12.
+- **Run 3**: Regression validation of all 12 findings, plus 7 new suites (output format, complete workflows, edge inference, status progression, catalog consistency, agent spec consistency, state-briefer cross-validation). Found and fixed finding 13.
 
 ## Test Matrix
 
@@ -82,6 +83,88 @@ Two test runs performed:
 | D5 | "Never modify source artifacts" rule scope | INCONSISTENT → Fixed | Finding 10 |
 | D6 | Special cases table: built-in vs plugin agents | INCONSISTENT → Fixed | Finding 12 |
 | D7-D25 | Remaining 19 internal consistency checks | CONSISTENT | -- |
+
+### Run 3, Suite R: Regression Validation
+
+Re-validated all 12 findings fixed in commit `7dc6fe6`.
+
+| # | Finding | Test | Result |
+|---|---------|------|--------|
+| R1 | Transactional rollback (F2) | Assemble analyst-review without constitution-gate → 0 nodes on disk | PASS |
+| R2 | Type-aware status (F3) | `completed` rejected for gate, `passed` accepted | PASS |
+| R3 | Agent name (F4) | All 3 catalogs show `Explore` not `exploration` | PASS |
+| R4 | Catalog consumes (F5) | `advocate-report.md` in analyst-review consumes (all 3 catalogs) | PASS |
+| R5 | Gate status mapping (F6) | `valid_statuses` includes `passed`, `failed`, `needs-revision` for advocate-review | PASS |
+| R6 | node_added format (F7) | `cmd_assemble` returns `{id, type, status}` object | PASS |
+| R7 | freeze output fields (F8) | `cmd_freeze` returns `dag_path`, `nodes_executed`, `edges_total` | PASS |
+| R8 | Artifact path convention (F9) | All 10 entries present including `raw-input`, `constitution.md` | PASS |
+| R9 | Rule scope (F10) | "DAG Assembler never directly modifies" clarification present | PASS |
+| R10 | CLI/agent tags (F11) | `_(CLI)_` and `_(agent)_` tags in process steps | PASS |
+| R11 | Built-in vs plugin (F12) | Separate rows for plugin agent, built-in agent; naming convention | PASS |
+
+### Run 3, Suite A: Output Format Verification
+
+| # | Scenario | Result | Notes |
+|---|----------|--------|-------|
+| A1 | `node_added` format for all 4 types | PASS | gate, task, decision, milestone all return `{id, type, status}` |
+| A2 | `cmd_freeze` counts: 1-node and 3-node | PASS | 1-node: `nodes_executed=1, edges_total=0`; 3-node: `nodes_executed=3, edges_total=3` |
+| A3 | Invalid assembly returns `node_added` + `validation` | PASS | Both fields present on INV-002 violation |
+
+### Run 3, Suite B: Complete Workflow Scenarios
+
+| # | Scenario | Result | Notes |
+|---|----------|--------|-------|
+| B1 | Full pass 1: constitution-gate → input-enrichment → analyst-review → advocate-review | PASS | Status updates (passed/completed/needs-revision), freeze with `nodes_executed=4, edges_total=5` |
+| B2 | Full pass 2 (revision): constitution-gate → analyst-review → advocate-review → targeted-research | PASS | Revision workflow, freeze with `outcome=completed, outcome_detail=advocate-verdict-ready` |
+| B3 | Decision node: human-clarification after advocate-review | PASS | 1 inferred edge (depends-on from advocate-review) |
+| B4 | Halted outcome: freeze with `halted` | PASS | `outcome=halted, outcome_detail=user-abort` |
+| B5 | Invalid outcome: freeze with `abandoned` | PASS | Rejected: `"Invalid outcome: 'abandoned'. Must be 'completed' or 'halted'"` |
+
+### Run 3, Suite C: Edge Inference Completeness
+
+| # | Pair | Edges | Types | Notes |
+|---|------|-------|-------|-------|
+| C1a | constitution-gate → analyst-review | 0 | — | constitution-gate produces nothing |
+| C1b | input-enrichment → analyst-review | 2 | depends-on, produces | enriched-input artifact flow (task→task) |
+| C1c | analyst-review → advocate-review | 3 | depends-on, produces, validates | spec.md + analyst-report.md flow (task→gate) |
+| C1d | advocate-review → human-clarification | 1 | depends-on | advocate-report.md flow (gate→decision, no produces) |
+| C1e | advocate-review → targeted-research | 1 | depends-on | advocate-report.md flow (gate→task, no produces from gate) |
+| C2 | `informed-by` and `constrained-by` never inferred | PASS | Confirmed across all 5 C1 DAGs |
+| C3 | Assembly order dependence | DOCUMENTED | Order A (analyst→advocate): 3 edges. Order B (advocate→analyst): advocate rolled back (invalid), 0 edges. By design — inference only matches newly-added node's consumes against existing producers. |
+
+### Run 3, Suite D: Status Progression
+
+| # | Scenario | Result | Notes |
+|---|----------|--------|-------|
+| D1 | Full lifecycle: task (pending→in-progress→completed), gate (pending→in-progress→passed), decision (pending→decided) | PASS | All transitions accepted |
+| D2 | Cross-type rejection: task/`passed`, gate/`completed`, decision/`completed` | PASS | All 3 rejected with type-specific errors |
+| D3 | `halted` and `skipped` for task nodes | PASS | Both accepted |
+| D4 | `TYPE_STATUS_MAP` vs catalog `valid_statuses` | FINDING 13 → Fixed | Task nodes missing `halted` in catalog. Constitution-gate intentional subset. |
+
+### Run 3, Suite E: Catalog Consistency
+
+| # | Scenario | Result | Notes |
+|---|----------|--------|-------|
+| E1 | All 3 catalog copies byte-identical | PASS | fixture, plugins, catalogs |
+| E2 | `catalog-validate` passes for all 3 | PASS | 6/6 checks each |
+| E3 | All 7 expected nodes, no extras | PASS | Exact match |
+
+### Run 3, Suite F: Agent Spec Consistency
+
+| # | Scenario | Result | Notes |
+|---|----------|--------|-------|
+| F1 | NL prompt artifact references vs catalog consumes/produces | PASS | analyst-review: 8/8, advocate-review: 3/3 |
+| F2 | Special cases table covers all 7 catalog nodes | PASS | All 7 map to a table row |
+| F3 | Artifact path convention covers all catalog artifact names | PASS | 8/8 unique artifacts found |
+| F4 | `agent_type` naming convention vs catalog `agent` fields | PASS | Plugin: `humaninloop:<name>`, built-in: bare `Explore` |
+| F5 | Error protocol vs CLI output format | PASS | Spec describes agent-level wrapping; CLI provides raw output. Consistent with F11 fix. |
+
+### Run 3, Suite G: State-Briefer Cross-Validation
+
+| # | Scenario | Result | Notes |
+|---|----------|--------|-------|
+| G1 | Node IDs/types in state-briefer match catalog | PASS | 5/7 referenced (pass-2 example omits constitution-gate, spec-complete); types correct |
+| G2 | `viable_nodes` fields constructible from catalog schema | PASS | id, type, agent, contract all available |
 
 ## Scenario Details
 
@@ -332,6 +415,36 @@ All error paths produce structured JSON with appropriate exit codes.
 - Added `agent_type` naming convention: plugin agents use `humaninloop:<agent-name>`, built-in Claude Code agents use bare name (e.g., `"Explore"`).
 
 **Files**: `plugins/humaninloop/agents/dag-assembler.md`
+
+### Finding 13: Catalog `valid_statuses` Missing `halted` for Task Nodes (Fixed — Run 3, D4)
+
+**Problem**: The `TYPE_STATUS_MAP` in `enums.py` defines 5 statuses for task nodes (`pending`, `in-progress`, `completed`, `skipped`, `halted`), but the catalog `valid_statuses` for all three task nodes (`input-enrichment`, `analyst-review`, `targeted-research`) only listed 4, omitting `halted`. The CLI enforces the broader type-level map, so `halted` was accepted by the CLI but not documented in the catalog.
+
+Additionally, `constitution-gate` lists only `pending`, `passed`, `failed` while the gate type allows `in-progress` and `needs-revision`. This is intentional — a simple file-check gate does not enter an `in-progress` state or produce revision feedback.
+
+**Fix**: Added `halted` to all three task nodes' `valid_statuses` in all 3 catalog copies. Constitution-gate kept as intentional subset.
+
+**Design note**: The CLI validates against `TYPE_STATUS_MAP` (type-level), not per-node `valid_statuses`. Per-node catalog constraints serve as documentation for the DAG Assembler agent. Future enhancement could add catalog-level status validation to the CLI.
+
+**Files**: `plugins/humaninloop/catalogs/specify-catalog.json`, `humaninloop_brain/catalogs/specify-catalog.json`, `humaninloop_brain/tests/fixtures/specify-catalog.json`
+
+## Documented Design Behaviors (Run 3)
+
+### Edge Inference is Order-Dependent (C3)
+
+Edge inference only runs for the newly-added node's `consumes` against existing producers. It does NOT retroactively add edges for existing consumers when a new producer is added. This means assembly order affects the resulting graph topology:
+- Order A (analyst-review then advocate-review): 3 edges inferred
+- Order B (advocate-review then analyst-review): advocate-review rolled back (no producers for required artifacts), then analyst-review assembled with 0 edges
+
+This is by design — the DAG Assembler controls assembly order, and the catalog contracts define the correct assembly sequence.
+
+### Error Protocol Describes Agent-Level Wrapping (F5)
+
+The agent spec's error protocol section describes what the DAG Assembler *agent* returns to the Supervisor, which wraps raw CLI output. The CLI itself returns structured JSON with `status`, `validation`, and `message` fields. The agent adds context-specific fields like `violation`, `missing_artifact`, or `partial_parse`. This is consistent with the CLI/agent boundary documented in Finding 11.
+
+### Constitution-Gate Status Subset (D4)
+
+`constitution-gate` catalog `valid_statuses` (`pending`, `passed`, `failed`) is intentionally a subset of the gate type's full status set (`pending`, `in-progress`, `passed`, `failed`, `needs-revision`). A simple file-check gate doesn't need `in-progress` or `needs-revision`. The CLI currently enforces at the type level, not per-node catalog level.
 
 ## Exit Code Convention
 

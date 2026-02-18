@@ -15,7 +15,7 @@
         ],
         "produces": ["enriched-input"]
       },
-      "valid_statuses": ["pending", "in-progress", "completed", "skipped"]
+      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"]
     },
     {
       "id": "analyst-review",
@@ -35,7 +35,7 @@
         ],
         "produces": ["spec.md", "analyst-report.md"]
       },
-      "valid_statuses": ["pending", "in-progress", "completed", "skipped"]
+      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"]
     },
     {
       "id": "advocate-review",
@@ -83,7 +83,7 @@
         ],
         "produces": ["research-findings"]
       },
-      "valid_statuses": ["pending", "in-progress", "completed", "skipped"]
+      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"]
     },
     {
       "id": "constitution-gate",
