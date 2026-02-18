@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests & Quality Gates
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: humaninloop_brain
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Python syntax check (humaninloop_brain)
+        run: |
+          find src/humaninloop_brain -name '*.py' -print0 \
+            | xargs -0 uv run python -m py_compile
+
+      - name: Python syntax check (legacy validators)
+        working-directory: .
+        run: |
+          find plugins/humaninloop/skills -name '*.py' -print0 \
+            | xargs -0 python3 -m py_compile
+
+      - name: Shell syntax check
+        working-directory: .
+        run: |
+          find plugins/humaninloop -name '*.sh' -print0 \
+            | xargs -0 -n1 bash -n
+
+      - name: Run tests with coverage
+        id: tests
+        run: |
+          uv run pytest --cov --cov-report=term --tb=short -q 2>&1 | tee coverage-output.txt
+          # Propagate test exit code
+          exit ${PIPESTATUS[0]}
+
+      - name: Coverage floor (90%)
+        if: always() && steps.tests.outcome == 'success'
+        run: |
+          COVERAGE=$(grep '^TOTAL' coverage-output.txt | awk '{print $NF}' | tr -d '%')
+          echo "Current coverage: ${COVERAGE}%"
+          if [ "$COVERAGE" -lt 90 ]; then
+            echo "::error::Coverage ${COVERAGE}% is below the 90% floor"
+            exit 1
+          fi
+
+      - name: Coverage ratchet
+        if: always() && steps.tests.outcome == 'success'
+        run: |
+          COVERAGE=$(grep '^TOTAL' coverage-output.txt | awk '{print $NF}' | tr -d '%')
+          BASELINE=$(cat .coverage-baseline)
+          echo "Current: ${COVERAGE}% | Baseline: ${BASELINE}%"
+          if [ "$COVERAGE" -lt "$BASELINE" ]; then
+            echo "::error::Coverage ${COVERAGE}% regressed below baseline ${BASELINE}%"
+            exit 1
+          fi
+
+  commit-lint:
+    name: Conventional Commits
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit messages
+        run: |
+          PATTERN='^(feat|fix|docs|refactor|chore|test|ci)(\([a-z][a-z0-9-]*\))?!?: .+'
+          FAILED=0
+
+          for SHA in $(git rev-list origin/main..HEAD); do
+            # Skip merge commits
+            PARENTS=$(git rev-list --parents -n1 "$SHA" | wc -w)
+            if [ "$PARENTS" -gt 2 ]; then
+              continue
+            fi
+
+            MSG=$(git log -1 --format='%s' "$SHA")
+            if ! echo "$MSG" | grep -qE "$PATTERN"; then
+              echo "::error::Bad commit message: $MSG ($SHA)"
+              FAILED=1
+            fi
+          done
+
+          if [ "$FAILED" -eq 1 ]; then
+            echo ""
+            echo "Expected format: type(scope): description"
+            echo "Valid types: feat, fix, docs, refactor, chore, test, ci"
+            exit 1
+          fi
+
+          echo "All commit messages follow Conventional Commits format."
