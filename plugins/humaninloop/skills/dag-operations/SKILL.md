@@ -9,7 +9,7 @@ Deterministic DAG infrastructure operations for workflow execution.
 
 ## Overview
 
-This skill wraps the `hil-dag` CLI from the `humaninloop_brain` package, providing the DAG Assembler agent with deterministic graph operations: creation, assembly, validation, sorting, status updates, and pass freezing.
+This skill wraps the `hil-dag` CLI from the `humaninloop_brain` package, providing the DAG Assembler and State Analyst agents with deterministic graph operations: creation, assembly, validation, sorting, status updates, analysis recording, and pass freezing.
 
 ## Available Operations
 
@@ -20,6 +20,7 @@ This skill wraps the `hil-dag` CLI from the `humaninloop_brain` package, providi
 | `validate` | `dag-validate.sh` | Run 9-step structural validation |
 | `sort` | `dag-sort.sh` | Topological execution order |
 | `status` | `dag-status.sh` | Update node status |
+| `record` | `dag-record.sh` | Record analysis results (status + evidence + trace) |
 | `freeze` | `dag-freeze.sh` | Freeze a completed pass |
 | `catalog-validate` | `dag-catalog-validate.sh` | Validate a node catalog |
 
@@ -56,6 +57,9 @@ Scripts are invoked by the DAG Assembler agent during workflow execution. The ag
 
 # Update status
 ./scripts/dag-status.sh <dag-path> <node-id> <new-status>
+
+# Record analysis results (status + evidence + trace atomically)
+./scripts/dag-record.sh <dag-path> <node-id> <status> '<evidence-json-array>' '<trace-json-object>'
 
 # Freeze
 ./scripts/dag-freeze.sh <dag-path> <outcome> <detail> <rationale>
