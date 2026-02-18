@@ -745,19 +745,16 @@ class TestScenario9MilestoneINV001:
         # At minimum: advocate-report.md not produced -> UNSATISFIED_CONTRACT
         assert "UNSATISFIED_CONTRACT" in violation_codes or "INV-001" in violation_codes
 
-    def test_spec_complete_always_triggers_inv001(self, tmp_path, capsys):
-        """spec-complete triggers INV-001 even with advocate-review in the DAG.
+    def test_spec_complete_succeeds_with_gate_path(self, tmp_path, capsys):
+        """spec-complete assembles successfully when advocate gate is present.
 
-        The current catalog design means spec-complete consumes spec.md (from
-        analyst-review=task), so edge inference creates a direct depends-on
-        from analyst->spec-complete. This path bypasses advocate-review (gate),
-        triggering INV-001 even though a gate exists on ANOTHER path.
-
-        This is by design: INV-001 requires ALL paths from tasks to milestones
-        to pass through a gate.
+        The catalog routes spec-complete through advocate-report.md (produced
+        by advocate-review gate), not spec.md directly. This ensures the only
+        path from analyst-review (task) to spec-complete (milestone) passes
+        through advocate-review (gate), satisfying INV-001.
         """
         dag_path = str(tmp_path / "dag.json")
-        main(["create", "specify-inv001-direct", "--pass", "1", "--output", dag_path])
+        main(["create", "specify-milestone-ok", "--pass", "1", "--output", dag_path])
         capsys.readouterr()
 
         main(["assemble", dag_path, "--catalog", CATALOG, "--node", "constitution-gate"])
@@ -769,13 +766,8 @@ class TestScenario9MilestoneINV001:
         main(["assemble", dag_path, "--catalog", CATALOG, "--node", "advocate-review"])
         capsys.readouterr()
 
-        # spec-complete assembly fails INV-001: analyst(task)->spec-complete(milestone)
-        # path exists without passing through a gate
+        # spec-complete assembly succeeds: only path is analyst->advocate(gate)->spec-complete
         code = main(["assemble", dag_path, "--catalog", CATALOG, "--node", "spec-complete"])
         out = json.loads(capsys.readouterr().out)
-        assert code == 1
-        assert out["status"] == "invalid"
-
-        # INV-001 should be in the violations
-        violation_codes = {c["check"] for c in out["validation"]["checks"]}
-        assert "INV-001" in violation_codes
+        assert code == 0
+        assert out["status"] == "valid"

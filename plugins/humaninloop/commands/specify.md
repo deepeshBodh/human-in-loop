@@ -47,6 +47,29 @@ Produce a validated `spec.md`. Success: advocate verdict `ready`.
 | Strategy skills | `strategy-core`, `strategy-specification` |
 | Context template | `${CLAUDE_PLUGIN_ROOT}/templates/context-template.md` |
 
+### hil-dag CLI Reference
+
+When the Supervisor calls `hil-dag` directly (e.g., for gate status updates, freezing passes), use these exact signatures:
+
+```bash
+# Create a new DAG pass
+hil-dag create --pass <NUMBER> --output <dag_path> <workflow>
+
+# Assemble a node into a DAG pass
+hil-dag assemble --node <node_id> --catalog <catalog_path> <dag_path>
+
+# Update a node's status
+hil-dag status --node <node_id> --status <status> <dag_path>
+
+# Freeze a completed pass
+hil-dag freeze --outcome <completed|halted> --detail <detail_string> --rationale <rationale_string> <dag_path>
+
+# Validate a catalog
+hil-dag catalog-validate <catalog_path>
+```
+
+**Note**: `<dag_path>` is always a **positional** argument (no flag). All other arguments use named flags.
+
 ---
 
 ## Initial Setup
@@ -65,21 +88,50 @@ STOP execution if missing.
 
 ### 1b. hil-dag CLI Check
 
-Verify the `hil-dag` CLI is available:
+Verify the `hil-dag` CLI is available and resolve its PATH:
+
 ```bash
-hil-dag --help > /dev/null 2>&1
+# Step 1: Check if hil-dag is already on PATH
+if hil-dag --help > /dev/null 2>&1; then
+  echo "AVAILABLE"
+# Step 2: Check the humaninloop_brain venv
+elif [ -x "humaninloop_brain/.venv/bin/hil-dag" ]; then
+  export PATH="$(pwd)/humaninloop_brain/.venv/bin:$PATH"
+  echo "AVAILABLE_VIA_VENV"
+else
+  echo "NOT_FOUND"
+fi
 ```
-If NOT found:
-```
-hil-dag CLI Required
 
-The specify workflow requires the hil-dag CLI from humaninloop_brain.
-Install: cd humaninloop_brain && uv sync
-Then retry: /humaninloop:specify
-```
-STOP execution if missing.
+- If `AVAILABLE`: proceed.
+- If `AVAILABLE_VIA_VENV`: proceed, but **prepend the venv path to `PATH` for all subsequent `hil-dag` invocations** in this session. Use `export PATH="<project_root>/humaninloop_brain/.venv/bin:$PATH"` before each Bash call, or persist it once via `CLAUDE_ENV_FILE` if available.
+- If `NOT_FOUND`: attempt auto-install, then re-check:
+  ```bash
+  cd humaninloop_brain && uv sync && cd ..
+  ```
+  Re-run the check above. If still `NOT_FOUND`:
+  ```
+  hil-dag CLI Required
 
-### 2. Create Feature Directory
+  The specify workflow requires the hil-dag CLI from humaninloop_brain.
+  Install: cd humaninloop_brain && uv sync
+  Then retry: /humaninloop:specify
+  ```
+  STOP execution if missing.
+
+**Important**: Once the PATH is resolved, store it for the session. All subsequent `hil-dag` commands in this workflow MUST use the resolved PATH.
+
+### 2. Resolve Project Root
+
+Determine the **absolute project root path** and store it for the session:
+
+```bash
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+```
+
+**All paths passed to subagents (DAG Assembler, State Briefer, domain agents) MUST be absolute paths rooted at `$PROJECT_ROOT`.** Subagents may resolve relative paths against an unpredictable working directory. Use `$PROJECT_ROOT/specs/{feature-id}/...` — never `specs/{feature-id}/...`.
+
+### 3. Create Feature Directory
 
 ```bash
 ${CLAUDE_PLUGIN_ROOT}/scripts/create-new-feature.sh --json "<feature description>"
@@ -87,24 +139,24 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/create-new-feature.sh --json "<feature description
 
 Parse JSON output for `BRANCH_NAME`, `SPEC_FILE`, `FEATURE_NUM`. Use `BRANCH_NAME` as `{feature-id}`.
 
-### 3. Initialize Workflow Structure
+### 4. Initialize Workflow Structure
 
 ```bash
-mkdir -p specs/{feature-id}/.workflow/dags
+mkdir -p $PROJECT_ROOT/specs/{feature-id}/.workflow/dags
 ```
 
 Create initial `context.md` from `${CLAUDE_PLUGIN_ROOT}/templates/context-template.md` with detected project context, user input, and file paths.
 
-Create initial `spec.md` from `${CLAUDE_PLUGIN_ROOT}/templates/spec-template.md`.
+**`spec.md`**: The `create-new-feature.sh` script already copies the spec template into `$PROJECT_ROOT/specs/{feature-id}/spec.md`. To fill in the placeholders (feature title, feature ID, date, status), **Read the file first**, then Edit to replace the `{{placeholder}}` values. Do NOT Write a new file — the file already exists and the Write tool will reject it without a prior Read.
 
-### 4. Create First DAG Pass
+### 5. Create First DAG Pass
 
 Invoke DAG Assembler:
 ```json
 {"action": "assemble-and-prepare", "next_node": "constitution-gate",
- "dag_path": "specs/{feature-id}/.workflow/dags/pass-001.json",
+ "dag_path": "$PROJECT_ROOT/specs/{feature-id}/.workflow/dags/pass-001.json",
  "catalog_path": "${CLAUDE_PLUGIN_ROOT}/catalogs/specify-catalog.json",
- "feature_dir": "specs/{feature-id}", "parameters": {}}
+ "feature_dir": "$PROJECT_ROOT/specs/{feature-id}", "parameters": {}}
 ```
 
 If the DAG file does not exist yet, ask the DAG Assembler to create it before assembling the first node.
@@ -174,7 +226,17 @@ Based on the parsed report and current state:
 
 - **More nodes needed in this pass**: Return to Step 2 with updated state
 - **Advocate verdict `ready`**: Assemble `spec-complete` milestone, freeze pass, go to Completion
-- **Advocate verdict `needs-revision`**: Freeze pass, increment `pass_number`, create new DAG pass, return to Step 1
+- **Advocate verdict `needs-revision`**: Freeze pass, increment `pass_number`, create new DAG pass, return to Step 1:
+  ```bash
+  # 1. Freeze current pass
+  hil-dag freeze --outcome completed --detail "advocate-verdict-needs-revision" --rationale "<reason>" <current_dag_path>
+  # 2. Create new pass
+  hil-dag create --pass <new_pass_number> --output $PROJECT_ROOT/specs/{feature-id}/.workflow/dags/pass-<NNN>.json specify
+  # 3. Re-add constitution-gate and mark passed (already verified in pass 1)
+  hil-dag assemble --node constitution-gate --catalog <catalog_path> <new_dag_path>
+  hil-dag status --node constitution-gate --status passed <new_dag_path>
+  ```
+  **Why step 3?** INV-002 requires `constitution-gate` in the graph before any task node can be assembled. Each pass starts with an empty graph, so the gate must be re-added. Since it was already verified, immediately mark it `passed`.
 - **Advocate verdict `critical-gaps`**: Present situation to user with options:
   ```
   AskUserQuestion(
@@ -209,7 +271,7 @@ Based on the parsed report and current state:
 Freeze the pass via DAG Assembler before starting a new one:
 ```json
 {"action": "freeze-pass", "dag_path": "...", "outcome": "completed",
- "outcome_detail": "advocate-verdict-needs-revision",
+ "detail": "advocate-verdict-needs-revision",
  "rationale": "Advocate found N gaps. Starting new pass."}
 ```
 

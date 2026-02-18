@@ -153,13 +153,13 @@ Freeze the current DAG pass as an immutable snapshot.
   "action": "freeze-pass",
   "dag_path": "specs/001-feature/.workflow/dags/pass-001.json",
   "outcome": "completed",
-  "outcome_detail": "advocate-verdict-needs-revision",
+  "detail": "advocate-verdict-needs-revision",
   "rationale": "Advocate found 3 gaps. Freezing pass 1 for new assembly."
 }
 ```
 
 **Process**:
-1. Freeze DAG: `dag-freeze.sh <dag_path> <outcome> <outcome_detail> <rationale>`
+1. Freeze DAG: `dag-freeze.sh <dag_path> <outcome> <detail> <rationale>`
 2. Return confirmation
 
 **Output** (to Supervisor):
@@ -168,7 +168,7 @@ Freeze the current DAG pass as an immutable snapshot.
   "pass_frozen": true,
   "dag_path": "specs/001-feature/.workflow/dags/pass-001.json",
   "outcome": "completed",
-  "outcome_detail": "advocate-verdict-needs-revision",
+  "detail": "advocate-verdict-needs-revision",
   "nodes_executed": 3,
   "edges_total": 4
 }

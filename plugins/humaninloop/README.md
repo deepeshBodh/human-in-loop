@@ -249,6 +249,12 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 |-------|---------|
 | **Testing Agent** | Collaborative QA partner that executes `TEST:` verification tasks, classifies them at runtime (CLI/GUI/SUBJECTIVE), captures evidence, and decides whether to auto-approve or present human checkpoints. Uses skill: `testing-end-user` |
 
+### Design Workflow Agent
+
+| Agent | Purpose |
+|-------|---------|
+| **UI Designer** | Senior interface designer who analyzes visual inspiration from existing apps to extract design patterns, build actionable design systems, and craft screen layouts and interaction flows. Uses skills: `analysis-screenshot`, `patterns-flow-mapping`, `authoring-design-system`, `patterns-interface-design` |
+
 ### Validation
 
 **Techspec Workflow:** Uses `validation-plan-artifacts` skill for techspec-specific review criteria (phases T0, T1).

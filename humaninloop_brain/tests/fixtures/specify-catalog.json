@@ -111,12 +111,12 @@
       "skill": null,
       "contract": {
         "consumes": [
-          {"artifact": "spec.md", "required": true},
           {"artifact": "advocate-report.md", "required": true}
         ],
         "produces": []
       },
-      "valid_statuses": ["pending", "achieved"]
+      "valid_statuses": ["pending", "achieved"],
+      "note": "Consumes only advocate-report.md (not spec.md) to ensure edge inference routes through the advocate gate, satisfying INV-001"
     }
   ],
   "edge_constraints": {
