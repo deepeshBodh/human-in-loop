@@ -6,6 +6,53 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [2.1.0] - 2026-02-18
+
+DAG-first infrastructure: deterministic graph execution replaces hardcoded supervisor loops.
+
+### humaninloop 2.1.0
+
+#### New Package: humaninloop_brain
+
+- **humaninloop_brain** - Deterministic DAG infrastructure package for workflow execution
+  - Pydantic entity models for nodes, edges, DAG passes, catalogs, validation results
+  - NetworkX-backed graph operations: loading, subgraph views, topological sort, acyclicity guard, edge inference
+  - 9-step structural validator with invariant and contract checking
+  - Pass lifecycle management: creation, node assembly, status updates, freeze
+  - `hil-dag` CLI with 7 subcommands producing JSON output
+  - 262 tests, 98% coverage
+  - Constitution v2.0.0 with Principle IX (Deterministic Infrastructure) and Principle X (Pydantic Entity Modeling)
+
+#### New Agents
+
+- **dag-assembler** - Deterministic graph assembly specialist that translates Supervisor decisions into validated DAG mutations via the `hil-dag` CLI. Constructs natural-language prompts for domain agents from catalog contracts. Uses skill: `dag-operations`
+- **state-briefer** - Reads DAG history, current pass state, strategy skills, and catalog to produce structured workflow briefings for the Supervisor. Informs assembly decisions without making them
+
+#### New Skills
+
+- **dag-operations** - Shell wrappers for the `hil-dag` CLI: create, assemble, validate, sort, status, freeze, catalog-validate. 7 scripts with structured JSON output
+- **strategy-core** - Universal workflow patterns (validation gates, gap classification, pass evolution, halt escalation) consumed by the State Briefer to inform Supervisor briefings
+- **strategy-specification** - Specification-workflow patterns (input assessment, produce-then-validate, gap-informed revision, research-before-user) consumed by the State Briefer
+
+#### New Infrastructure
+
+- `catalogs/` directory with `specify-catalog.json` - Node catalog for the specify workflow (7 nodes, 5 invariants, artifact contracts)
+- `docs/architecture/` - DAG-first architecture synthesis documents
+- ADR-007: DAG-First Infrastructure
+- Constitution v2.0.0 with brownfield analysis and 10 governance principles
+
+#### Changed
+
+- **/humaninloop:specify** - Rewritten from 2-agent supervisor loop to DAG-based execution with assembly decisions informed by State Briefer briefings. DAG Assembler handles all graph mechanics; Supervisor focuses on routing and judgment
+- **advocate-report-template.md** - Added `halted` verdict option for scope gaps
+
+#### Fixed
+
+- **Task catalog node statuses** - Added `halted` status to task nodes from run-3 scenario testing
+- **CLI output alignment** - Aligned CLI output, catalog contracts, and agent spec from scenario testing
+
+---
+
 ## [2.0.0] - 2026-02-17
 
 **BREAKING CHANGE**: New techspec workflow stage required between specify and plan.
@@ -1086,6 +1133,7 @@ Initial marketplace scaffold.
 
 ---
 
+[2.1.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.1.0
 [2.0.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.0.0
 [1.1.1]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v1.1.1
 [1.1.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v1.1.0

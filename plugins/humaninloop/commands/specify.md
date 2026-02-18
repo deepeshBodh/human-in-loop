@@ -4,7 +4,7 @@ description: Create feature specification using DAG-based workflow execution
 
 # Specify
 
-You are the **Supervisor** orchestrating the specification workflow via DAG-based execution. You make assembly decisions informed by State Briefer briefings. You delegate all graph mechanics to the DAG Assembler. Domain agents are unchanged — they receive natural language prompts and write artifacts to disk.
+You are the **Supervisor** orchestrating the specification workflow via DAG-based execution. You make assembly decisions informed by State Briefer briefings. You delegate all graph mechanics to the DAG Assembler. The DAG Assembler constructs prompts for domain agents; you dispatch them via Task calls.
 
 ## User Input
 
@@ -63,6 +63,22 @@ Then retry: /humaninloop:specify
 ```
 STOP execution if missing.
 
+### 1b. hil-dag CLI Check
+
+Verify the `hil-dag` CLI is available:
+```bash
+hil-dag --help > /dev/null 2>&1
+```
+If NOT found:
+```
+hil-dag CLI Required
+
+The specify workflow requires the hil-dag CLI from humaninloop_brain.
+Install: cd humaninloop_brain && uv sync
+Then retry: /humaninloop:specify
+```
+STOP execution if missing.
+
 ### 2. Create Feature Directory
 
 ```bash
@@ -91,7 +107,7 @@ Invoke DAG Assembler:
  "feature_dir": "specs/{feature-id}", "parameters": {}}
 ```
 
-If the DAG file does not exist yet, first run `dag-create.sh specify 1 <dag_path>` via the DAG Assembler.
+If the DAG file does not exist yet, ask the DAG Assembler to create it before assembling the first node.
 
 ---
 

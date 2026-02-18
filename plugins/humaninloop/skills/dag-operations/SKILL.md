@@ -1,3 +1,8 @@
+---
+name: dag-operations
+description: Deterministic DAG infrastructure operations for workflow execution via the hil-dag CLI. Use when assembling DAG passes, validating graph structure, updating node status, or freezing completed passes.
+---
+
 # DAG Operations
 
 Deterministic DAG infrastructure operations for workflow execution.
@@ -61,4 +66,8 @@ Scripts are invoked by the DAG Assembler agent during workflow execution. The ag
 
 ## Dependencies
 
-Requires the `humaninloop_brain` package to be installed. Run from the `humaninloop_brain/` directory or ensure `hil-dag` is on PATH.
+Requires the `humaninloop_brain` package (>= 0.1.0) to be installed. Run from the `humaninloop_brain/` directory or ensure `hil-dag` is on PATH:
+
+```bash
+cd humaninloop_brain && uv sync
+```

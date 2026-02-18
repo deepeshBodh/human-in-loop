@@ -29,7 +29,7 @@ The package provides five layers:
 ```bash
 cd humaninloop_brain
 uv sync
-uv run pytest          # 190 tests, ~98% coverage
+uv run pytest          # 262 tests, ~98% coverage
 uv run hil-dag --help
 ```
 
@@ -232,7 +232,7 @@ humaninloop_brain/
     ├── test_graph/        # 32 tests
     ├── test_validators/   # 30 tests
     ├── test_passes/       # 17 tests
-    └── test_cli/          # 30 tests (unit + subprocess + E2E)
+    └── test_cli/          # 102 tests (unit + subprocess + E2E)
 ```
 
 ## Related

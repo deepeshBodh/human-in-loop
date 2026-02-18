@@ -10,22 +10,22 @@ The humaninloop plugin enforces specification-driven development—ensuring arch
 
 ---
 
-## Current State (v2.0.0)
+## Current State (v2.1.0)
 
-The core specify → techspec → plan → tasks → implement workflow is complete and functional.
+The core specify → techspec → plan → tasks → implement workflow is complete and functional. The specify workflow now uses DAG-based execution with deterministic graph infrastructure (`humaninloop_brain`).
 
 **7 Commands** for the full development lifecycle:
 - `/humaninloop:setup` - Initialize your project constitution (brownfield-aware)
-- `/humaninloop:specify` - Transform vague requests into structured specifications
+- `/humaninloop:specify` - Transform vague requests into structured specifications (DAG-based)
 - `/humaninloop:techspec` - Translate business specifications into traceable technical artifacts
 - `/humaninloop:plan` - Generate implementation plans with domain modeling
 - `/humaninloop:tasks` - Create implementation tasks with vertical TDD slicing
 - `/humaninloop:audit` - Analyze artifacts for quality and consistency
 - `/humaninloop:implement` - Execute implementation with progress tracking
 
-**21 Skills** that Claude invokes automatically when relevant (authoring, analysis, patterns, validation, testing, using)
+**27 Skills** that Claude invokes automatically when relevant (authoring, analysis, patterns, validation, testing, using, dag-operations, strategy)
 
-**8 Specialized Agents** with focused responsibilities (requirements analyst, technical analyst, devil's advocate, plan architect, principal architect, task architect, testing agent, UI designer)
+**10 Specialized Agents** with focused responsibilities (requirements analyst, technical analyst, devil's advocate, plan architect, principal architect, task architect, testing agent, UI designer, DAG assembler, state briefer)
 
 ---
 

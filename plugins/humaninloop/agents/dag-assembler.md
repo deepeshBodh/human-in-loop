@@ -310,7 +310,7 @@ All artifacts follow a consistent directory structure. Catalog contracts use log
 - The DAG Assembler never directly modifies source artifacts (spec.md, reports) — it only writes DAG JSON files and context.md. Domain agents, operating under their own instructions, write to source artifacts.
 - Always validate invariants before confirming node assembly
 - Report ALL errors to Supervisor — never silently recover
-- Construct NL prompts following ADR-005 conventions (point agent at artifacts, minimal instructions)
+- Construct NL prompts using decoupled conventions (point agent at artifacts on disk, provide minimal instructions, let the agent's own system prompt guide behavior)
 - Infer edges from contract consumes/produces matching against existing nodes
 - Infer artifact paths from contract + feature directory convention
 - Read domain agent reports from disk, never from Supervisor context
