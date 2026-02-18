@@ -178,6 +178,26 @@ class TestInferEdges:
         edge_sources = {e.source for e in edges}
         assert "targeted-research" in edge_sources
 
+    def test_skip_reopened_node(self, load_fixture):
+        """skip_reopened=True returns empty list immediately."""
+        catalog = _make_catalog(load_fixture)
+        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        dag.nodes.append(
+            GraphNode(
+                id="input-enrichment",
+                type=NodeType.task,
+                name="Enrichment",
+                description="d",
+                status="pending",
+                contract=NodeContract(
+                    consumes=[ArtifactConsumption(artifact="raw-input")],
+                    produces=["enriched-input"],
+                ),
+            )
+        )
+        edges = infer_edges("analyst-review", dag, catalog, skip_reopened=True)
+        assert edges == []
+
     def test_gate_does_not_get_produces_from_gate(self, load_fixture):
         """Produces edges only come from task sources."""
         catalog = _make_catalog(load_fixture)

@@ -1,13 +1,18 @@
 """Edge inference when adding a new node to a DAG pass."""
 
-from humaninloop_brain.entities.dag_pass import DAGPass
+from __future__ import annotations
+
 from humaninloop_brain.entities.edges import Edge
 from humaninloop_brain.entities.enums import EdgeType, NodeType
 from humaninloop_brain.entities.catalog import NodeCatalog
+from humaninloop_brain.graph.loader import HasNodesAndEdges
 
 
 def infer_edges(
-    node_id: str, dag: DAGPass, catalog: NodeCatalog
+    node_id: str,
+    dag: HasNodesAndEdges,
+    catalog: NodeCatalog,
+    skip_reopened: bool = False,
 ) -> list[Edge]:
     """Infer edges when adding a node to a DAG.
 
@@ -21,6 +26,9 @@ def infer_edges(
 
     Edge IDs follow the pattern: "inferred-{type}-{source}-{target}"
     """
+    if skip_reopened:
+        return []
+
     cat_node = catalog.get_node(node_id)
     if cat_node is None:
         return []

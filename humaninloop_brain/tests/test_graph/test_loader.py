@@ -1,6 +1,13 @@
 """Tests for graph loader."""
 
+import json
+from pathlib import Path
+
 from humaninloop_brain.entities.dag_pass import DAGPass
+from humaninloop_brain.entities.enums import EdgeType, NodeType
+from humaninloop_brain.entities.nodes import GraphNode, NodeHistoryEntry
+from humaninloop_brain.entities.edges import Edge
+from humaninloop_brain.entities.strategy_graph import StrategyGraph
 from humaninloop_brain.graph.loader import load_graph
 
 
@@ -46,3 +53,95 @@ class TestLoadGraph:
         edge_data = g.get_edge_data("analyst-review", "advocate-review")
         assert "depends-on" in edge_data
         assert "produces" in edge_data
+
+
+class TestLoadStrategyGraph:
+    def test_basic_strategy_graph(self):
+        sg = StrategyGraph(
+            id="sg-001",
+            workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="t",
+                    type=NodeType.task,
+                    name="n",
+                    description="d",
+                    status="pending",
+                    history=[NodeHistoryEntry(pass_number=1, status="pending")],
+                    last_active_pass=1,
+                ),
+            ],
+            edges=[
+                Edge(id="e", source="t", target="t", type=EdgeType.depends_on),
+            ],
+        )
+        g = load_graph(sg)
+        assert len(g.nodes) == 1
+        assert len(g.edges) == 1
+        assert g.nodes["t"]["type"] == "task"
+
+    def test_verdict_attribute(self):
+        sg = StrategyGraph(
+            id="sg",
+            workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="g",
+                    type=NodeType.gate,
+                    name="n",
+                    description="d",
+                    status="completed",
+                    verdict="ready",
+                    schema_version="3.0.0",
+                ),
+            ],
+        )
+        g = load_graph(sg)
+        assert g.nodes["g"]["verdict"] == "ready"
+
+    def test_no_verdict_when_none(self):
+        sg = StrategyGraph(
+            id="sg",
+            workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="t",
+                    type=NodeType.task,
+                    name="n",
+                    description="d",
+                    status="pending",
+                ),
+            ],
+        )
+        g = load_graph(sg)
+        assert "verdict" not in g.nodes["t"]
+
+    def test_triggered_by_edge_attributes(self):
+        sg = StrategyGraph(
+            id="sg",
+            workflow_id="w",
+            edges=[
+                Edge(
+                    id="e-trig",
+                    source="a",
+                    target="a",
+                    type=EdgeType.triggered_by,
+                    source_pass=1,
+                    target_pass=2,
+                ),
+            ],
+            nodes=[
+                GraphNode(
+                    id="a",
+                    type=NodeType.task,
+                    name="n",
+                    description="d",
+                    status="pending",
+                ),
+            ],
+        )
+        g = load_graph(sg)
+        edge_data = g.get_edge_data("a", "a")
+        assert "triggered-by" in edge_data
+        assert edge_data["triggered-by"]["source_pass"] == 1
+        assert edge_data["triggered-by"]["target_pass"] == 2

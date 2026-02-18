@@ -1,12 +1,17 @@
 """Tests for subgraph views."""
 
 from humaninloop_brain.entities.dag_pass import DAGPass
+from humaninloop_brain.entities.edges import Edge
+from humaninloop_brain.entities.enums import EdgeType, NodeType
+from humaninloop_brain.entities.nodes import GraphNode
+from humaninloop_brain.entities.strategy_graph import StrategyGraph
 from humaninloop_brain.graph.loader import load_graph
 from humaninloop_brain.graph.views import (
     constrained_by_view,
     depends_on_view,
     informed_by_view,
     produces_view,
+    triggered_by_view,
     validates_view,
 )
 
@@ -64,4 +69,40 @@ class TestInformedByView:
         dag = DAGPass.model_validate(load_fixture("pass-normal.json"))
         g = load_graph(dag)
         view = informed_by_view(g)
+        assert len(list(view.edges())) == 0
+
+
+class TestTriggeredByView:
+    def test_triggered_by_edges(self):
+        sg = StrategyGraph(
+            id="sg",
+            workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="a", type=NodeType.task, name="n",
+                    description="d", status="pending",
+                ),
+            ],
+            edges=[
+                Edge(
+                    id="e-dep", source="a", target="a",
+                    type=EdgeType.depends_on,
+                ),
+                Edge(
+                    id="e-trig", source="a", target="a",
+                    type=EdgeType.triggered_by,
+                    source_pass=1, target_pass=2,
+                ),
+            ],
+        )
+        g = load_graph(sg)
+        view = triggered_by_view(g)
+        edges = list(view.edges(keys=True))
+        assert len(edges) == 1
+        assert edges[0][2] == "triggered-by"
+
+    def test_no_triggered_by_in_dag_pass(self, load_fixture):
+        dag = DAGPass.model_validate(load_fixture("pass-normal.json"))
+        g = load_graph(dag)
+        view = triggered_by_view(g)
         assert len(list(view.edges())) == 0

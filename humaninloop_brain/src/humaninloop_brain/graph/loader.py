@@ -1,33 +1,54 @@
-"""Load a DAGPass into a NetworkX MultiDiGraph."""
+"""Load a DAGPass or StrategyGraph into a NetworkX MultiDiGraph."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import networkx as nx
 
-from humaninloop_brain.entities.dag_pass import DAGPass
+if TYPE_CHECKING:
+    from humaninloop_brain.entities.edges import Edge
+    from humaninloop_brain.entities.nodes import GraphNode
 
 
-def load_graph(dag: DAGPass) -> nx.MultiDiGraph:
-    """Convert a DAGPass entity into a NetworkX MultiDiGraph.
+@runtime_checkable
+class HasNodesAndEdges(Protocol):
+    """Protocol for DAGPass and StrategyGraph — both have .nodes and .edges."""
 
-    Nodes carry attributes: type, status, contract, agent.
+    nodes: list[GraphNode]
+    edges: list[Edge]
+
+
+def load_graph(dag: HasNodesAndEdges) -> nx.MultiDiGraph:
+    """Convert a DAGPass or StrategyGraph into a NetworkX MultiDiGraph.
+
+    Nodes carry attributes: type, status, contract, agent, verdict.
     Edges are keyed by type and carry edge_id attribute.
     """
     g = nx.MultiDiGraph()
 
     for node in dag.nodes:
-        g.add_node(
-            node.id,
-            type=node.type.value,
-            status=node.status,
-            contract=node.contract,
-            agent=node.agent,
-        )
+        attrs = {
+            "type": node.type.value,
+            "status": node.status,
+            "contract": node.contract,
+            "agent": node.agent,
+        }
+        if node.verdict is not None:
+            attrs["verdict"] = node.verdict
+        g.add_node(node.id, **attrs)
 
     for edge in dag.edges:
+        edge_attrs = {"edge_id": edge.id}
+        if edge.source_pass is not None:
+            edge_attrs["source_pass"] = edge.source_pass
+        if edge.target_pass is not None:
+            edge_attrs["target_pass"] = edge.target_pass
         g.add_edge(
             edge.source,
             edge.target,
             key=edge.type.value,
-            edge_id=edge.id,
+            **edge_attrs,
         )
 
     return g
