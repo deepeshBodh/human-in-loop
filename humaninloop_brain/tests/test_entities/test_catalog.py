@@ -206,3 +206,55 @@ class TestNodeCatalog:
         restored = NodeCatalog.model_validate_json(json_str)
         assert len(restored.nodes) == len(catalog.nodes)
         assert len(restored.invariants) == len(catalog.invariants)
+
+    def test_resolve_single_match(self, load_fixture):
+        """Tags that uniquely match one node return exactly that node."""
+        data = load_fixture("specify-catalog.json")
+        catalog = NodeCatalog.model_validate(data)
+        matches = catalog.resolve_by_capabilities(["input-enrichment"])
+        assert len(matches) == 1
+        assert matches[0].id == "input-enrichment"
+
+    def test_resolve_no_match(self, load_fixture):
+        """Tags that match nothing return empty list."""
+        data = load_fixture("specify-catalog.json")
+        catalog = NodeCatalog.model_validate(data)
+        matches = catalog.resolve_by_capabilities(["nonexistent-capability"])
+        assert matches == []
+
+    def test_resolve_ambiguous(self, load_fixture):
+        """Tags shared by multiple nodes return all matches."""
+        data = load_fixture("specify-catalog.json")
+        catalog = NodeCatalog.model_validate(data)
+        # "specification-writing" is on analyst-review,
+        # "specification-validation" is on advocate-review.
+        # Use a tag that appears on only one, then a broader query.
+        # Both analyst-review and advocate-review have spec-related capabilities.
+        # Let's use a tag intersection approach:
+        # analyst-review has: requirements-analysis, specification-writing
+        # advocate-review has: specification-validation, gap-detection
+        # targeted-research has: research, knowledge-gap-resolution
+        # So "gap-detection" + "research" should match both advocate + targeted-research
+        matches = catalog.resolve_by_capabilities(["gap-detection", "research"])
+        ids = {m.id for m in matches}
+        assert len(matches) == 2
+        assert ids == {"advocate-review", "targeted-research"}
+
+    def test_resolve_with_node_type_filter(self, load_fixture):
+        """Type filter narrows results to matching node type."""
+        data = load_fixture("specify-catalog.json")
+        catalog = NodeCatalog.model_validate(data)
+        # "gap-detection" + "research" matches advocate-review (gate) and
+        # targeted-research (task). Filter to task only.
+        matches = catalog.resolve_by_capabilities(
+            ["gap-detection", "research"], NodeType.task,
+        )
+        assert len(matches) == 1
+        assert matches[0].id == "targeted-research"
+
+    def test_resolve_empty_tags(self, load_fixture):
+        """Empty tags list matches nothing."""
+        data = load_fixture("specify-catalog.json")
+        catalog = NodeCatalog.model_validate(data)
+        matches = catalog.resolve_by_capabilities([])
+        assert matches == []

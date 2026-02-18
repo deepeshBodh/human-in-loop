@@ -2,18 +2,29 @@
 set -e
 # Record analysis results (status + evidence + trace) for a node
 # Targets the current pass by default, or a specific pass via optional argument
-# Usage: dag-record.sh <dag-path> <node-id> <status> <evidence-json> <trace-json> [<pass-number>]
+# Usage: dag-record.sh <dag-path> <node-id> <status> <evidence-json> <trace-json> [--pass <pass-number>] [--verdict <verdict>]
 
 command -v hil-dag >/dev/null 2>&1 || { echo '{"status":"error","message":"hil-dag not found. Install: cd humaninloop_brain && uv sync"}' >&2; exit 1; }
 
-if [ "$#" -lt 5 ] || [ "$#" -gt 6 ]; then
-    echo '{"status":"error","message":"Usage: dag-record.sh <dag-path> <node-id> <status> <evidence-json> <trace-json> [<pass-number>]"}' >&2
+if [ "$#" -lt 5 ]; then
+    echo '{"status":"error","message":"Usage: dag-record.sh <dag-path> <node-id> <status> <evidence-json> <trace-json> [--pass <pass-number>] [--verdict <verdict>]"}' >&2
     exit 1
 fi
 
-CMD=(hil-dag record "$1" --node "$2" --status "$3" --evidence "$4" --trace "$5")
-if [ -n "$6" ]; then
-    CMD+=(--pass "$6")
-fi
+DAG_PATH="$1"; NODE_ID="$2"; STATUS="$3"; EVIDENCE="$4"; TRACE="$5"
+shift 5
+
+CMD=(hil-dag record "$DAG_PATH" --node "$NODE_ID" --status "$STATUS" --evidence "$EVIDENCE" --trace "$TRACE")
+
+# Parse optional named flags
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --pass)    CMD+=(--pass "$2"); shift 2 ;;
+        --verdict) CMD+=(--verdict "$2"); shift 2 ;;
+        *)
+            # Legacy: bare number treated as pass for backward compat
+            CMD+=(--pass "$1"); shift ;;
+    esac
+done
 
 exec "${CMD[@]}"

@@ -86,6 +86,20 @@ class NodeCatalog(BaseModel):
                 return node
         return None
 
+    def resolve_by_capabilities(
+        self, tags: list[str], node_type: NodeType | None = None,
+    ) -> list[CatalogNodeDefinition]:
+        """Find catalog nodes whose capabilities intersect with given tags.
+
+        Returns all matching nodes. Caller decides on ambiguity.
+        If node_type provided, filters by type first.
+        """
+        candidates = self.nodes
+        if node_type is not None:
+            candidates = [n for n in candidates if n.type == node_type]
+        tag_set = set(tags)
+        return [n for n in candidates if set(n.capabilities) & tag_set]
+
     def get_edge_constraint(self, edge_type: EdgeType) -> EdgeConstraint | None:
         """Look up edge constraint by type."""
         return self.edge_constraints.get(edge_type)

@@ -42,8 +42,11 @@ Exit codes: 0=success, 1=validation failure, 2=unexpected error.
 Scripts are invoked by the DAG Assembler agent during workflow execution. The agent passes file paths to the single StrategyGraph JSON file and catalog JSON files.
 
 ```bash
-# Add a node (auto-creates StrategyGraph if file missing; --workflow required for first call)
-./scripts/dag-assemble.sh <dag-path> <catalog-path> <node-id> [<workflow-id>]
+# Add a node by ID (auto-creates StrategyGraph if file missing; --workflow required for first call)
+./scripts/dag-assemble.sh <dag-path> <catalog-path> --node <node-id> [--workflow <workflow-id>]
+
+# Add a node by capability tags (resolves to catalog node via tag matching)
+./scripts/dag-assemble.sh <dag-path> <catalog-path> --capability-tags <tag1> [<tag2>...] [--node-type <type>] [--workflow <workflow-id>]
 
 # Validate
 ./scripts/dag-validate.sh <dag-path> <catalog-path>
@@ -54,8 +57,8 @@ Scripts are invoked by the DAG Assembler agent during workflow execution. The ag
 # Update status (optional --pass to target specific pass)
 ./scripts/dag-status.sh <dag-path> <node-id> <new-status> [<pass-number>]
 
-# Record analysis results (optional --pass to target specific pass)
-./scripts/dag-record.sh <dag-path> <node-id> <status> '<evidence-json-array>' '<trace-json-object>' [<pass-number>]
+# Record analysis results (optional --pass and --verdict for gate nodes)
+./scripts/dag-record.sh <dag-path> <node-id> <status> '<evidence-json-array>' '<trace-json-object>' [--pass <pass-number>] [--verdict <verdict>]
 
 # Freeze (optional triggered nodes and reason for triggered_by edges)
 ./scripts/dag-freeze.sh <dag-path> <outcome> <detail> [<triggered-node-1> <triggered-node-2> ...] [--reason <reason>]

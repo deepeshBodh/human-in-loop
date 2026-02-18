@@ -149,13 +149,15 @@ The briefing returns: `state_summary`, `gap_details`, `recommendations`, `altern
 
 **Pick**: Select from the Analyst's ranked `recommendations`, informed by `relevant_patterns` and `outcome_trajectory`. Use judgment — recommendations inform, they do not dictate.
 
-**Assemble**: Tell the Assembler to add the node.
+**Assemble**: Tell the Assembler to add the node. Pass the selected recommendation object — do NOT extract or pass a node ID.
 ```
 Task(subagent_type: "humaninloop:dag-assembler",
-  prompt: {action: "assemble-and-prepare", next_node: <selected_node>,
+  prompt: {action: "assemble-and-prepare", recommendation: <selected_recommendation>,
            dag_path, catalog_path, feature_dir, parameters: {...}},
   description: "Assemble DAG node")
 ```
+Where `<selected_recommendation>` is the picked item from the Analyst's ranked `recommendations` list, passed through without modification. The DAG Assembler resolves it to a catalog node via capability tag matching.
+
 If `invalid`, pick differently. On first call, the Assembler auto-creates the StrategyGraph file.
 
 **Execute**: Route by node type from the Assembler response:

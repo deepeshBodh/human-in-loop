@@ -99,6 +99,44 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     catalog = _load_catalog(args.catalog)
     path = Path(args.dag)
 
+    # Resolve node ID: either direct --node or --capability-tags resolution
+    capability_tags = getattr(args, "capability_tags", None)
+    node_type_filter = getattr(args, "node_type", None)
+
+    if capability_tags:
+        from humaninloop_brain.entities.enums import NodeType as NT
+        nt = NT(node_type_filter) if node_type_filter else None
+        matches = catalog.resolve_by_capabilities(capability_tags, nt)
+        if len(matches) == 0:
+            available = [
+                {"id": n.id, "name": n.name, "capabilities": n.capabilities}
+                for n in catalog.nodes
+            ]
+            return _output({
+                "status": "resolution_failed",
+                "reason": "no_match",
+                "tags": capability_tags,
+                "available_nodes": available,
+            }, 1)
+        if len(matches) > 1:
+            candidates = [
+                {
+                    "id": n.id,
+                    "name": n.name,
+                    "capabilities": n.capabilities,
+                    "description": n.description,
+                }
+                for n in matches
+            ]
+            return _output({
+                "status": "resolution_failed",
+                "reason": "ambiguous",
+                "candidates": candidates,
+            }, 1)
+        node_id = matches[0].id
+    else:
+        node_id = args.node
+
     if not path.exists():
         # Bootstrap: create new StrategyGraph
         if not args.workflow:
@@ -118,7 +156,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
 
     pass_number = args.pass_number or graph.current_pass
     try:
-        graph, inferred = add_or_reopen_node(graph, args.node, catalog, pass_number)
+        graph, inferred = add_or_reopen_node(graph, node_id, catalog, pass_number)
     except (ValueError, FrozenEntryError) as e:
         return _output({"status": "error", "message": str(e)}, 1)
 
@@ -141,7 +179,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     if result.valid:
         save_graph(graph, str(path))
 
-    added_node = next(n for n in graph.nodes if n.id == args.node)
+    added_node = next(n for n in graph.nodes if n.id == node_id)
     return _output({
         "status": "valid" if result.valid else "invalid",
         "node_added": {
@@ -213,20 +251,24 @@ def cmd_record(args: argparse.Namespace) -> int:
     try:
         graph = update_node_history(
             graph, args.node, pass_number, args.status,
+            verdict=args.verdict,
             evidence=evidence, trace=trace_raw,
         )
     except (ValueError, FrozenEntryError) as e:
         return _output({"status": "error", "message": str(e)}, 1)
     save_graph(graph, args.dag)
 
-    return _output({
+    result = {
         "status": "success",
         "node_id": args.node,
         "old_status": old_status,
         "new_status": args.status,
         "evidence_added": len(evidence),
         "trace_recorded": True,
-    })
+    }
+    if args.verdict is not None:
+        result["verdict_recorded"] = args.verdict
+    return _output(result)
 
 
 def cmd_freeze(args: argparse.Namespace) -> int:
@@ -345,7 +387,16 @@ def build_parser() -> argparse.ArgumentParser:
     p_asm = subparsers.add_parser("assemble", help="Add a node from catalog to DAG")
     p_asm.add_argument("dag", help="Path to DAG JSON (created if missing)")
     p_asm.add_argument("--catalog", required=True, help="Path to node catalog JSON")
-    p_asm.add_argument("--node", required=True, help="Node ID from catalog")
+    asm_node_group = p_asm.add_mutually_exclusive_group(required=True)
+    asm_node_group.add_argument("--node", help="Node ID from catalog")
+    asm_node_group.add_argument(
+        "--capability-tags", nargs="+", dest="capability_tags",
+        help="Capability tags for resolution (alternative to --node)",
+    )
+    p_asm.add_argument(
+        "--node-type", dest="node_type", default=None,
+        help="Node type filter for capability resolution",
+    )
     p_asm.add_argument("--workflow", help="Workflow ID (required for bootstrap)")
     p_asm.add_argument(
         "--pass", dest="pass_number", type=int, default=None,
@@ -371,6 +422,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_rec.add_argument("--status", required=True, help="New status")
     p_rec.add_argument("--evidence", required=True, help="JSON array of evidence entries")
     p_rec.add_argument("--trace", required=True, help="JSON object for execution trace entry")
+    p_rec.add_argument("--verdict", default=None, help="Gate verdict (for gate nodes only)")
     p_rec.add_argument(
         "--pass", dest="pass_number", type=int, default=None,
         help="Target pass number",

@@ -163,6 +163,81 @@ class TestFreezeCommand:
         assert out["status"] == "error"
 
 
+class TestRecordCommand:
+    def test_record_gate_verdict(self, tmp_path):
+        """Subprocess test: record verdict on gate node via --verdict."""
+        dag_path = _bootstrap(
+            tmp_path, nodes=["constitution-gate", "analyst-review", "advocate-review"],
+        )
+        evidence = json.dumps([{
+            "id": "EV-advocate-review-001",
+            "type": "advocate-report",
+            "description": "Found gaps",
+            "reference": "specs/001/.workflow/advocate-report.md",
+        }])
+        trace = json.dumps({
+            "node_id": "advocate-review",
+            "started_at": "2026-01-15T10:00:00Z",
+            "completed_at": "2026-01-15T10:10:00Z",
+            "verdict": "needs-revision",
+            "agent_report_summary": "Gaps found",
+        })
+        code, out = run_cli(
+            "record", dag_path,
+            "--node", "advocate-review",
+            "--status", "completed",
+            "--verdict", "needs-revision",
+            "--evidence", evidence,
+            "--trace", trace,
+        )
+        assert code == 0
+        assert out["status"] == "success"
+        assert out["verdict_recorded"] == "needs-revision"
+
+        data = json.loads(Path(dag_path).read_text())
+        node = next(n for n in data["nodes"] if n["id"] == "advocate-review")
+        assert node["verdict"] == "needs-revision"
+
+
+class TestAssembleCapabilityTags:
+    def test_assemble_via_capability_tags(self, tmp_path):
+        """Subprocess integration test: resolve node by capability tags."""
+        dag_path = str(tmp_path / "strategy.json")
+        code, out = run_cli(
+            "assemble", dag_path,
+            "--catalog", CATALOG,
+            "--capability-tags", "input-enrichment",
+            "--workflow", "test-wf",
+        )
+        assert code == 0
+        assert out["status"] == "valid"
+        assert out["node_added"]["id"] == "input-enrichment"
+
+    def test_assemble_capability_tags_no_match(self, tmp_path):
+        """Subprocess integration test: no matching capability tags."""
+        dag_path = _bootstrap(tmp_path)
+        code, out = run_cli(
+            "assemble", dag_path,
+            "--catalog", CATALOG,
+            "--capability-tags", "nonexistent",
+        )
+        assert code == 1
+        assert out["status"] == "resolution_failed"
+        assert out["reason"] == "no_match"
+
+    def test_assemble_capability_tags_ambiguous(self, tmp_path):
+        """Subprocess integration test: ambiguous capability tags."""
+        dag_path = _bootstrap(tmp_path)
+        code, out = run_cli(
+            "assemble", dag_path,
+            "--catalog", CATALOG,
+            "--capability-tags", "gap-detection", "research",
+        )
+        assert code == 1
+        assert out["status"] == "resolution_failed"
+        assert out["reason"] == "ambiguous"
+
+
 class TestCatalogValidateCommand:
     def test_valid_catalog(self):
         code, out = run_cli("catalog-validate", CATALOG)

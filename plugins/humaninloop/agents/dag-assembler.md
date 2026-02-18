@@ -34,7 +34,12 @@ Add or re-open a node in the current DAG pass, validate, and construct the domai
 ```json
 {
   "action": "assemble-and-prepare",
-  "next_node": "analyst-review",
+  "recommendation": {
+    "intent": "Write initial specification from enriched input",
+    "capability_tags": ["requirements-analysis", "specification-writing"],
+    "node_type": "task",
+    "rationale": "Enriched input is ready; analyst should produce first draft"
+  },
   "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
   "catalog_path": "${CLAUDE_PLUGIN_ROOT}/catalogs/specify-catalog.json",
   "feature_dir": "specs/001-feature",
@@ -45,14 +50,17 @@ Add or re-open a node in the current DAG pass, validate, and construct the domai
 }
 ```
 
+The `recommendation` object comes from the State Analyst's ranked recommendations list, passed through without modification by the Supervisor. The DAG Assembler resolves it to a catalog node via capability tag matching.
+
 **Process** (CLI steps use `hil-dag`; agent steps are DAG Assembler logic):
-1. Read node contract from catalog _(agent)_
-2. **Bootstrap**: If DAG file does not exist, create it via `hil-dag assemble <dag_path> --catalog <catalog_path> --node <node_id> --workflow <workflow_id>`. The CLI auto-creates the StrategyGraph on first call _(CLI)_
-3. **Add or re-open**: Run `hil-dag assemble <dag_path> --catalog <catalog_path> --node <node_id>`. The CLI handles both cases — new node (add + infer edges) or existing node (new history entry, no edge re-inference) _(CLI — returns `node_added`, `edges_inferred`, `validation`)_
-4. **Invariant auto-resolution**: If CLI returns an invariant violation for a prerequisite gate with `carry_forward: true` in the catalog, auto-add that gate first with `completed` status, then retry the original assembly. The Supervisor never knows this happened _(agent + CLI)_
-5. If CLI returns `"status": "invalid"` after auto-resolution attempt, stop and return the validation result _(agent)_
-6. Construct NL prompt for domain agent (see NL Prompt Construction Patterns) _(agent)_
-7. Return combined output: CLI graph result + agent-constructed prompt fields _(agent)_
+1. **Resolve node**: Run `hil-dag assemble <dag_path> --catalog <catalog_path> --capability-tags <tags> [--node-type <type>] [--workflow <workflow_id>]` _(CLI — resolves tags to catalog node, assembles, validates)_
+   - If `resolution_failed` with `ambiguous`: read candidate descriptions and recommendation `intent`, pick best match, retry with `--node <chosen_id>`
+   - If `resolution_failed` with `no_match`: return `{"status": "invalid", "reason": "no matching catalog node for tags", "tags": [...]}`
+2. **Bootstrap**: If DAG file does not exist, include `--workflow <workflow_id>` in the CLI call. The CLI auto-creates the StrategyGraph on first call _(CLI)_
+3. **Invariant auto-resolution**: If CLI returns an invariant violation for a prerequisite gate with `carry_forward: true` in the catalog, auto-add that gate first with `completed` status, then retry the original assembly. The Supervisor never knows this happened _(agent + CLI)_
+4. If CLI returns `"status": "invalid"` after auto-resolution attempt, stop and return the validation result _(agent)_
+5. Construct NL prompt for domain agent (see NL Prompt Construction Patterns) _(agent)_
+6. Return combined output: CLI graph result + agent-constructed prompt fields _(agent)_
 
 **Output** (to Supervisor — combines CLI result + agent-constructed fields):
 ```json
