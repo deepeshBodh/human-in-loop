@@ -312,7 +312,7 @@ All error paths produce structured JSON with appropriate exit codes.
 
 ### Finding 1: Agent Not Loadable (Known — not fixed)
 
-`humaninloop:dag-assembler` and `humaninloop:state-briefer` are not available as Task subagent types despite being listed in `plugin.json`. Expected behavior for new agents not yet loaded in the current session.
+`humaninloop:dag-assembler` and `humaninloop:state-briefer` (renamed to `state-analyst` in v2.2.0) are not available as Task subagent types despite being listed in `plugin.json`. Expected behavior for new agents not yet loaded in the current session.
 
 ### Finding 2: Non-Atomic Assembly (Fixed — Run 1)
 
@@ -336,7 +336,7 @@ All error paths produce structured JSON with appropriate exit codes.
 
 **Fix**: Renamed `"exploration"` to `"Explore"` across all catalog files, test fixtures, and agent specs.
 
-**Files**: `plugins/humaninloop/catalogs/specify-catalog.json`, `humaninloop_brain/catalogs/specify-catalog.json`, `humaninloop_brain/tests/fixtures/specify-catalog.json`, `humaninloop_brain/tests/fixtures/pass-with-research.json`, `plugins/humaninloop/agents/dag-assembler.md`, `plugins/humaninloop/agents/state-briefer.md`
+**Files**: `plugins/humaninloop/catalogs/specify-catalog.json`, `humaninloop_brain/catalogs/specify-catalog.json`, `humaninloop_brain/tests/fixtures/specify-catalog.json`, `humaninloop_brain/tests/fixtures/pass-with-research.json`, `plugins/humaninloop/agents/dag-assembler.md`, `plugins/humaninloop/agents/state-analyst.md` (was `state-briefer.md`, renamed in v2.2.0)
 
 ### Finding 5: analyst-review NL Prompt vs Catalog Contract (Fixed — Run 2, D1)
 

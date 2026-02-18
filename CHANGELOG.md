@@ -6,6 +6,42 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [2.2.0] - 2026-02-18
+
+State Analyst redesign: cleaner responsibility split between graph mechanics and content analysis.
+
+### humaninloop 2.2.0
+
+#### New Agent
+
+- **state-analyst** — Renamed from state-briefer. Now owns all "read and understand" work: workflow briefings (unchanged) and report parsing (moved from DAG Assembler). Records analysis results atomically via `hil-dag record`
+
+#### New Infrastructure
+
+- **`hil-dag record` CLI command** — Atomic status + evidence + trace writes for a single node. Used by the State Analyst's `parse-report` action instead of separate `hil-dag status` calls
+- **`dag-record.sh` shell script** — Shell wrapper for `hil-dag record` in the `dag-operations` skill (8 scripts total)
+- **`add_evidence()` lifecycle function** — Append evidence attachments to a node in the DAG pass
+- **`record_analysis()` lifecycle function** — Compound operation: update status + append evidence + add trace entry atomically
+
+#### Changed
+
+- **dag-assembler** — Slimmed to pure graph mechanics: only `assemble-and-prepare` and `freeze-pass` actions remain. `parse-report` action moved to State Analyst
+- **specify.md** — All `parse-report` calls routed to `humaninloop:state-analyst` instead of `humaninloop:dag-assembler`. Responsibility Boundaries table updated with 13 operations across Supervisor, DAG Assembler, and State Analyst
+- **dag-operations SKILL.md** — Added `record` operation (8 operations total). Updated overview to mention State Analyst alongside DAG Assembler
+- **strategy-core SKILL.md** — "State Briefer" → "State Analyst" in description and body
+- **strategy-specification SKILL.md** — "State Briefer" → "State Analyst" in description and body
+- **README.md** — Updated Specify Workflow Agents table and workflow description
+
+#### Removed
+
+- **state-briefer.md** — Renamed to `state-analyst.md`
+
+#### Tests
+
+- 281 tests pass, 97.89% coverage (17 new tests for `add_evidence`, `record_analysis`, `cmd_record`, and spec consistency)
+
+---
+
 ## [2.1.2] - 2026-02-18
 
 Patch release: Align specify.md with DAG architecture design documents after dry run.
@@ -1183,6 +1219,7 @@ Initial marketplace scaffold.
 
 ---
 
+[2.2.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.2.0
 [2.1.2]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.1.2
 [2.1.1]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.1.1
 [2.1.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.1.0
