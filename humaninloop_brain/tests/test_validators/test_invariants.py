@@ -9,6 +9,7 @@ from humaninloop_brain.entities.nodes import (
     GraphNode,
     NodeContract,
 )
+from humaninloop_brain.entities.strategy_graph import StrategyGraph
 from humaninloop_brain.validators.invariants import check_invariants
 
 
@@ -137,6 +138,33 @@ class TestINV003:
         result = check_invariants(dag, catalog)
         inv003 = [v for v in result.violations if v.code == "INV-003"]
         assert len(inv003) == 1
+
+
+class TestINV004:
+    """Maximum 5 passes per workflow invocation."""
+
+    def test_under_limit_no_warning(self, load_fixture):
+        catalog = _make_catalog(load_fixture)
+        sg = StrategyGraph(id="sg", workflow_id="w", current_pass=3)
+        result = check_invariants(sg, catalog)
+        inv004 = [v for v in result.violations if v.code == "INV-004"]
+        assert len(inv004) == 0
+
+    def test_over_limit_warning(self, load_fixture):
+        catalog = _make_catalog(load_fixture)
+        sg = StrategyGraph(id="sg", workflow_id="w", current_pass=6)
+        result = check_invariants(sg, catalog)
+        inv004 = [v for v in result.violations if v.code == "INV-004"]
+        assert len(inv004) == 1
+        assert inv004[0].severity == "warning"
+
+    def test_dag_pass_no_check(self, load_fixture):
+        """DAGPass has no current_pass attr — INV-004 not checked."""
+        catalog = _make_catalog(load_fixture)
+        dag = DAGPass(id="p", workflow_id="w", pass_number=1)
+        result = check_invariants(dag, catalog)
+        inv004 = [v for v in result.violations if v.code == "INV-004"]
+        assert len(inv004) == 0
 
 
 class TestINV005:

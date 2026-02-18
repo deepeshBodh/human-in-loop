@@ -1,15 +1,22 @@
 """Structural validator — 9-step validation collecting all violations."""
 
+from __future__ import annotations
+
 from humaninloop_brain.entities.catalog import NodeCatalog
-from humaninloop_brain.entities.dag_pass import DAGPass
-from humaninloop_brain.entities.enums import TYPE_STATUS_MAP
+from humaninloop_brain.entities.enums import EdgeType, TYPE_STATUS_MAP, V3_TYPE_STATUS_MAP
 from humaninloop_brain.entities.validation import ValidationResult, ValidationViolation
 from humaninloop_brain.graph.guard import check_acyclicity
+from humaninloop_brain.graph.loader import HasNodesAndEdges
 from humaninloop_brain.validators.contracts import check_contracts
 from humaninloop_brain.validators.invariants import check_invariants
 
 
-def validate_structure(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
+def _is_v3(dag: HasNodesAndEdges) -> bool:
+    """Detect v3 schema by checking for schema_version attribute."""
+    return getattr(dag, "schema_version", None) == "3.0.0"
+
+
+def validate_structure(dag: HasNodesAndEdges, catalog: NodeCatalog) -> ValidationResult:
     """Run 9-step structural validation, collecting all violations.
 
     Steps:
@@ -68,9 +75,11 @@ def validate_structure(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
             )
 
     # Step 3: Type-status validity (defense in depth)
+    v3 = _is_v3(dag)
+    status_map = V3_TYPE_STATUS_MAP if v3 else TYPE_STATUS_MAP
     node_types = {n.id: n.type for n in dag.nodes}
     for node in dag.nodes:
-        status_enum = TYPE_STATUS_MAP[node.type]
+        status_enum = status_map[node.type]
         valid_values = {s.value for s in status_enum}
         if node.status not in valid_values:
             violations.append(
@@ -85,9 +94,9 @@ def validate_structure(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
                 )
             )
 
-    # Step 4: No self-loops
+    # Step 4: No self-loops (triggered-by self-loops are valid cross-pass links)
     for edge in dag.edges:
-        if edge.source == edge.target:
+        if edge.source == edge.target and edge.type != EdgeType.triggered_by:
             violations.append(
                 ValidationViolation(
                     code="SELF_LOOP",
@@ -97,10 +106,13 @@ def validate_structure(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
                 )
             )
 
-    # Step 5: No duplicate edges (same source+target+type)
-    seen_edges: set[tuple[str, str, str]] = set()
+    # Step 5: No duplicate edges (same source+target+type; triggered-by includes pass info)
+    seen_edges: set[tuple] = set()
     for edge in dag.edges:
-        key = (edge.source, edge.target, edge.type.value)
+        if edge.type == EdgeType.triggered_by:
+            key = (edge.source, edge.target, edge.type.value, edge.source_pass, edge.target_pass)
+        else:
+            key = (edge.source, edge.target, edge.type.value)
         if key in seen_edges:
             violations.append(
                 ValidationViolation(
@@ -165,6 +177,23 @@ def validate_structure(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
     for v in invariants.violations:
         if v.code != "INV-005":
             violations.append(v)
+
+    # Step 10 (v3 only): Entry-level immutability — frozen history entries must not differ from prior validation
+    if v3:
+        for node in dag.nodes:
+            for entry in getattr(node, "history", []):
+                if entry.frozen and entry.status == "":
+                    violations.append(
+                        ValidationViolation(
+                            code="FROZEN_ENTRY_EMPTY",
+                            severity="error",
+                            message=(
+                                f"Node '{node.id}' pass {entry.pass_number} "
+                                f"has a frozen entry with empty status"
+                            ),
+                            node_id=node.id,
+                        )
+                    )
 
     return ValidationResult(
         valid=len([v for v in violations if v.severity == "error"]) == 0,

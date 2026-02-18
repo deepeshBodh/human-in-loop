@@ -1,14 +1,19 @@
 """Tests for structural validator."""
 
+import json
+from pathlib import Path
+
 from humaninloop_brain.entities.catalog import NodeCatalog
-from humaninloop_brain.entities.dag_pass import DAGPass
+from humaninloop_brain.entities.dag_pass import DAGPass, PassEntry
 from humaninloop_brain.entities.edges import Edge
 from humaninloop_brain.entities.enums import EdgeType, NodeType
 from humaninloop_brain.entities.nodes import (
     ArtifactConsumption,
     GraphNode,
     NodeContract,
+    NodeHistoryEntry,
 )
+from humaninloop_brain.entities.strategy_graph import StrategyGraph
 from humaninloop_brain.validators.structural import validate_structure
 
 
@@ -139,6 +144,73 @@ class TestValidPasses:
         dag = DAGPass(id="p", workflow_id="w", pass_number=1)
         result = validate_structure(dag, catalog)
         assert result.valid is True
+
+
+class TestV3TriggeredByEdges:
+    """V3-specific: triggered-by self-loops and duplicate detection."""
+
+    def test_triggered_by_self_loop_allowed(self, load_fixture):
+        catalog = _make_catalog(load_fixture)
+        sg = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="a", type=NodeType.task, name="n",
+                    description="d", status="pending",
+                ),
+            ],
+            edges=[
+                Edge(
+                    id="e-trig", source="a", target="a",
+                    type=EdgeType.triggered_by,
+                    source_pass=1, target_pass=2,
+                ),
+            ],
+        )
+        result = validate_structure(sg, catalog)
+        assert not any(v.code == "SELF_LOOP" for v in result.violations)
+
+    def test_triggered_by_different_passes_not_duplicate(self, load_fixture):
+        catalog = _make_catalog(load_fixture)
+        sg = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="a", type=NodeType.task, name="n",
+                    description="d", status="pending",
+                ),
+            ],
+            edges=[
+                Edge(
+                    id="e-trig-1", source="a", target="a",
+                    type=EdgeType.triggered_by,
+                    source_pass=1, target_pass=2,
+                ),
+                Edge(
+                    id="e-trig-2", source="a", target="a",
+                    type=EdgeType.triggered_by,
+                    source_pass=2, target_pass=3,
+                ),
+            ],
+        )
+        result = validate_structure(sg, catalog)
+        assert not any(v.code == "DUPLICATE_EDGE" for v in result.violations)
+
+    def test_v3_gate_completed_status_valid(self, load_fixture):
+        """In v3, gate with 'completed' status is valid."""
+        catalog = _make_catalog(load_fixture)
+        sg = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="g", type=NodeType.gate, name="n",
+                    description="d", status="completed",
+                    schema_version="3.0.0",
+                ),
+            ],
+        )
+        result = validate_structure(sg, catalog)
+        assert not any(v.code == "INVALID_STATUS" for v in result.violations)
 
 
 class TestCollectsAllViolations:

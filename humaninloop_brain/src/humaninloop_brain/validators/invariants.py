@@ -1,15 +1,16 @@
 """Invariant checker — assembly-time system invariant verification."""
 
+from __future__ import annotations
+
 from humaninloop_brain.entities.catalog import NodeCatalog
-from humaninloop_brain.entities.dag_pass import DAGPass
 from humaninloop_brain.entities.enums import EdgeType, NodeType
 from humaninloop_brain.entities.validation import ValidationResult, ValidationViolation
 from humaninloop_brain.graph.guard import check_acyclicity
-from humaninloop_brain.graph.loader import load_graph
+from humaninloop_brain.graph.loader import HasNodesAndEdges, load_graph
 from humaninloop_brain.graph.views import depends_on_view
 
 
-def check_invariants(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
+def check_invariants(dag: HasNodesAndEdges, catalog: NodeCatalog) -> ValidationResult:
     """Check assembly-time invariants.
 
     INV-001: Task output must pass through gate before milestone.
@@ -59,13 +60,16 @@ def check_invariants(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
                         break  # One violation per task-milestone pair
 
     # INV-002: Constitution gate must exist before spec task nodes
+    # For v3 with carry_forward, check if any prior pass has a completed/passed gate
+    is_v3 = getattr(dag, "schema_version", None) == "3.0.0"
     constitution_gates = [
-        n.id for n in dag.nodes
+        n for n in dag.nodes
         if n.type == NodeType.gate
         and any(
             c.artifact == "constitution.md" for c in n.contract.consumes
         )
     ]
+    constitution_gate_ids = [n.id for n in constitution_gates]
     spec_tasks = [
         n.id for n in dag.nodes
         if n.type == NodeType.task
@@ -74,7 +78,19 @@ def check_invariants(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
         )
     ]
 
-    if spec_tasks and not constitution_gates:
+    gate_satisfied = bool(constitution_gate_ids)
+    if is_v3 and not gate_satisfied:
+        # Check carry_forward: if catalog says carry_forward=true, check prior pass history
+        for cg in constitution_gates:
+            cat_def = catalog.get_node(cg.id)
+            if cat_def and cat_def.carry_forward:
+                # Check if any history entry shows completed/passed
+                for entry in getattr(cg, "history", []):
+                    if entry.status in ("completed", "passed"):
+                        gate_satisfied = True
+                        break
+
+    if spec_tasks and not gate_satisfied:
         for task_id in spec_tasks:
             violations.append(
                 ValidationViolation(
@@ -105,6 +121,20 @@ def check_invariants(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
                         edge_id=edge.id,
                     )
                 )
+
+    # INV-004: Maximum 5 passes (runtime warning, checked for v3 StrategyGraph)
+    current_pass = getattr(dag, "current_pass", None)
+    if current_pass is not None and current_pass > 5:
+        violations.append(
+            ValidationViolation(
+                code="INV-004",
+                severity="warning",
+                message=(
+                    f"Current pass ({current_pass}) exceeds maximum of 5 — "
+                    f"mandatory human checkpoint required"
+                ),
+            )
+        )
 
     # INV-005: depends-on acyclicity
     acyclicity = check_acyclicity(dag)
