@@ -10,7 +10,7 @@ The humaninloop plugin enforces specification-driven development—ensuring arch
 
 ---
 
-## Current State (v2.1.0)
+## Current State (v2.1.2)
 
 The core specify → techspec → plan → tasks → implement workflow is complete and functional. The specify workflow now uses DAG-based execution with deterministic graph infrastructure (`humaninloop_brain`).
 

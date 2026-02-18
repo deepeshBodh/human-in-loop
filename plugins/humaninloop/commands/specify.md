@@ -49,26 +49,22 @@ Produce a validated `spec.md`. Success: advocate verdict `ready`.
 
 ### hil-dag CLI Reference
 
-When the Supervisor calls `hil-dag` directly (e.g., for gate status updates, freezing passes), use these exact signatures:
+The Supervisor calls `hil-dag` directly **only** for pass lifecycle operations. All node-level operations (status updates, assembly, report parsing) go through the DAG Assembler agent.
 
 ```bash
 # Create a new DAG pass
 hil-dag create --pass <NUMBER> --output <dag_path> <workflow>
 
-# Assemble a node into a DAG pass
+# Assemble a node (ONLY for re-adding constitution-gate to new passes)
 hil-dag assemble --node <node_id> --catalog <catalog_path> <dag_path>
 
-# Update a node's status
+# Update a node's status (ONLY for constitution-gate in new passes)
 hil-dag status --node <node_id> --status <status> <dag_path>
-
-# Freeze a completed pass
-hil-dag freeze --outcome <completed|halted> --detail <detail_string> --rationale <rationale_string> <dag_path>
-
-# Validate a catalog
-hil-dag catalog-validate <catalog_path>
 ```
 
 **Note**: `<dag_path>` is always a **positional** argument (no flag). All other arguments use named flags.
+
+**IMPORTANT**: Do NOT use `hil-dag status` or `hil-dag freeze` for domain agent nodes. Node status updates happen inside DAG Assembler's `parse-report` action. Pass freezing happens via DAG Assembler's `freeze-pass` action.
 
 ---
 
@@ -167,7 +163,9 @@ If the DAG file does not exist yet, ask the DAG Assembler to create it before as
 
 Set `pass_number = 1`.
 
-### Step 1: Request Briefing
+### Step 1: Request Briefing (MANDATORY — every pass)
+
+**This step MUST execute at the start of EVERY pass**, not just pass 1. The State Briefer reads the latest DAG history, artifacts, and strategy skills to produce a fresh situational assessment. Skipping this step means the Supervisor makes assembly decisions without knowing what artifacts exist, what gaps remain, or what patterns apply.
 
 ```
 Task(
@@ -208,9 +206,17 @@ Route by node type from the DAG Assembler response:
 | **decision** | `AskUserQuestion(...)` with questions from assembler, write answers to `{feature_dir}/.workflow/clarification-answers.md` |
 | **milestone** | Verify required artifacts exist, mark achieved |
 
-### Step 5: Parse Report
+**Clarification questions from advocate reports**: When the advocate's `parse-report` summary includes `unresolved` gaps that require user input, assemble a `human-clarification` decision node (if available in catalog) or route the structured gap list through `AskUserQuestion`. Use the `unresolved` field from the parse-report summary — do NOT read the advocate report directly to find questions.
 
-For nodes that produce reports (task and gate nodes with agents):
+### Step 5: Parse Report (MANDATORY — every agent node)
+
+**You MUST call parse-report after EVERY domain agent execution** (task nodes with `agent_type` and gate nodes with `agent_type`). No exceptions. This is how:
+- Node status gets updated in the DAG JSON
+- The execution trace gets populated
+- Structured summaries are produced for Supervisor evaluation
+- Full reports stay out of Supervisor context
+
+**Do NOT skip this step.** Do NOT read domain agent reports directly. Do NOT update node status via `hil-dag status` for agent nodes. The DAG Assembler handles all of this inside parse-report.
 
 ```
 Task(
@@ -220,31 +226,38 @@ Task(
 )
 ```
 
+The DAG Assembler returns a structured summary containing: `node_id`, `status`, `summary`, `artifacts_produced`, `verdict` (for gates), `gaps_addressed`, `unresolved`. **Use this structured summary for all evaluation decisions in Step 6** — never the raw report.
+
 ### Step 6: Evaluate
 
-Based on the parsed report and current state:
+Base ALL evaluation decisions on the **structured summary from Step 5's parse-report** — specifically the `verdict`, `summary`, `gaps_addressed`, and `unresolved` fields. Do NOT read raw reports to make these decisions.
 
-- **More nodes needed in this pass**: Return to Step 2 with updated state
-- **Advocate verdict `ready`**: Assemble `spec-complete` milestone, freeze pass, go to Completion
-- **Advocate verdict `needs-revision`**: Freeze pass, increment `pass_number`, create new DAG pass, return to Step 1:
-  ```bash
-  # 1. Freeze current pass
-  hil-dag freeze --outcome completed --detail "advocate-verdict-needs-revision" --rationale "<reason>" <current_dag_path>
-  # 2. Create new pass
-  hil-dag create --pass <new_pass_number> --output $PROJECT_ROOT/specs/{feature-id}/.workflow/dags/pass-<NNN>.json specify
-  # 3. Re-add constitution-gate and mark passed (already verified in pass 1)
-  hil-dag assemble --node constitution-gate --catalog <catalog_path> <new_dag_path>
-  hil-dag status --node constitution-gate --status passed <new_dag_path>
-  ```
-  **Why step 3?** INV-002 requires `constitution-gate` in the graph before any task node can be assembled. Each pass starts with an empty graph, so the gate must be re-added. Since it was already verified, immediately mark it `passed`.
-- **Advocate verdict `critical-gaps`**: Present situation to user with options:
+- **More nodes needed in this pass**: Return to Step 2 with updated state from the structured summary. If the result was unexpected or the Supervisor needs a fresh perspective on viable nodes, return to **Step 1** instead to request an on-demand State Briefer re-briefing before deciding the next node
+- **Advocate verdict `ready`**: Assemble `spec-complete` milestone, freeze pass (via DAG Assembler), go to Completion
+- **Advocate verdict `needs-revision`**: Follow the New Pass Procedure below
+- **Advocate verdict `critical-gaps`**: Present situation to user using the `summary` and `unresolved` fields from parse-report:
   ```
   AskUserQuestion(
     questions: [{
-      question: "Critical gaps found: {gap_summary}. How should we proceed?",
+      question: "Critical gaps found: {summary from parse-report}. How should we proceed?",
       header: "Critical Gaps",
       options: [
         {label: "Continue refining", description: "Address gaps in next pass"},
+        {label: "Accept current spec", description: "Finalize with known gaps as limitations"},
+        {label: "Stop and review manually", description: "Exit workflow, review spec yourself"}
+      ],
+      multiSelect: false
+    }]
+  )
+  ```
+- **Recurring gaps (pass 3+)**: If the State Briefer's `pass_context` signals that the same gaps keep recurring across passes (not converging), surface the situation to the user — do not silently continue iterating:
+  ```
+  AskUserQuestion(
+    questions: [{
+      question: "Pass {pass_number}: {pass_context}. The same gaps appear to be recurring. How should we proceed?",
+      header: "Convergence",
+      options: [
+        {label: "Continue refining", description: "Try another pass with different approach"},
         {label: "Accept current spec", description: "Finalize with known gaps as limitations"},
         {label: "Stop and review manually", description: "Exit workflow, review spec yourself"}
       ],
@@ -268,12 +281,64 @@ Based on the parsed report and current state:
   )
   ```
 
-Freeze the pass via DAG Assembler before starting a new one:
-```json
-{"action": "freeze-pass", "dag_path": "...", "outcome": "completed",
- "detail": "advocate-verdict-needs-revision",
- "rationale": "Advocate found N gaps. Starting new pass."}
+- **Supervisor halt (escape hatch)**: If the Supervisor encounters a truly unexpected situation that doesn't fit the verdict-based outcomes above (e.g., domain agent produced unusable output, catastrophic parse failure, fundamental feasibility concern), freeze the pass as `halted` with a rationale and present the situation to the user:
+  ```
+  Task(
+    subagent_type: "humaninloop:dag-assembler",
+    prompt: {"action": "freeze-pass", "dag_path": "<current_dag_path>",
+             "catalog_path": "<catalog_path>", "feature_dir": "<feature_dir>",
+             "outcome": "halted",
+             "detail": "<brief description of unexpected situation>",
+             "rationale": "<why normal flow cannot continue>"},
+    description: "Halt pass"
+  )
+  ```
+  Then present to user:
+  ```
+  AskUserQuestion(
+    questions: [{
+      question: "Workflow halted: {rationale}. How should we proceed?",
+      header: "Halted",
+      options: [
+        {label: "Retry with new pass", description: "Start fresh pass with different approach"},
+        {label: "Accept current spec", description: "Finalize with whatever exists"},
+        {label: "Stop and review manually", description: "Exit workflow, investigate yourself"}
+      ],
+      multiSelect: false
+    }]
+  )
+  ```
+
+#### New Pass Procedure
+
+When starting a new pass after `needs-revision` or `critical-gaps` (user chose to continue):
+
+**Step A — Freeze current pass** (via DAG Assembler):
 ```
+Task(
+  subagent_type: "humaninloop:dag-assembler",
+  prompt: {"action": "freeze-pass", "dag_path": "<current_dag_path>",
+           "catalog_path": "<catalog_path>", "feature_dir": "<feature_dir>",
+           "outcome": "completed",
+           "detail": "advocate-verdict-needs-revision",
+           "rationale": "Advocate found N gaps. Starting new pass."},
+  description: "Freeze current pass"
+)
+```
+
+**Step B — Create new pass** (Supervisor direct — pass lifecycle):
+```bash
+hil-dag create --pass <new_pass_number> --output $PROJECT_ROOT/specs/{feature-id}/.workflow/dags/pass-<NNN>.json specify
+```
+
+**Step C — Re-add constitution-gate** (Supervisor direct — structural prerequisite):
+```bash
+hil-dag assemble --node constitution-gate --catalog <catalog_path> <new_dag_path>
+hil-dag status --node constitution-gate --status passed <new_dag_path>
+```
+**Why?** INV-002 requires `constitution-gate` in the graph before any task node can be assembled. Each pass starts with an empty graph, so the gate must be re-added. Since it was already verified in pass 1, immediately mark it `passed`.
+
+**Step D — Return to Step 1** (Request Briefing for the new pass)
 
 ---
 
@@ -294,7 +359,7 @@ Update context status to `completed`. Output:
 - DAG history: `specs/{feature-id}/.workflow/dags/`
 
 ### Summary
-{From parsed analyst report: user story count, requirement count}
+{From analyst-review parse-report structured summary: user story count, requirement count}
 
 ### Next Steps
 1. Review the spec at `specs/{feature-id}/spec.md`
@@ -309,4 +374,29 @@ Update context status to `completed`. Output:
 - Always use Task tool to invoke agents — never inline agent behavior
 - Domain agents have NO workflow knowledge — all context via files on disk
 - Supervisor owns ALL assembly and routing decisions
-- Full agent reports stay on disk — only structured summaries enter Supervisor context
+
+### Context Protection (CRITICAL)
+
+These rules protect the Supervisor's context window — the workflow's most precious resource:
+
+- **NEVER read domain agent reports directly** (analyst-report.md, advocate-report.md, research-findings.md, etc.). All report content enters the Supervisor ONLY as structured summaries via DAG Assembler's `parse-report`
+- **NEVER use `hil-dag status` for domain agent nodes**. Node status updates are handled inside `parse-report`. The only exception is `constitution-gate` in new passes (structural prerequisite, not an agent node)
+- **NEVER use `hil-dag freeze` directly**. Pass freezing goes through DAG Assembler's `freeze-pass` action
+- **ALWAYS call `parse-report` after every agent execution** — no exceptions, no shortcuts
+- **ALWAYS request a State Briefer briefing at the start of every pass** — not just pass 1
+
+### Responsibility Boundaries
+
+| Operation | Owner | Mechanism |
+|-----------|-------|-----------|
+| Create DAG pass | Supervisor | `hil-dag create` (direct CLI) |
+| Re-add constitution-gate to new pass | Supervisor | `hil-dag assemble` + `hil-dag status` (direct CLI) |
+| Assemble domain nodes | DAG Assembler | `assemble-and-prepare` action |
+| Update domain node status | DAG Assembler | Inside `parse-report` action |
+| Populate execution trace | DAG Assembler | Inside `parse-report` action |
+| Read domain agent reports | DAG Assembler | Inside `parse-report` (reads from disk) |
+| Freeze pass | DAG Assembler | `freeze-pass` action |
+| Produce structured summaries | DAG Assembler | Return value of `parse-report` |
+| Assembly decisions | Supervisor | Based on briefing + parse-report summaries |
+| Spawn domain agents | Supervisor | Task tool with prompt from DAG Assembler |
+| Situational assessment | State Briefer | Reads history, catalog, strategy, artifacts |
