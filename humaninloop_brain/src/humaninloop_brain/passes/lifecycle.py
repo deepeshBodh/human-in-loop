@@ -19,8 +19,6 @@ from humaninloop_brain.entities.strategy_graph import StrategyGraph
 from humaninloop_brain.graph.inference import infer_edges
 
 
-_V3 = "3.0.0"
-
 
 class FrozenEntryError(Exception):
     """Raised on writes to frozen history entries."""
@@ -51,7 +49,6 @@ def _recompute_derived(node: GraphNode) -> GraphNode:
         history=node.history,
         verdict=latest.verdict,
         last_active_pass=latest.pass_number,
-        schema_version=_V3,
     )
 
 
@@ -121,7 +118,6 @@ def add_or_reopen_node(
             history=new_history,
             verdict=None,
             last_active_pass=pass_number,
-            schema_version=_V3,
         )
         new_nodes = list(graph.nodes)
         new_nodes[existing_idx] = new_node
@@ -149,7 +145,6 @@ def add_or_reopen_node(
         history=[history_entry],
         verdict=None,
         last_active_pass=pass_number,
-        schema_version=_V3,
     )
     new_nodes = list(graph.nodes) + [graph_node]
     graph = graph.model_copy(update={"nodes": new_nodes})
@@ -252,7 +247,6 @@ def update_node_history(
             history=new_history,
             verdict=latest.verdict,
             last_active_pass=latest.pass_number,
-            schema_version=_V3,
         )
         new_nodes = list(graph.nodes)
         new_nodes[i] = updated
@@ -379,7 +373,6 @@ def freeze_current_pass(
                 history=new_history,
                 verdict=latest.verdict,
                 last_active_pass=latest.pass_number,
-                schema_version=_V3,
             )
 
     # Update pass metadata

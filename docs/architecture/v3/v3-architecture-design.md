@@ -212,7 +212,7 @@ Receives intent from the Supervisor (passed through from the State Analyst's rec
 - If the resolved catalog node **already** exists in the DAG: re-open it by adding a new history entry for the current pass. Do NOT re-infer structural edges (they persist from prior assembly). Do NOT duplicate the node.
 
 **Invariant Auto-Resolution**:
-When assembling a node, the Assembler checks invariants. If a prerequisite is missing (e.g., INV-002 requires constitution-gate before task nodes), the Assembler auto-adds the prerequisite. For gates marked `carry_forward: true` in the catalog, the Assembler checks prior pass history — if the gate passed in any prior pass, it auto-adds the node with a `passed` status in the current pass. On pass 1, where no prior pass history exists, the mechanism auto-resolves the gate with `passed` status — trusting that the Supervisor's workflow has already verified the external prerequisite (e.g., constitution file exists on disk). The Supervisor never knows this happened.
+When assembling a node, the Assembler checks invariants. If a prerequisite is missing (e.g., INV-002 requires constitution-gate before task nodes), the Assembler auto-adds the prerequisite. For gates marked `carry_forward: true` in the catalog, the Assembler checks prior pass history — if the gate passed in any prior pass, it auto-adds the node with `passed` status. On pass 1, the mechanism trusts the Supervisor has verified the external prerequisite (e.g., constitution file exists on disk). In the single-DAG model, this auto-resolution is typically a safety net — once the gate passes in pass 1, its derived status persists and satisfies invariant checks in all subsequent passes without new history entries. The Supervisor never knows this happened.
 
 **Output**: `{valid, agent_type, agent_prompt, node_id}` or `{invalid, reason}`.
 
@@ -421,7 +421,7 @@ Two new fields added to the catalog schema:
 | New Field | Type | Scope | Purpose |
 |---|---|---|---|
 | `capabilities` | `string[]` | All nodes | Intent resolution — DAG Assembler matches State Analyst recommendations against these tags |
-| `carry_forward` | `boolean` | Gates only | When `true`, a gate that passed in any prior pass is auto-resolved as `passed` in subsequent passes during invariant auto-resolution |
+| `carry_forward` | `boolean` | Gates only | When `true`, the gate's `passed` status from any prior pass satisfies invariant checks in all subsequent passes. In the single-DAG model, the node persists across passes and its derived status carries forward — no new history entries are created per pass. The auto-resolution code in `hil-dag assemble` serves as a safety net: if the gate's status is somehow not satisfied (e.g., first assembly in a fresh graph), it auto-adds and marks the gate as `passed`. |
 
 `carry_forward` lives in the catalog only (single source of truth). It does not appear on DAG node instances.
 
@@ -445,7 +445,7 @@ The system invariants from the original design carry forward with updated semant
 | Invariant | Rule | Single-DAG Semantics |
 |---|---|---|
 | **INV-001** | Every task node output must pass through a gate node before being treated as complete | Per-pass: every task node execution in the current pass must have a corresponding gate evaluation in the same pass. The structural `validates` edge exists once; the gate re-executes each pass the task re-executes. |
-| **INV-002** | Constitution must exist and be accessible before any specification work | Enforced via invariant auto-resolution. The `carry_forward` mechanism ensures constitution-gate is present and passed in every pass without manual re-addition. |
+| **INV-002** | Constitution must exist and be accessible before any specification work | Enforced at assembly time. In the single-DAG model, the constitution-gate's `passed` status persists across passes via derived fields — no per-pass re-addition is needed. The `carry_forward` auto-resolution in `hil-dag assemble` is a safety net that fires only if the gate is missing or unsatisfied. |
 | **INV-003** | A `validates` edge must connect to a gate node, not a task node | Unchanged — enforced at assembly time by the DAG Assembler. |
 | **INV-004** | Maximum 5 passes per workflow invocation before mandatory human checkpoint | **Structural invariant**, not advisory. The DAG Assembler refuses to create pass 6 in `freeze-pass`. The Supervisor surfaces the situation to the user, who may authorize continuation. |
 

@@ -214,7 +214,6 @@ class TestV3TriggeredByEdges:
                 GraphNode(
                     id="g", type=NodeType.gate, name="n",
                     description="d", status="completed",
-                    schema_version="3.0.0",
                 ),
             ],
         )

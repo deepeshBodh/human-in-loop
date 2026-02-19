@@ -91,7 +91,6 @@ class TestLoadStrategyGraph:
                     description="d",
                     status="completed",
                     verdict="ready",
-                    schema_version="3.0.0",
                 ),
             ],
         )

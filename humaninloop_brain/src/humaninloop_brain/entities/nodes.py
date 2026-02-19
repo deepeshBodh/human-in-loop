@@ -69,7 +69,6 @@ class GraphNode(BaseModel):
     history: list[NodeHistoryEntry] = []
     verdict: str | None = None
     last_active_pass: int | None = None
-    schema_version: str | None = None
 
     @model_validator(mode="after")
     def validate_type_status(self) -> GraphNode:
