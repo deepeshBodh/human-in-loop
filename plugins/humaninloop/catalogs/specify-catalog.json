@@ -3,10 +3,11 @@
   "workflow": "specify",
   "nodes": [
     {
-      "id": "input-enrichment",
+      "node_id": "input-enrichment",
       "type": "task",
       "name": "Input Enrichment",
       "description": "Transform sparse feature input into structured Who/Problem/Value format",
+      "agent_type": "humaninloop:analysis-iterative",
       "agent": null,
       "skill": "analysis-iterative",
       "contract": {
@@ -19,10 +20,11 @@
       "capabilities": ["input-enrichment", "who-problem-value"]
     },
     {
-      "id": "analyst-review",
+      "node_id": "analyst-review",
       "type": "task",
       "name": "Requirements Analysis",
       "description": "Write specification with user stories, functional requirements, and edge cases",
+      "agent_type": "humaninloop:requirements-analyst",
       "agent": "requirements-analyst",
       "skill": null,
       "contract": {
@@ -40,10 +42,11 @@
       "capabilities": ["requirements-analysis", "specification-writing"]
     },
     {
-      "id": "advocate-review",
+      "node_id": "advocate-review",
       "type": "gate",
       "name": "Specification Validation",
       "description": "Adversarial review of specification completeness and quality",
+      "agent_type": "humaninloop:devils-advocate",
       "agent": "devils-advocate",
       "skill": null,
       "contract": {
@@ -61,10 +64,11 @@
       "gate_type": "adversarial-review"
     },
     {
-      "id": "human-clarification",
+      "node_id": "human-clarification",
       "type": "decision",
       "name": "User Clarification",
       "description": "Collect user input for gaps that cannot be resolved by research",
+      "agent_type": null,
       "agent": null,
       "skill": null,
       "contract": {
@@ -77,10 +81,11 @@
       "capabilities": ["user-clarification", "preference-resolution"]
     },
     {
-      "id": "targeted-research",
+      "node_id": "targeted-research",
       "type": "task",
       "name": "Targeted Research",
       "description": "Investigate specific knowledge gaps identified by validation",
+      "agent_type": "Explore",
       "agent": "Explore",
       "skill": null,
       "contract": {
@@ -93,10 +98,11 @@
       "capabilities": ["research", "knowledge-gap-resolution"]
     },
     {
-      "id": "constitution-gate",
+      "node_id": "constitution-gate",
       "type": "gate",
       "name": "Constitution Check",
       "description": "Verify project constitution exists and is current",
+      "agent_type": null,
       "agent": null,
       "skill": null,
       "contract": {
@@ -113,10 +119,11 @@
       "gate_type": "deterministic"
     },
     {
-      "id": "spec-complete",
+      "node_id": "spec-complete",
       "type": "milestone",
       "name": "Specification Complete",
       "description": "Marks the specification as validated and complete",
+      "agent_type": null,
       "agent": null,
       "skill": null,
       "contract": {

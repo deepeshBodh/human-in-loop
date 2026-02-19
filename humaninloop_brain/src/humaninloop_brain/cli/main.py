@@ -108,17 +108,17 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         nt = NT(node_type_filter) if node_type_filter else None
         matches = catalog.resolve_by_capabilities(capability_tags, nt)
         if len(matches) == 1:
-            node_id = matches[0].id
+            node_id = matches[0].node_id
         elif len(matches) == 0:
             # Tier 2: semantic description fallback
             intent = getattr(args, "intent", None)
             if intent:
                 semantic = catalog.resolve_by_description(intent, nt)
                 if len(semantic) == 1:
-                    node_id = semantic[0].id
+                    node_id = semantic[0].node_id
                 else:
                     available = [
-                        {"id": n.id, "name": n.name, "capabilities": n.capabilities}
+                        {"node_id": n.node_id, "name": n.name, "capabilities": n.capabilities}
                         for n in catalog.nodes
                     ]
                     return _output({
@@ -131,7 +131,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                     }, 1)
             else:
                 available = [
-                    {"id": n.id, "name": n.name, "capabilities": n.capabilities}
+                    {"node_id": n.node_id, "name": n.name, "capabilities": n.capabilities}
                     for n in catalog.nodes
                 ]
                 return _output({
@@ -148,11 +148,11 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                     intent, nt, candidates=matches,
                 )
                 if len(semantic) == 1:
-                    node_id = semantic[0].id
+                    node_id = semantic[0].node_id
                 else:
                     candidates = [
                         {
-                            "id": n.id,
+                            "node_id": n.node_id,
                             "name": n.name,
                             "capabilities": n.capabilities,
                             "description": n.description,
@@ -168,7 +168,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             else:
                 candidates = [
                     {
-                        "id": n.id,
+                        "node_id": n.node_id,
                         "name": n.name,
                         "capabilities": n.capabilities,
                         "description": n.description,
@@ -217,7 +217,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                 if not cat_node.carry_forward:
                     continue
                 # Check if this gate completed in any prior pass
-                existing = next((n for n in graph.nodes if n.id == cat_node.id), None)
+                existing = next((n for n in graph.nodes if n.id == cat_node.node_id), None)
                 gate_previously_passed = False
                 prior_status = None
                 if existing:
@@ -244,10 +244,10 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                         )
                     if not has_current_entry:
                         graph, _ = add_or_reopen_node(
-                            graph, cat_node.id, catalog, pass_number,
+                            graph, cat_node.node_id, catalog, pass_number,
                         )
                     graph = update_node_history(
-                        graph, cat_node.id, pass_number, resolve_status,
+                        graph, cat_node.node_id, pass_number, resolve_status,
                     )
             result = validate_structure(graph, catalog)
 
@@ -432,7 +432,7 @@ def cmd_catalog_validate(args: argparse.Namespace) -> int:
     checks = []
     issues_count = 0
 
-    ids = [n.id for n in catalog.nodes]
+    ids = [n.node_id for n in catalog.nodes]
     if len(ids) != len(set(ids)):
         checks.append({"check": "unique_node_ids", "passed": False, "issues": ["Duplicate node IDs"]})
         issues_count += 1

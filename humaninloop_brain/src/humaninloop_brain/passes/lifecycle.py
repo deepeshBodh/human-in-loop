@@ -126,7 +126,7 @@ def add_or_reopen_node(
     )
 
     graph_node = GraphNode(
-        id=cat_node.id,
+        id=cat_node.node_id,
         type=cat_node.type,
         name=cat_node.name,
         description=cat_node.description,

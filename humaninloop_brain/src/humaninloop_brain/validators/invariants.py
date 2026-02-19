@@ -61,7 +61,6 @@ def check_invariants(dag: HasNodesAndEdges, catalog: NodeCatalog) -> ValidationR
 
     # INV-002: Constitution gate must exist before spec task nodes
     # For v3 with carry_forward, check if any prior pass has a completed/passed gate
-    is_v3 = getattr(dag, "schema_version", None) == "3.0.0"
     constitution_gates = [
         n for n in dag.nodes
         if n.type == NodeType.gate

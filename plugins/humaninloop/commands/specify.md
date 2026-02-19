@@ -14,11 +14,8 @@ $ARGUMENTS
 
 ### Argument Parsing
 
-Parse `$ARGUMENTS` for flags before processing:
-
-1. **Extract `--skip-brainstorm` flag**: If present, set `skip_brainstorm = true` and remove from input
-2. **Extract clean user input**: `user_input = $ARGUMENTS.replace("--skip-brainstorm", "").trim()`
-3. **Track original input**: `original_input = user_input`
+1. **Extract clean user input**: `user_input = $ARGUMENTS.trim()`
+2. **Track original input**: `original_input = user_input`
 
 If `$ARGUMENTS` is empty, use AskUserQuestion:
 ```
@@ -51,7 +48,6 @@ Produce a validated `spec.md`. Success: a gate node verdict `ready` and a milest
 | Resource | Path |
 |----------|------|
 | Catalog | `${CLAUDE_PLUGIN_ROOT}/catalogs/specify-catalog.json` |
-| Strategy skills | `strategy-core`, `strategy-specification` |
 | Context template | `${CLAUDE_PLUGIN_ROOT}/templates/context-template.md` |
 
 ## Three Outbound Verbs
@@ -70,54 +66,18 @@ The Supervisor has **zero direct CLI usage**. All `hil-dag` operations are deleg
 
 ## Initial Setup
 
-### 1. Constitution Check
+Resolve paths and create the feature workspace. The Supervisor delegates environment concerns to subagents — constitution verification is handled by the DAG Assembler's invariant auto-resolution (INV-002 + `carry_forward`), and `hil-dag` CLI availability is each subagent's own responsibility.
 
-Check `.humaninloop/memory/constitution.md` exists. If NOT found:
-```
-Constitution Required
-
-The HumanInLoop specify workflow requires a project constitution.
-Run: /humaninloop:setup
-Then retry: /humaninloop:specify
-```
-STOP execution if missing.
-
-### 2. hil-dag CLI Check (for subagent environment)
-
-Verify the `hil-dag` CLI is available for subagents (State Analyst, DAG Assembler) and resolve its PATH:
-
-```bash
-if hil-dag --help > /dev/null 2>&1; then
-  echo "AVAILABLE"
-elif [ -x "humaninloop_brain/.venv/bin/hil-dag" ]; then
-  export PATH="$(pwd)/humaninloop_brain/.venv/bin:$PATH"
-  echo "AVAILABLE_VIA_VENV"
-else
-  echo "NOT_FOUND"
-fi
-```
-
-- If `AVAILABLE`: proceed.
-- If `AVAILABLE_VIA_VENV`: prepend the venv path to `PATH` for all subsequent `hil-dag` invocations.
-- If `NOT_FOUND`: attempt `cd humaninloop_brain && uv sync && cd ..`, re-check. STOP if still missing.
-
-### 3. Resolve Project Root
+### 1. Resolve Project Root and Create Feature Directory
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-```
-
-**All paths passed to subagents MUST be absolute paths rooted at `$PROJECT_ROOT`.**
-
-### 4. Create Feature Directory
-
-```bash
 ${CLAUDE_PLUGIN_ROOT}/scripts/create-new-feature.sh --json "<feature description>"
 ```
 
 Parse JSON output for `BRANCH_NAME`, `SPEC_FILE`, `FEATURE_NUM`. Use `BRANCH_NAME` as `{feature-id}`.
 
-### 5. Initialize Workflow Structure
+### 2. Initialize Workflow Structure
 
 ```bash
 mkdir -p $PROJECT_ROOT/specs/{feature-id}/.workflow/dags
@@ -126,6 +86,8 @@ mkdir -p $PROJECT_ROOT/specs/{feature-id}/.workflow/dags
 Create initial `context.md` from `${CLAUDE_PLUGIN_ROOT}/templates/context-template.md` with detected project context, user input, and file paths.
 
 **`spec.md`**: The `create-new-feature.sh` script already copies the spec template. Read the file first, then Edit to replace `{{placeholder}}` values.
+
+**All paths passed to subagents MUST be absolute paths rooted at `$PROJECT_ROOT`.**
 
 Set `dag_path = $PROJECT_ROOT/specs/{feature-id}/.workflow/dags/strategy.json`
 
@@ -138,12 +100,11 @@ Set `dag_path = $PROJECT_ROOT/specs/{feature-id}/.workflow/dags/strategy.json`
 ```
 Task(subagent_type: "humaninloop:state-analyst",
   prompt: {action: "briefing", workflow: "specify", feature_id, pass_number,
-           catalog_path, strategy_skills: ["strategy-core", "strategy-specification"],
            dag_path, artifacts_dir: feature_dir},
   description: "Produce workflow briefing")
 ```
 
-The briefing returns: `state_summary`, `gap_details`, `recommendations`, `alternatives`, `relevant_patterns`, `relevant_anti_patterns`, `outcome_trajectory`, `pass_context`.
+The briefing returns: `state_summary`, `outcome_trajectory`, `recommendations`, `alternatives`, `relevant_patterns`, `pass_context`. The Analyst resolves the catalog path and strategy skills from the `workflow` identifier.
 
 ### Per Node: Pick → Assemble → Execute → Parse
 
@@ -160,21 +121,28 @@ Where `<selected_recommendation>` is the picked item from the Analyst's ranked `
 
 If `invalid`, pick differently. On first call, the Assembler auto-creates the StrategyGraph file.
 
-**Execute**: Route by node type from the Assembler response:
+**Execute**: Route by `dispatch_mode` from the Assembler response. The Assembler returns one of four dispatch modes — the Supervisor does not interpret agent types, gate types, or node-type-specific logic.
 
-| Type | Action |
-|------|--------|
-| **task** (with `agent_type`) | `Task(subagent_type: agent_type, prompt: agent_prompt)` |
-| **task** (with `skill_to_invoke`) | `Skill(skill: skill_to_invoke, args: skill_args)` |
-| **gate** (with `agent_type`) | `Task(subagent_type: agent_type, prompt: agent_prompt)` |
-| **gate** (with `gate_type`) | Tell the Assembler to evaluate and update: `{action: "update-status", node_id, dag_path}`. The Assembler evaluates the gate condition and sets status + verdict. |
-| **decision** | `AskUserQuestion(...)` with questions from Assembler, write answers to `{feature_dir}/.workflow/clarification-answers.md`, then tell Assembler: `{action: "update-status", node_id, status: "decided", dag_path}` |
-| **milestone** | Tell the Assembler to verify and update: `{action: "update-status", node_id, status: "achieved", dag_path}`. The Assembler verifies prerequisite nodes are complete before setting `achieved`. |
+| `dispatch_mode` | Action |
+|-----------------|--------|
+| `"agent"` | Dispatch: `Task(subagent_type: assembler_response.agent_type, prompt: assembler_response.agent_prompt)` |
+| `"skill"` | Invoke: `Skill(skill: assembler_response.skill_to_invoke, args: assembler_response.skill_args)` |
+| `"supervisor-owned"` | Evaluate node using `assembler_response.supervisor_action` (see below) |
+| `"auto-resolved"` | Node already resolved by the Assembler (e.g., carry_forward gate). Skip to next recommendation. |
 
-**Parse** (MANDATORY for every agent node): Ask the Analyst to parse the report and recommend next steps.
+**Supervisor-owned node actions** (from `assembler_response.supervisor_action`):
+
+| `supervisor_action` | Supervisor Does |
+|---------------------|-----------------|
+| `"collect-input"` | Call `AskUserQuestion(...)` with questions from `assembler_response.questions`. Pass user answers back to Assembler: `{action: "update-status", node_id: assembler_response.node_id, status: "decided", answers: <user_answers>, dag_path}`. The Assembler writes answers to the correct artifact path. |
+| `"evaluate-gate"` | Tell the Assembler: `{action: "update-status", node_id: assembler_response.node_id, dag_path}`. The Assembler evaluates the gate condition and sets status + verdict autonomously. |
+| `"verify-milestone"` | Tell the Assembler: `{action: "update-status", node_id: assembler_response.node_id, status: "achieved", dag_path}`. The Assembler verifies prerequisites before setting `achieved`. |
+
+**Parse** (MANDATORY for every agent node): Ask the Analyst to parse the report and recommend next steps. Pass the Assembler's response as an opaque reference — do NOT extract or interpret fields from it.
 ```
 Task(subagent_type: "humaninloop:state-analyst",
-  prompt: {action: "parse-and-recommend", node_id, pass_number, dag_path, catalog_path, feature_dir},
+  prompt: {action: "parse-and-recommend", assembler_response: <assembler_response>,
+           pass_number, dag_path, feature_dir},
   description: "Parse report and recommend")
 ```
 
@@ -192,25 +160,26 @@ Base ALL decisions on the structured summary from `parse-and-recommend`.
 
 These rules govern pass transitions and workflow completion. They use DAG vocabulary — no domain knowledge.
 
-**Rule 1 — Gate verdict `needs-revision`**: Tell the Assembler to freeze the current pass with trigger_source (the gate node) and triggered_nodes. Return to Start of Every Pass for the new pass.
+**Rule 1 — Gate verdict `needs-revision`**: Tell the Assembler to freeze the current pass. Forward the `parse-and-recommend` response — the Assembler extracts gate identity, verdict, and reason from it. The Assembler determines which nodes to re-execute based on graph topology. Return to Start of Every Pass for the new pass.
 ```
 Task(subagent_type: "humaninloop:dag-assembler",
-  prompt: {action: "freeze-pass", dag_path, catalog_path, feature_dir,
-           outcome: "completed", detail: "advocate-verdict-needs-revision",
-           trigger_source: <gate_node_id from parse-and-recommend>,
-           triggered_nodes: [nodes to re-execute], reason: <from summary>},
+  prompt: {action: "freeze-pass", dag_path,
+           outcome: "completed",
+           analyst_response: <parse-and-recommend response>},
   description: "Freeze pass")
 ```
 
 **Rule 2 — Gate verdict `ready`** (Completion Procedure):
-1. Tell the Assembler to assemble the milestone node
-2. Tell the Assembler to mark milestone achieved: `{action: "update-status", node_id: <milestone_id>, status: "achieved", dag_path}`. The Assembler verifies prerequisite nodes are complete before setting `achieved` — if invalid, the Assembler returns the reason.
-3. Tell the Assembler to freeze the pass with outcome `completed`, detail `ready`
-4. Go to Completion
+The `parse-and-recommend` response for a `ready` verdict includes a milestone recommendation. Follow the standard Pick → Assemble → Execute flow:
+1. Pick the milestone recommendation from the Analyst's response
+2. Assemble it via `assemble-and-prepare` (standard flow)
+3. The Assembler returns `dispatch_mode: "supervisor-owned"` with `supervisor_action: "verify-milestone"` — tell the Assembler to verify and mark achieved (standard supervisor-owned routing)
+4. Tell the Assembler to freeze the pass: `{action: "freeze-pass", dag_path, outcome: "completed", analyst_response: <parse-and-recommend response>}`
+5. Go to Completion
 
 **Rule 3 — Gate verdict `critical-gaps`**: Present to user with options (continue / accept current / stop).
 
-**Rule 4 — `parse-and-recommend` has `unresolved` items**: Tell the Assembler to assemble a decision node. Collect user input via `AskUserQuestion`. Write answers to `{feature_dir}/.workflow/clarification-answers.md`. Tell the Assembler to mark decided: `{action: "update-status", node_id: <decision_id>, status: "decided", dag_path}`. Continue with Analyst's recommendation.
+**Rule 4 — `parse-and-recommend` has `unresolved` items**: The Analyst's recommendations include a decision node when unresolved items exist. Follow the standard Pick → Assemble → Execute flow. The Assembler returns `dispatch_mode: "supervisor-owned"` with `supervisor_action: "collect-input"`. Collect user input via `AskUserQuestion` using questions from the Assembler's response. Pass answers back to the Assembler's `update-status` — the Assembler writes answers to the correct artifact path and marks the node `decided`. Continue with the Analyst's next recommendation.
 
 **Rule 5 — Convergence stall** (same gap count 2+ passes, from `outcome_trajectory`): Surface to user — do not silently continue.
 
@@ -222,7 +191,7 @@ Task(subagent_type: "humaninloop:dag-assembler",
 
 ## Completion
 
-Update context status to `completed`. Output:
+Update context status to `completed`. Output a summary using DAG vocabulary and the Analyst's final `parse-and-recommend` response:
 
 ```markdown
 ## Specification Complete
@@ -230,17 +199,16 @@ Update context status to `completed`. Output:
 **Feature**: {feature_id}
 **Passes**: {pass_number}
 **Final Verdict**: ready
-
-### Files Created
-- Spec: `specs/{feature-id}/spec.md`
-- Workflow: `specs/{feature-id}/.workflow/`
-- DAG: `specs/{feature-id}/.workflow/dags/strategy.json`
+**Milestone**: achieved
 
 ### Summary
-{From parse-and-recommend structured summary: user story count, requirement count}
+{From the Analyst's final parse-and-recommend structured summary}
+
+### Artifacts
+{feature_dir} — all workflow artifacts are in this directory
 
 ### Next Steps
-1. Review the spec at `specs/{feature-id}/spec.md`
+1. Review the specification in the feature directory
 2. Run `/humaninloop:plan` to create implementation plan
 ```
 

@@ -176,7 +176,7 @@ class TestAssembleCommand:
         # Create a catalog with carry_forward on constitution-gate
         catalog_data = json.loads(Path(CATALOG).read_text())
         for node in catalog_data["nodes"]:
-            if node["id"] == "constitution-gate":
+            if node["node_id"] == "constitution-gate":
                 node["carry_forward"] = True
         custom_catalog = str(tmp_path / "catalog.json")
         Path(custom_catalog).write_text(json.dumps(catalog_data))
@@ -592,7 +592,7 @@ class TestAssembleCapabilityTags:
         assert out["status"] == "resolution_failed"
         assert out["reason"] == "ambiguous"
         assert len(out["candidates"]) == 2
-        candidate_ids = {c["id"] for c in out["candidates"]}
+        candidate_ids = {c["node_id"] for c in out["candidates"]}
         assert candidate_ids == {"advocate-review", "targeted-research"}
 
     def test_assemble_capability_tags_no_match(self, tmp_path, capsys):

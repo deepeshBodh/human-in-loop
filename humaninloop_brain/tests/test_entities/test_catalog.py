@@ -21,18 +21,18 @@ from humaninloop_brain.entities.nodes import NodeContract, ArtifactConsumption
 class TestCatalogNodeDefinition:
     def test_valid_task(self):
         node = CatalogNodeDefinition(
-            id="input-enrichment",
+            node_id="input-enrichment",
             type=NodeType.task,
             name="Input Enrichment",
             description="desc",
             valid_statuses=["pending", "in-progress", "completed", "skipped"],
         )
-        assert node.id == "input-enrichment"
+        assert node.node_id == "input-enrichment"
         assert node.type == NodeType.task
 
     def test_valid_gate(self):
         node = CatalogNodeDefinition(
-            id="advocate-review",
+            node_id="advocate-review",
             type=NodeType.gate,
             name="Advocate",
             description="desc",
@@ -45,7 +45,7 @@ class TestCatalogNodeDefinition:
     def test_invalid_status_for_type(self):
         with pytest.raises(ValidationError, match="not valid for node type"):
             CatalogNodeDefinition(
-                id="bad",
+                node_id="bad",
                 type=NodeType.decision,
                 name="n",
                 description="d",
@@ -55,7 +55,7 @@ class TestCatalogNodeDefinition:
     def test_task_with_gate_status_rejected(self):
         with pytest.raises(ValidationError, match="not valid for node type"):
             CatalogNodeDefinition(
-                id="bad",
+                node_id="bad",
                 type=NodeType.task,
                 name="n",
                 description="d",
@@ -64,7 +64,7 @@ class TestCatalogNodeDefinition:
 
     def test_with_contract(self):
         node = CatalogNodeDefinition(
-            id="n",
+            node_id="n",
             type=NodeType.task,
             name="n",
             description="d",
@@ -78,18 +78,18 @@ class TestCatalogNodeDefinition:
 
     def test_frozen(self):
         node = CatalogNodeDefinition(
-            id="n",
+            node_id="n",
             type=NodeType.task,
             name="n",
             description="d",
             valid_statuses=["pending"],
         )
         with pytest.raises(ValidationError):
-            node.id = "other"
+            node.node_id = "other"
 
     def test_with_capabilities(self):
         node = CatalogNodeDefinition(
-            id="n",
+            node_id="n",
             type=NodeType.task,
             name="n",
             description="d",
@@ -101,7 +101,7 @@ class TestCatalogNodeDefinition:
 
     def test_with_carry_forward(self):
         node = CatalogNodeDefinition(
-            id="g",
+            node_id="g",
             type=NodeType.gate,
             name="g",
             description="d",
@@ -115,7 +115,7 @@ class TestCatalogNodeDefinition:
     def test_backward_compatible(self):
         """V2 data (no capabilities/carry_forward/gate_type) still deserializes."""
         data = {
-            "id": "n",
+            "node_id": "n",
             "type": "task",
             "name": "n",
             "description": "d",
@@ -196,7 +196,7 @@ class TestNodeCatalog:
     def test_all_node_ids_unique(self, load_fixture):
         data = load_fixture("specify-catalog.json")
         catalog = NodeCatalog.model_validate(data)
-        ids = [n.id for n in catalog.nodes]
+        ids = [n.node_id for n in catalog.nodes]
         assert len(ids) == len(set(ids))
 
     def test_serialization_roundtrip(self, load_fixture):
@@ -213,7 +213,7 @@ class TestNodeCatalog:
         catalog = NodeCatalog.model_validate(data)
         matches = catalog.resolve_by_capabilities(["input-enrichment"])
         assert len(matches) == 1
-        assert matches[0].id == "input-enrichment"
+        assert matches[0].node_id == "input-enrichment"
 
     def test_resolve_no_match(self, load_fixture):
         """Tags that match nothing return empty list."""
@@ -236,7 +236,7 @@ class TestNodeCatalog:
         # targeted-research has: research, knowledge-gap-resolution
         # So "gap-detection" + "research" should match both advocate + targeted-research
         matches = catalog.resolve_by_capabilities(["gap-detection", "research"])
-        ids = {m.id for m in matches}
+        ids = {m.node_id for m in matches}
         assert len(matches) == 2
         assert ids == {"advocate-review", "targeted-research"}
 
@@ -250,7 +250,7 @@ class TestNodeCatalog:
             ["gap-detection", "research"], NodeType.task,
         )
         assert len(matches) == 1
-        assert matches[0].id == "targeted-research"
+        assert matches[0].node_id == "targeted-research"
 
     def test_resolve_empty_tags(self, load_fixture):
         """Empty tags list matches nothing."""
@@ -271,7 +271,7 @@ class TestResolveByDescription:
             "Investigate specific knowledge gaps identified by validation"
         )
         assert len(matches) == 1
-        assert matches[0].id == "targeted-research"
+        assert matches[0].node_id == "targeted-research"
 
     def test_no_match_returns_empty(self, load_fixture):
         """Intent with no word overlap returns empty list."""
@@ -296,7 +296,7 @@ class TestResolveByDescription:
         matches = catalog.resolve_by_description(
             "specification", node_type=NodeType.task,
         )
-        task_ids = {m.id for m in matches}
+        task_ids = {m.node_id for m in matches}
         assert all(m.type == NodeType.task for m in matches)
         # Should not include advocate-review (gate type)
         assert "advocate-review" not in task_ids
@@ -316,7 +316,7 @@ class TestResolveByDescription:
             candidates=candidates,
         )
         assert len(matches) == 1
-        assert matches[0].id == "targeted-research"
+        assert matches[0].node_id == "targeted-research"
 
     def test_capabilities_included_in_scoring(self, load_fixture):
         """Capability tag words contribute to description matching score."""
@@ -324,4 +324,4 @@ class TestResolveByDescription:
         catalog = NodeCatalog.model_validate(data)
         # "enrichment" appears in input-enrichment's capabilities
         matches = catalog.resolve_by_description("input enrichment")
-        assert any(m.id == "input-enrichment" for m in matches)
+        assert any(m.node_id == "input-enrichment" for m in matches)

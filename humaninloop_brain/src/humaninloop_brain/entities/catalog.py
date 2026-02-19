@@ -19,10 +19,11 @@ class CatalogNodeDefinition(BaseModel):
 
     model_config = {"frozen": True}
 
-    id: str
+    node_id: str
     type: NodeType
     name: str
     description: str
+    agent_type: str | None = None
     agent: str | None = None
     skill: str | None = None
     contract: NodeContract = NodeContract()
@@ -82,7 +83,7 @@ class NodeCatalog(BaseModel):
     def get_node(self, node_id: str) -> CatalogNodeDefinition | None:
         """Look up a node definition by ID."""
         for node in self.nodes:
-            if node.id == node_id:
+            if node.node_id == node_id:
                 return node
         return None
 

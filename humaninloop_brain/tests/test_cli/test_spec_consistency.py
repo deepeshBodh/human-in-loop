@@ -43,15 +43,15 @@ def _load_catalog(path: Path) -> dict:
 
 
 def _catalog_node_ids(catalog: dict) -> set[str]:
-    return {n["id"] for n in catalog["nodes"]}
+    return {n["node_id"] for n in catalog["nodes"]}
 
 
 def _catalog_node_types(catalog: dict) -> dict[str, str]:
-    return {n["id"]: n["type"] for n in catalog["nodes"]}
+    return {n["node_id"]: n["type"] for n in catalog["nodes"]}
 
 
 def _catalog_node_agents(catalog: dict) -> dict[str, str | None]:
-    return {n["id"]: n.get("agent") for n in catalog["nodes"]}
+    return {n["node_id"]: n.get("agent") for n in catalog["nodes"]}
 
 
 def _catalog_artifacts_produced(catalog: dict) -> set[str]:
@@ -126,7 +126,7 @@ class TestSpecifyCatalogConsistency:
 
     def test_advocate_verdicts_covered(self, specify_text, catalog):
         """All advocate verdict values from catalog are handled in specify.md."""
-        advocate = next(n for n in catalog["nodes"] if n["id"] == "advocate-review")
+        advocate = next(n for n in catalog["nodes"] if n["node_id"] == "advocate-review")
         for verdict in advocate.get("verdict_values", []):
             assert verdict in specify_text, (
                 f"Advocate verdict '{verdict}' not handled in specify.md"
@@ -302,8 +302,8 @@ class TestCrossAgentRoutingCoverage:
         agent_nodes = [n for n in catalog["nodes"] if n.get("agent")]
         for node in agent_nodes:
             # The assembler should mention the node ID in its prompt construction
-            assert node["id"] in assembler_text, (
-                f"Node '{node['id']}' (agent: {node['agent']}) has no "
+            assert node["node_id"] in assembler_text, (
+                f"Node '{node['node_id']}' (agent: {node['agent']}) has no "
                 f"NL prompt pattern in DAG Assembler"
             )
 
@@ -328,7 +328,7 @@ class TestCrossAgentRoutingCoverage:
 
     def test_constitution_gate_is_file_check(self, catalog, assembler_text):
         """constitution-gate (no agent) is handled as file-check in assembler."""
-        const_gate = next(n for n in catalog["nodes"] if n["id"] == "constitution-gate")
+        const_gate = next(n for n in catalog["nodes"] if n["node_id"] == "constitution-gate")
         assert const_gate.get("agent") is None
         assert "file-check" in assembler_text
         assert "constitution-gate" in assembler_text
