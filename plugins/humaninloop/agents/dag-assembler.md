@@ -164,7 +164,8 @@ Update the status of a supervisor-owned node (decision, milestone, or determinis
 {
   "status": "valid",
   "node_id": "constitution-gate",
-  "new_status": "passed"
+  "new_status": "passed",
+  "verdict": "ready"
 }
 ```
 

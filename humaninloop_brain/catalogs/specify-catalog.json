@@ -107,7 +107,7 @@
       },
       "valid_statuses": ["pending", "passed", "failed"],
       "verdict_field": "verdict",
-      "verdict_values": ["pass", "fail"],
+      "verdict_values": ["ready", "critical-gaps"],
       "capabilities": ["constitution-verification"],
       "carry_forward": true,
       "gate_type": "deterministic"
