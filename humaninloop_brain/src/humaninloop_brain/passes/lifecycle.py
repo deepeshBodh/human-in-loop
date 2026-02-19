@@ -319,12 +319,26 @@ def freeze_current_pass(
                 f"'{source_node.type.value}' but must be a gate node"
             )
 
-    # Validate triggered_nodes all exist in graph
+    # Validate triggered_nodes all exist in graph and have current-pass history
     if triggered_nodes:
         missing = [nid for nid in triggered_nodes if nid not in node_ids]
         if missing:
             raise ValueError(
                 f"triggered_nodes reference nonexistent nodes: {missing}"
+            )
+        # Verify each triggered node actually executed in the current pass —
+        # triggered_by means "re-execute", which requires prior execution.
+        current = graph.current_pass
+        no_history = []
+        for nid in triggered_nodes:
+            node = next(n for n in graph.nodes if n.id == nid)
+            has_entry = any(e.pass_number == current for e in node.history)
+            if not has_entry:
+                no_history.append(nid)
+        if no_history:
+            raise ValueError(
+                f"triggered_nodes have no history entry in current pass "
+                f"{current}: {no_history}"
             )
 
     # INV-004: Refuse to create pass beyond maximum (structural invariant)

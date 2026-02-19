@@ -42,17 +42,6 @@ def infer_edges(
         for artifact in existing_node.contract.produces:
             producers.setdefault(artifact, []).append(existing_node.id)
 
-    # Build lookup: artifact -> list of gate node IDs that consume it
-    gate_consumers: dict[str, list[str]] = {}
-    for existing_node in dag.nodes:
-        if existing_node.id == node_id:
-            continue
-        if existing_node.type == NodeType.gate:
-            for consumed_art in existing_node.contract.consumes:
-                gate_consumers.setdefault(consumed_art.artifact, []).append(
-                    existing_node.id
-                )
-
     # Build lookup for node types
     node_types: dict[str, NodeType] = {}
     for n in dag.nodes:
@@ -134,23 +123,9 @@ def infer_edges(
                         )
                         seen_edges.add(val_key)
 
-        # --- constrained_by edges (shared consumed artifact with a gate) ---
-        if artifact in gate_consumers and cat_node.type in (
-            NodeType.task,
-            NodeType.gate,
-            NodeType.decision,
-        ):
-            for gate_id in gate_consumers[artifact]:
-                cb_key = (node_id, gate_id, EdgeType.constrained_by.value)
-                if cb_key not in seen_edges:
-                    inferred.append(
-                        Edge(
-                            id=f"inferred-constrained-by-{node_id}-{gate_id}",
-                            source=node_id,
-                            target=gate_id,
-                            type=EdgeType.constrained_by,
-                        )
-                    )
-                    seen_edges.add(cb_key)
+        # constrained_by edges are NOT auto-inferred. The previous heuristic
+        # (shared consumed artifact with a gate) was too aggressive — sharing
+        # an artifact doesn't necessarily mean the gate constrains the node's
+        # work. constrained_by edges should be explicitly defined if needed.
 
     return inferred

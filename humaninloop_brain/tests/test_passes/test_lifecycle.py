@@ -468,6 +468,31 @@ class TestFreezeValidation:
                 reason="test",
             )
 
+    def test_triggered_nodes_no_current_pass_history(self, graph, catalog):
+        """triggered_nodes without current-pass history entry raises ValueError."""
+        # Add both nodes but only give advocate-review a history entry for pass 1
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph, _ = add_or_reopen_node(graph, "advocate-review", catalog, 1)
+        graph = update_node_history(graph, "advocate-review", 1, "completed")
+        # Freeze pass 1 and create pass 2
+        graph = freeze_current_pass(
+            graph, "completed", "needs-revision",
+            triggered_nodes=["analyst-review"],
+            trigger_source="advocate-review",
+            reason="test",
+        )
+        # Now in pass 2, try to freeze with targeted-research as triggered
+        # but it was never assembled in pass 2
+        graph, _ = add_or_reopen_node(graph, "targeted-research", catalog, 1)
+        # targeted-research has history for pass 1, not pass 2
+        with pytest.raises(ValueError, match="no history entry in current pass"):
+            freeze_current_pass(
+                graph, "completed", "done",
+                triggered_nodes=["targeted-research"],
+                trigger_source="advocate-review",
+                reason="test",
+            )
+
 
 class TestRecomputeDerived:
     """_recompute_derived handles edge cases.

@@ -133,7 +133,7 @@ class TestInferEdges:
             assert edge.id.startswith("inferred-")
 
     def test_scenario_skip_enrichment(self, load_fixture):
-        """Scenario 1: When no enrichment exists, analyst gets constrained_by gate."""
+        """Scenario 1: When no enrichment exists, analyst gets depends_on from gate."""
         catalog = _make_catalog(load_fixture)
         dag = StrategyGraph(
             id="sg", workflow_id="w",
@@ -146,16 +146,16 @@ class TestInferEdges:
                     status="pending",
                     contract=NodeContract(
                         consumes=[ArtifactConsumption(artifact="constitution.md")],
-                        produces=[],
+                        produces=["constitution.md"],
                     ),
                 ),
             ],
         )
 
         edges = infer_edges("analyst-review", dag, catalog)
-        # No artifact-flow edges, but constrained_by from shared constitution.md
+        # depends_on from constitution-gate (produces constitution.md consumed by analyst)
         edge_types = {e.type for e in edges}
-        assert EdgeType.constrained_by in edge_types
+        assert EdgeType.depends_on in edge_types
         assert len(edges) == 1
 
     def test_scenario_research_before_analyst(self, load_fixture):
@@ -232,8 +232,8 @@ class TestInferEdges:
         assert informed[0].source == "targeted-research"
         assert len(depends) == 0  # No required artifacts match
 
-    def test_constrained_by_shared_consumed_artifact(self, load_fixture):
-        """Nodes sharing a consumed artifact with a gate get constrained_by edge."""
+    def test_constrained_by_not_auto_inferred(self, load_fixture):
+        """constrained_by edges are not auto-inferred from shared consumed artifacts."""
         catalog = _make_catalog(load_fixture)
         dag = StrategyGraph(
             id="sg", workflow_id="w",
@@ -246,7 +246,7 @@ class TestInferEdges:
                     status="passed",
                     contract=NodeContract(
                         consumes=[ArtifactConsumption(artifact="constitution.md")],
-                        produces=[],
+                        produces=["constitution.md"],
                     ),
                 ),
             ],
@@ -254,9 +254,7 @@ class TestInferEdges:
 
         edges = infer_edges("analyst-review", dag, catalog)
         constrained = [e for e in edges if e.type == EdgeType.constrained_by]
-        assert len(constrained) == 1
-        assert constrained[0].source == "analyst-review"
-        assert constrained[0].target == "constitution-gate"
+        assert len(constrained) == 0
 
     def test_gate_does_not_get_produces_from_gate(self, load_fixture):
         """Produces edges only come from task sources."""

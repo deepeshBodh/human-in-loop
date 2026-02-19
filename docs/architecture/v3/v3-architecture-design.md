@@ -236,7 +236,7 @@ Updates the status of supervisor-owned nodes (decision, milestone, deterministic
 
 **Node type routing**:
 - **Decision nodes**: Supervisor collects user input via AskUserQuestion, then tells the Assembler to set status to `decided`.
-- **Milestone nodes**: Assembler verifies all prerequisite nodes are complete before setting status to `achieved`. Prerequisite edges are `depends_on` and `validates` — these are the only edge types that imply execution ordering. Other edge types (`produces`, `constrained_by`, `informed_by`, `triggered_by`) represent data flow or metadata and are not treated as prerequisites. Returns `{invalid, reason}` if prerequisites are not met.
+- **Milestone nodes**: Assembler verifies all prerequisite nodes are complete before setting status to `achieved`. Prerequisite edges are `depends_on` — the only edge type that can target milestones and implies execution ordering. (`validates` edges are constrained to target task nodes only per catalog edge constraints, so they never appear as milestone prerequisites.) Other edge types (`produces`, `constrained_by`, `informed_by`, `triggered_by`) represent data flow or metadata and are not treated as prerequisites. Returns `{invalid, reason}` if prerequisites are not met.
 - **Deterministic gates**: Assembler evaluates the gate condition (e.g., file existence check) and sets both `status` and `verdict`.
 
 **Output**: `{valid, node_id, new_status}` or `{invalid, reason}`.

@@ -289,10 +289,13 @@ def cmd_status(args: argparse.Namespace) -> int:
     # Node-type routing: milestone prerequisite verification
     from humaninloop_brain.entities.enums import NodeType
     if target_node.type == NodeType.milestone and args.status == "achieved":
-        # Verify all prerequisite nodes are complete in the current pass
+        # Verify all prerequisite nodes are complete in the current pass.
+        # Only depends_on edges can target milestones — validates edges are
+        # constrained to target task nodes only (catalog edge_constraints),
+        # so they never appear as milestone prerequisites.
         prereq_node_ids = set()
         for edge in graph.edges:
-            if edge.target == args.node and edge.type.value in ("depends_on", "validates"):
+            if edge.target == args.node and edge.type.value == "depends_on":
                 prereq_node_ids.add(edge.source)
         incomplete = []
         _TERMINAL = {"completed", "passed", "achieved", "decided"}

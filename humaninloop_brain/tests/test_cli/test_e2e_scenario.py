@@ -146,10 +146,10 @@ class TestScenario2NormalPassWithEnrichment:
         out = json.loads(capsys.readouterr().out)
         assert out["edges_inferred"] == 0
 
-        # analyst-review: 4 edges (depends-on from constitution-gate, informed-by + produces from enrichment, constrained-by to gate)
+        # analyst-review: 3 edges (depends-on from constitution-gate, informed-by + produces from enrichment)
         main(["assemble", dag_path, "--catalog", CATALOG, "--node", "analyst-review"])
         out = json.loads(capsys.readouterr().out)
-        assert out["edges_inferred"] == 4
+        assert out["edges_inferred"] == 3
 
         # advocate-review: 3 edges (depends-on + produces + validates)
         main(["assemble", dag_path, "--catalog", CATALOG, "--node", "advocate-review"])
@@ -169,12 +169,12 @@ class TestScenario2NormalPassWithEnrichment:
         assert order.index("analyst-review") < order.index("advocate-review")
 
     def test_total_edges_in_dag(self, tmp_path, capsys):
-        """Total edges in full 4-node enrichment pass should be 7 (0+0+4+3)."""
+        """Total edges in full 4-node enrichment pass should be 6 (0+0+3+3)."""
         nodes = ["constitution-gate", "input-enrichment", "analyst-review", "advocate-review"]
         dag_path, _ = _bootstrap_and_assemble(tmp_path, capsys, "specify-feat", nodes)
 
         data = json.loads(Path(dag_path).read_text())
-        assert len(data["edges"]) == 7
+        assert len(data["edges"]) == 6
 
 
 class TestScenario3MultiPassRevision:
@@ -543,15 +543,15 @@ class TestScenario8EdgeInference:
         out = json.loads(capsys.readouterr().out)
         assert out["edges_inferred"] == 1
 
-    def test_informed_by_and_constrained_by_inferred(self, tmp_path, capsys):
-        """Optional artifacts get informed-by edges; shared gate artifacts get constrained-by."""
+    def test_informed_by_inferred_no_constrained_by(self, tmp_path, capsys):
+        """Optional artifacts get informed-by edges; constrained_by is not auto-inferred."""
         nodes = ["constitution-gate", "input-enrichment", "analyst-review", "advocate-review"]
         dag_path, _ = _bootstrap_and_assemble(tmp_path, capsys, "w", nodes)
 
         data = json.loads(Path(dag_path).read_text())
         edge_types = {e["type"] for e in data["edges"]}
         assert "informed_by" in edge_types  # enriched-input is optional for analyst
-        assert "constrained_by" in edge_types  # analyst constrained by constitution-gate
+        assert "constrained_by" not in edge_types  # no longer auto-inferred
 
     def test_edge_id_pattern(self, tmp_path, capsys):
         nodes = ["constitution-gate", "analyst-review", "advocate-review"]
