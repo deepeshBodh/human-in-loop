@@ -16,7 +16,11 @@
         "consumes": [{"artifact": "raw-input", "required": true}],
         "produces": ["spec.md"]
       },
-      "agent": "requirements-analyst"
+      "agent": "requirements-analyst",
+      "last_active_pass": 1,
+      "history": [
+        {"pass": 1, "status": "pending", "frozen": false}
+      ]
     },
     {
       "id": "advocate-review",
@@ -24,11 +28,16 @@
       "name": "Specification Validation",
       "description": "Review specification",
       "status": "pending",
+      "verdict": null,
       "contract": {
         "consumes": [{"artifact": "spec.md", "required": true}],
         "produces": ["advocate-report.md"]
       },
-      "agent": "devils-advocate"
+      "agent": "devils-advocate",
+      "last_active_pass": 1,
+      "history": [
+        {"pass": 1, "status": "pending", "verdict": null, "frozen": false}
+      ]
     }
   ],
   "edges": [

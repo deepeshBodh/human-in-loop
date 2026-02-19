@@ -4,7 +4,8 @@
   "schema_version": "3.0.0",
   "current_pass": 1,
   "status": "in-progress",
-  "passes": [{"pass": 1}],
+  "created_at": "2026-02-18T10:00:00Z",
+  "passes": [{"pass": 1, "created_at": "2026-02-18T10:00:00Z"}],
   "nodes": [
     {
       "id": "constitution-gate",
@@ -12,11 +13,16 @@
       "name": "Constitution Check",
       "description": "Verify project constitution exists and is current",
       "status": "passed",
+      "verdict": null,
       "contract": {
         "consumes": [{"artifact": "constitution.md", "required": true}],
         "produces": []
       },
-      "agent": null
+      "agent": null,
+      "last_active_pass": 1,
+      "history": [
+        {"pass": 1, "status": "passed", "verdict": null, "frozen": false}
+      ]
     },
     {
       "id": "analyst-review",
@@ -31,7 +37,11 @@
         ],
         "produces": ["spec.md", "analyst-report.md"]
       },
-      "agent": "requirements-analyst"
+      "agent": "requirements-analyst",
+      "last_active_pass": 1,
+      "history": [
+        {"pass": 1, "status": "pending", "frozen": false}
+      ]
     },
     {
       "id": "advocate-review",
@@ -39,6 +49,7 @@
       "name": "Specification Validation",
       "description": "Adversarial review of specification completeness",
       "status": "pending",
+      "verdict": null,
       "contract": {
         "consumes": [
           {"artifact": "spec.md", "required": true},
@@ -46,7 +57,11 @@
         ],
         "produces": ["advocate-report.md"]
       },
-      "agent": "devils-advocate"
+      "agent": "devils-advocate",
+      "last_active_pass": 1,
+      "history": [
+        {"pass": 1, "status": "pending", "verdict": null, "frozen": false}
+      ]
     }
   ],
   "edges": [

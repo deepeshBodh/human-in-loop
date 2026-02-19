@@ -12,11 +12,16 @@
       "name": "Constitution Check",
       "description": "Verify constitution exists",
       "status": "pending",
+      "verdict": null,
       "contract": {
         "consumes": [{"artifact": "constitution.md", "required": true}],
         "produces": []
       },
-      "agent": null
+      "agent": null,
+      "last_active_pass": 1,
+      "history": [
+        {"pass": 1, "status": "pending", "verdict": null, "frozen": false}
+      ]
     },
     {
       "id": "analyst-review",
@@ -28,7 +33,11 @@
         "consumes": [{"artifact": "raw-input", "required": true}],
         "produces": ["spec.md"]
       },
-      "agent": "requirements-analyst"
+      "agent": "requirements-analyst",
+      "last_active_pass": 1,
+      "history": [
+        {"pass": 1, "status": "pending", "frozen": false}
+      ]
     }
   ],
   "edges": [

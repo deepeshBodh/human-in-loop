@@ -4,9 +4,10 @@
   "schema_version": "3.0.0",
   "current_pass": 2,
   "status": "in-progress",
+  "created_at": "2026-02-18T10:00:00Z",
   "passes": [
-    {"pass": 1, "outcome": "completed", "detail": "advocate-verdict-needs-revision", "frozen": true},
-    {"pass": 2}
+    {"pass": 1, "outcome": "completed", "detail": "gate-verdict-needs-revision", "created_at": "2026-02-18T10:00:00Z", "completed_at": "2026-02-18T10:30:00Z", "frozen": true},
+    {"pass": 2, "created_at": "2026-02-18T10:30:00Z"}
   ],
   "nodes": [
     {
@@ -19,7 +20,11 @@
         "consumes": [{"artifact": "advocate-report.md", "required": true}],
         "produces": ["research-findings"]
       },
-      "agent": "Explore"
+      "agent": "Explore",
+      "last_active_pass": 2,
+      "history": [
+        {"pass": 2, "status": "pending", "frozen": false}
+      ]
     },
     {
       "id": "analyst-review",
@@ -34,7 +39,14 @@
         ],
         "produces": ["spec.md", "analyst-report.md"]
       },
-      "agent": "requirements-analyst"
+      "agent": "requirements-analyst",
+      "last_active_pass": 2,
+      "history": [
+        {"pass": 1, "status": "completed", "frozen": true,
+         "evidence": [{"id": "EV-analyst-review-001-1", "type": "analyst-report", "description": "Initial requirements analysis", "reference": "analyst-report.md"}],
+         "trace": {"started_at": "2026-02-18T10:05:00Z", "completed_at": "2026-02-18T10:15:00Z", "duration_ms": 600000, "agent_summary": "Produced initial spec with 10 user stories"}},
+        {"pass": 2, "status": "pending", "frozen": false}
+      ]
     },
     {
       "id": "advocate-review",
@@ -42,6 +54,7 @@
       "name": "Specification Validation",
       "description": "Adversarial review of specification completeness",
       "status": "pending",
+      "verdict": null,
       "contract": {
         "consumes": [
           {"artifact": "spec.md", "required": true},
@@ -49,7 +62,14 @@
         ],
         "produces": ["advocate-report.md"]
       },
-      "agent": "devils-advocate"
+      "agent": "devils-advocate",
+      "last_active_pass": 2,
+      "history": [
+        {"pass": 1, "status": "completed", "verdict": "needs-revision", "frozen": true,
+         "evidence": [{"id": "EV-advocate-review-001-1", "type": "advocate-report", "description": "Validation found 5 gaps", "reference": "advocate-report.md"}],
+         "trace": {"started_at": "2026-02-18T10:15:00Z", "completed_at": "2026-02-18T10:25:00Z", "duration_ms": 600000, "agent_summary": "Found 5 important gaps requiring research"}},
+        {"pass": 2, "status": "pending", "verdict": null, "frozen": false}
+      ]
     }
   ],
   "edges": [
@@ -82,6 +102,24 @@
       "source": "advocate-review",
       "target": "analyst-review",
       "type": "validates"
+    },
+    {
+      "id": "triggered-by-advocate-analyst-p1p2",
+      "source": "advocate-review",
+      "target": "analyst-review",
+      "type": "triggered_by",
+      "source_pass": 1,
+      "target_pass": 2,
+      "reason": "needs-revision, 5 important gaps"
+    },
+    {
+      "id": "triggered-by-advocate-advocate-p1p2",
+      "source": "advocate-review",
+      "target": "advocate-review",
+      "type": "triggered_by",
+      "source_pass": 1,
+      "target_pass": 2,
+      "reason": "needs-revision, 5 important gaps"
     }
   ]
 }

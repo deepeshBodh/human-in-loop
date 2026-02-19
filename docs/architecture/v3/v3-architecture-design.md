@@ -35,7 +35,7 @@ V3 addresses all three with a unified architecture where the Supervisor is domai
 │                                                                    │
 │ Three outbound verbs:                                             │
 │   1. Ask the Analyst   (briefing / parse-and-recommend)           │
-│   2. Tell the Assembler (assemble / freeze)                       │
+│   2. Tell the Assembler (assemble / freeze / update-status)       │
 │   3. Dispatch the agent (Task tool with NL prompt)                │
 │                                                                    │
 │ Also receives:                                                    │
@@ -59,6 +59,9 @@ V3 addresses all three with a unified architecture where the Supervisor is domai
 │ • Strategy skills          │   │   - freeze current pass entries  │
 │ • Artifacts on disk        │   │   - create next pass (optional)  │
 │ • Single DAG file          │   │   - add triggered_by edges       │
+│                            │   │ • update-status                   │
+│                            │   │   - decision / milestone / gate  │
+│                            │   │   - validates prerequisites      │
 │                            │   │                                    │
 │ Recommends in:             │   │ Reads:                             │
 │ • Intent language          │   │ • Node catalog                    │
@@ -117,9 +120,9 @@ Produce a validated specification.
 These replace the procedural recipes in the old `specify.md`. Written in DAG vocabulary, no domain knowledge:
 
 1. **When a gate verdict is `needs-revision`**: Tell the Assembler to freeze the current pass and create a new one. Return to asking the Analyst for recommendations.
-2. **When a gate verdict is `ready`**: Tell the Assembler to assemble the appropriate milestone node. Mark the milestone achieved. Tell the Assembler to freeze the pass. Go to completion.
+2. **When a gate verdict is `ready`**: Tell the Assembler to assemble the appropriate milestone node. Tell the Assembler to update-status the milestone to `achieved`. Tell the Assembler to freeze the pass. Go to completion.
 3. **When a gate verdict is `critical-gaps`**: Present the situation to the user with options (continue, accept, stop).
-4. **When a parse-and-recommend summary contains `unresolved` items requiring user input**: Tell the Assembler to assemble the appropriate decision node. Collect user input via AskUserQuestion. Update the decision node status to `decided`. Continue with the Analyst's recommendation.
+4. **When a parse-and-recommend summary contains `unresolved` items requiring user input**: Tell the Assembler to assemble the appropriate decision node. Collect user input via AskUserQuestion. Tell the Assembler to update-status the decision node to `decided`. Continue with the Analyst's recommendation.
 5. **When convergence stalls (same gap count across 2+ passes)**: Surface to the user — do not silently continue.
 6. **When 5 passes are reached without a `ready` verdict**: Surface to the user with options.
 7. **When an unexpected situation occurs**: Tell the Assembler to freeze the pass as `halted`. Present to the user.
@@ -224,6 +227,21 @@ Freezes the current pass and optionally creates the next one.
 4. If the Supervisor indicates continuation: create the next pass entry in the `passes` array with `pass` number and `created_at`
 
 **DAG Bootstrap**: On the very first `assemble-and-prepare` call for a workflow, if no DAG file exists, the Assembler creates it. No separate "create DAG" action needed. The Supervisor never calls `hil-dag create` directly.
+
+#### `update-status`
+
+Updates the status of supervisor-owned nodes (decision, milestone, deterministic gate) that have no domain agent to drive their lifecycle. Added post-synthesis to address Dry Run 2 divergence D3: the original two-action design assumed all nodes had backing agents, but decision nodes, milestones, and deterministic gates require the Supervisor to relay status changes through the Assembler.
+
+**Input**: `{node_id, status, verdict (optional, gates only), pass_number}`
+
+**Node type routing**:
+- **Decision nodes**: Supervisor collects user input via AskUserQuestion, then tells the Assembler to set status to `decided`.
+- **Milestone nodes**: Assembler verifies all prerequisite nodes are complete before setting status to `achieved`. Returns `{invalid, reason}` if prerequisites are not met.
+- **Deterministic gates**: Assembler evaluates the gate condition (e.g., file existence check) and sets both `status` and `verdict`.
+
+**Output**: `{valid, node_id, new_status}` or `{invalid, reason}`.
+
+**Mechanism**: Calls `hil-dag status` to update the current pass's history entry. Auto-computes derived fields.
 
 ### What the DAG Assembler Does NOT Do
 
@@ -467,6 +485,13 @@ SUPERVISOR                STATE ANALYST           DAG ASSEMBLER          DOMAIN 
     │<── summary + ranked recommendations ───────│   │                      │
     │                          │                      │                      │
     │ EVALUATES + PICKS next   │                      │                      │
+    │                          │                      │                      │
+    │              [SUPERVISOR-OWNED NODES: decision, milestone, det. gate]  │
+    │                          │                      │                      │
+    │── update-status (node_id, status) ─────────────>│                      │
+    │                          │                      │ validates + updates   │
+    │                          │                      │ via hil-dag status   │
+    │<── {valid, new_status} ──────────────────────── │                      │
 ```
 
 ### Call Counts (typical 3-node pass)
@@ -502,9 +527,9 @@ SUPERVISOR                STATE ANALYST           DAG ASSEMBLER          DOMAIN 
 | Freeze pass + create next pass | DAG Assembler | `freeze-pass` action (atomic) |
 | Create `triggered_by` edges | DAG Assembler | Inside `freeze-pass` (reason from Supervisor request) |
 | Bootstrap DAG file | DAG Assembler | Auto-create on first `assemble-and-prepare` if no file exists |
-| Update decision node status | DAG Assembler | Inside `assemble-and-prepare` or via Supervisor relay to `hil-dag status` |
-| Update milestone node status | DAG Assembler | Deterministic — checks all prerequisites met, sets `achieved` |
-| Update skill node status | DAG Assembler | Inside `assemble-and-prepare` post-execution status update |
+| Update decision node status | DAG Assembler | `update-status` action — Supervisor relays user input, Assembler sets `decided` via `hil-dag status` |
+| Update milestone node status | DAG Assembler | `update-status` action — Assembler verifies prerequisites met, sets `achieved` via `hil-dag status` |
+| Update deterministic gate status | DAG Assembler | `update-status` action — Assembler evaluates gate condition, sets status + verdict via `hil-dag status` |
 | Enforce entry-level immutability | `hil-dag` CLI | Refuses writes to frozen history entries |
 | Generate evidence IDs | `hil-dag` CLI | Auto-generated: `EV-{node_id}-{pass}-{sequence}` |
 | Compute derived fields | `hil-dag` CLI | Node `status`, `verdict`, `last_active_pass` derived from latest history entry |
@@ -542,7 +567,7 @@ During synthesis of the three v3 documents, 20 clashes were identified. All brea
 | **3** | DAG bootstrap — who creates the initial file? | DAG Assembler auto-creates on first `assemble-and-prepare`. No `hil-dag create` needed. |
 | **4** | `triggered_by` edges have no assigned owner | DAG Assembler creates them inside `freeze-pass`. Reason comes from State Analyst via Supervisor. |
 | **5** | `hil-dag record` incompatible with single-DAG history | `hil-dag record` accepts `--pass <n>` and targets the current pass's history entry. |
-| **9** | Decision/milestone nodes have no status-update path | Decision: Supervisor collects input, Assembler updates status. Milestone: Assembler determines achievement deterministically. |
+| **9** | Decision/milestone nodes have no status-update path | Resolved by adding `update-status` as a third DAG Assembler action. Decision: Supervisor collects input, tells Assembler to update-status. Milestone: Assembler verifies prerequisites, sets `achieved`. Deterministic gates: Assembler evaluates condition, sets status + verdict. (Dry Run 2 divergence D3 fix.) |
 | **10** | `assemble-and-prepare` doesn't handle re-opening existing nodes | Assembler checks node existence — adds if new, re-opens (new history entry) if existing. |
 | 1 | Briefing recommendation depth ambiguity | Both `briefing` and `parse-and-recommend` share the same recommendation structure. |
 | 2 | `freeze-pass` scope undecided | `freeze-pass` atomically freezes current pass and optionally creates next pass. |
