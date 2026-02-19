@@ -329,7 +329,7 @@ Updates the status of supervisor-owned nodes (decision, milestone, deterministic
   "edges": [
     {"id": "E-001", "source": "constitution-gate", "target": "analyst-review",
      "type": "depends_on"},
-    {"id": "E-002", "source": "analyst-review", "target": "advocate-review",
+    {"id": "E-002", "source": "advocate-review", "target": "analyst-review",
      "type": "validates"},
 
     {"id": "E-T01", "source": "advocate-review", "target": "analyst-review",
@@ -413,6 +413,7 @@ Two new fields added to the catalog schema:
   "carry_forward": true,
   "gate_type": "deterministic",
   "consumes": ["constitution.md"],
+  "produces": ["constitution.md"],
   "valid_statuses": ["pending", "passed", "failed"]
 }
 ```
@@ -554,6 +555,8 @@ SUPERVISOR                STATE ANALYST           DAG ASSEMBLER          DOMAIN 
 - **Derived field computation**: `record` and `status` commands auto-update top-level `status`, `verdict`, `last_active_pass`
 - **Evidence ID generation**: `record` command auto-generates IDs using `EV-{node_id}-{pass}-{sequence}`
 - **`triggered_by` edge creation**: `freeze` command accepts `--triggered-nodes` and `--reason` to create revision edges
+- **Auto-trigger computation**: `freeze --auto-trigger --trigger-source <gate>` deterministically computes triggered nodes from graph topology (validates edges), keeping re-execution determination in deterministic infrastructure per Principle IX
+- **`duration_ms` derivation**: `record` command auto-computes `duration_ms` from `started_at`/`completed_at` in the trace JSON
 - **DAG bootstrap**: `assemble` command auto-creates DAG file if it doesn't exist
 
 ---

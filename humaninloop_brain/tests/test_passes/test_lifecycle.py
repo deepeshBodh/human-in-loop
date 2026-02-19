@@ -14,6 +14,7 @@ from humaninloop_brain.passes.lifecycle import (
     FrozenEntryError,
     _recompute_derived,
     add_or_reopen_node,
+    compute_triggered_nodes,
     create_strategy_graph,
     freeze_current_pass,
     load_graph_file,
@@ -551,3 +552,34 @@ class TestSaveGraphEdgeCases:
         # Graph was saved successfully
         loaded = load_graph_file(path)
         assert loaded.nodes[0].status == "completed"
+
+
+class TestComputeTriggeredNodes:
+    """compute_triggered_nodes deterministically finds re-execution targets."""
+
+    def test_gate_with_validates_edges(self, graph, catalog):
+        """Gate + validated tasks are returned."""
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph, _ = add_or_reopen_node(graph, "advocate-review", catalog, 1)
+        triggered = compute_triggered_nodes(graph, "advocate-review")
+        assert "advocate-review" in triggered
+        assert "analyst-review" in triggered
+
+    def test_returns_sorted(self, graph, catalog):
+        """Output is deterministically sorted."""
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph, _ = add_or_reopen_node(graph, "advocate-review", catalog, 1)
+        triggered = compute_triggered_nodes(graph, "advocate-review")
+        assert triggered == sorted(triggered)
+
+    def test_gate_without_validates_edges(self, graph, catalog):
+        """Gate with no validates edges returns only itself."""
+        graph, _ = add_or_reopen_node(graph, "constitution-gate", catalog, 1)
+        triggered = compute_triggered_nodes(graph, "constitution-gate")
+        assert triggered == ["constitution-gate"]
+
+    def test_always_includes_source(self, graph, catalog):
+        """Trigger source is always included even with no validates edges."""
+        graph, _ = add_or_reopen_node(graph, "advocate-review", catalog, 1)
+        triggered = compute_triggered_nodes(graph, "advocate-review")
+        assert "advocate-review" in triggered

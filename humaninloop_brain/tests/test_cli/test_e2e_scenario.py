@@ -146,10 +146,10 @@ class TestScenario2NormalPassWithEnrichment:
         out = json.loads(capsys.readouterr().out)
         assert out["edges_inferred"] == 0
 
-        # analyst-review: 3 edges (informed-by + produces from enrichment, constrained-by to gate)
+        # analyst-review: 4 edges (depends-on from constitution-gate, informed-by + produces from enrichment, constrained-by to gate)
         main(["assemble", dag_path, "--catalog", CATALOG, "--node", "analyst-review"])
         out = json.loads(capsys.readouterr().out)
-        assert out["edges_inferred"] == 3
+        assert out["edges_inferred"] == 4
 
         # advocate-review: 3 edges (depends-on + produces + validates)
         main(["assemble", dag_path, "--catalog", CATALOG, "--node", "advocate-review"])
@@ -169,12 +169,12 @@ class TestScenario2NormalPassWithEnrichment:
         assert order.index("analyst-review") < order.index("advocate-review")
 
     def test_total_edges_in_dag(self, tmp_path, capsys):
-        """Total edges in full 4-node enrichment pass should be 6 (0+0+3+3)."""
+        """Total edges in full 4-node enrichment pass should be 7 (0+0+4+3)."""
         nodes = ["constitution-gate", "input-enrichment", "analyst-review", "advocate-review"]
         dag_path, _ = _bootstrap_and_assemble(tmp_path, capsys, "specify-feat", nodes)
 
         data = json.loads(Path(dag_path).read_text())
-        assert len(data["edges"]) == 6
+        assert len(data["edges"]) == 7
 
 
 class TestScenario3MultiPassRevision:

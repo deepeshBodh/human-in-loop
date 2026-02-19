@@ -261,6 +261,27 @@ def update_node_history(
     raise ValueError(f"Node '{node_id}' not found in graph")
 
 
+def compute_triggered_nodes(
+    graph: StrategyGraph, trigger_source: str,
+) -> list[str]:
+    """Deterministically compute which nodes to re-execute after a gate verdict.
+
+    Algorithm: find all task nodes that the gate validates (via ``validates``
+    edges from the gate), plus the gate itself (it must re-evaluate the
+    revised output). Returns a sorted list for deterministic ordering.
+
+    Additional nodes (research, clarification) are assembled fresh by the
+    State Analyst's recommendations in the next pass — they don't need
+    ``triggered_by`` edges since they are new decisions, not re-executions.
+    """
+    triggered: set[str] = set()
+    triggered.add(trigger_source)
+    for edge in graph.edges:
+        if edge.source == trigger_source and edge.type == EdgeType.validates:
+            triggered.add(edge.target)
+    return sorted(triggered)
+
+
 def freeze_current_pass(
     graph: StrategyGraph,
     outcome: str,

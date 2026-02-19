@@ -109,7 +109,7 @@
         "consumes": [
           {"artifact": "constitution.md", "required": true}
         ],
-        "produces": []
+        "produces": ["constitution.md"]
       },
       "valid_statuses": ["pending", "passed", "failed"],
       "verdict_field": "verdict",
@@ -192,7 +192,7 @@
       "id": "INV-004",
       "rule": "Maximum 5 DAG passes per workflow invocation before mandatory human checkpoint",
       "enforcement": "runtime",
-      "severity": "warning"
+      "severity": "error"
     },
     {
       "id": "INV-005",

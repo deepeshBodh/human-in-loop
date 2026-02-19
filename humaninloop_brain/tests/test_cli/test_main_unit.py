@@ -548,6 +548,61 @@ class TestFreezeCommand:
             assert edge["source"] == "advocate-review"
             assert edge["target"] in ("analyst-review", "advocate-review")
 
+    def test_freeze_auto_trigger(self, tmp_path, capsys):
+        dag_path = _bootstrap_graph(
+            tmp_path, capsys,
+            nodes=["constitution-gate", "analyst-review", "advocate-review"],
+        )
+        code = main([
+            "freeze", dag_path,
+            "--outcome", "completed",
+            "--detail", "needs-revision",
+            "--auto-trigger",
+            "--trigger-source", "advocate-review",
+            "--reason", "Gaps found",
+        ])
+        assert code == 0
+        out = json.loads(capsys.readouterr().out)
+        assert out["pass_frozen"] is True
+
+        # Verify auto-computed triggered_by edges
+        data = json.loads(Path(dag_path).read_text())
+        assert data["current_pass"] == 2
+        triggered_edges = [e for e in data["edges"] if e["type"] == "triggered_by"]
+        targets = {e["target"] for e in triggered_edges}
+        # advocate-review validates analyst-review, so both should be triggered
+        assert "analyst-review" in targets
+        assert "advocate-review" in targets
+
+    def test_freeze_auto_trigger_requires_trigger_source(self, tmp_path, capsys):
+        dag_path = _bootstrap_graph(tmp_path, capsys)
+        code = main([
+            "freeze", dag_path,
+            "--outcome", "completed",
+            "--detail", "done",
+            "--auto-trigger",
+        ])
+        assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert "trigger-source" in out["message"].lower()
+
+    def test_freeze_auto_trigger_exclusive_with_triggered_nodes(self, tmp_path, capsys):
+        dag_path = _bootstrap_graph(
+            tmp_path, capsys,
+            nodes=["constitution-gate", "analyst-review", "advocate-review"],
+        )
+        code = main([
+            "freeze", dag_path,
+            "--outcome", "completed",
+            "--detail", "done",
+            "--auto-trigger",
+            "--triggered-nodes", "analyst-review",
+            "--trigger-source", "advocate-review",
+        ])
+        assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert "mutually exclusive" in out["message"].lower()
+
     def test_invalid_outcome(self, tmp_path, capsys):
         dag_path = _bootstrap_graph(tmp_path, capsys)
         code = main(["freeze", dag_path, "--outcome", "invalid", "--detail", "d"])

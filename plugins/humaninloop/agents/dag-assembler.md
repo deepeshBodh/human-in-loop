@@ -133,9 +133,10 @@ Halt (emergency stop — no analyst_response):
 
 **Process**:
 1. **Extract freeze parameters** from input:
-   - From `analyst_response` (normal flow): `detail` from verdict, `trigger_source` from node_id (the gate that triggered the pass transition), `reason` from summary. Determine `triggered_nodes` from graph topology — analyze edges to identify which nodes need re-execution in the next pass.
+   - From `analyst_response` (normal flow): `detail` from verdict, `trigger_source` from node_id (the gate that triggered the pass transition), `reason` from summary.
    - From explicit fields (halt): use `detail` and `rationale` directly. No triggered_nodes.
-2. Freeze DAG pass: `hil-dag freeze <dag_path> --outcome <outcome> --detail <detail> [--triggered-nodes <node_id>...] [--trigger-source <gate_node_id>] [--reason <reason>]` _(CLI — atomically freezes all current-pass history entries, updates pass metadata, creates triggered_by edges from trigger_source gate to each triggered node, creates next pass entry if triggered_nodes provided)_
+2. Freeze DAG pass: `hil-dag freeze <dag_path> --outcome <outcome> --detail <detail> --auto-trigger --trigger-source <gate_node_id> [--reason <reason>]` _(CLI — atomically freezes all current-pass history entries, updates pass metadata, deterministically computes triggered nodes from graph topology via validates edges, creates triggered_by edges, creates next pass entry)_
+   - For halts (no next pass): `hil-dag freeze <dag_path> --outcome halted --detail <detail>` _(no --auto-trigger or --trigger-source)_
 3. Return confirmation
 
 **Output** (to Supervisor):

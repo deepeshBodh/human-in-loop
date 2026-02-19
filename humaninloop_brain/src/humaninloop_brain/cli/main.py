@@ -15,6 +15,7 @@ from humaninloop_brain.graph.sort import execution_order
 from humaninloop_brain.passes.lifecycle import (
     FrozenEntryError,
     add_or_reopen_node,
+    compute_triggered_nodes,
     create_strategy_graph,
     freeze_current_pass,
     load_graph_file,
@@ -360,6 +361,24 @@ def cmd_record(args: argparse.Namespace) -> int:
     except json.JSONDecodeError as e:
         return _output({"status": "error", "message": f"Invalid trace JSON: {e}"}, 1)
 
+    # Derive duration_ms from started_at/completed_at if both present
+    if (
+        isinstance(trace_raw, dict)
+        and "started_at" in trace_raw
+        and "completed_at" in trace_raw
+        and "duration_ms" not in trace_raw
+    ):
+        try:
+            from datetime import datetime, timezone
+
+            started = datetime.fromisoformat(trace_raw["started_at"])
+            completed = datetime.fromisoformat(trace_raw["completed_at"])
+            trace_raw["duration_ms"] = int(
+                (completed - started).total_seconds() * 1000
+            )
+        except (ValueError, TypeError):
+            pass  # Best-effort — skip if timestamps are unparseable
+
     pass_number = args.pass_number or graph.current_pass
 
     # Auto-generate evidence IDs: EV-{node_id}-{pass}-{sequence}
@@ -430,6 +449,22 @@ def cmd_freeze(args: argparse.Namespace) -> int:
         }, 1)
 
     triggered = args.triggered_nodes  # None if flag absent, [] if flag with no args
+
+    # --auto-trigger: deterministically compute triggered nodes from graph topology
+    auto_trigger = getattr(args, "auto_trigger", False)
+    if auto_trigger:
+        if not args.trigger_source:
+            return _output({
+                "status": "error",
+                "message": "--trigger-source is required with --auto-trigger",
+            }, 1)
+        if triggered is not None:
+            return _output({
+                "status": "error",
+                "message": "--auto-trigger and --triggered-nodes are mutually exclusive",
+            }, 1)
+        triggered = compute_triggered_nodes(graph, args.trigger_source)
+
     try:
         graph = freeze_current_pass(
             graph, args.outcome, args.detail,
@@ -588,6 +623,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Gate node whose verdict triggered the new pass (required with --triggered-nodes)",
     )
     p_frz.add_argument("--reason", default=None, help="Reason for triggered-by edges")
+    p_frz.add_argument(
+        "--auto-trigger", action="store_true", default=False,
+        dest="auto_trigger",
+        help="Deterministically compute triggered nodes from graph topology "
+             "(mutually exclusive with --triggered-nodes)",
+    )
     p_frz.set_defaults(func=cmd_freeze)
 
     # catalog-validate
