@@ -266,6 +266,35 @@ class TestStatusCommand:
         code = main(["status", dag_path, "--node", "constitution-gate", "--status", "decided"])
         assert code == 1
 
+    def test_gate_verdict(self, tmp_path, capsys):
+        """Status command supports --verdict for deterministic gates."""
+        dag_path = _bootstrap_graph(tmp_path, capsys)
+        code = main([
+            "status", dag_path,
+            "--node", "constitution-gate",
+            "--status", "passed",
+            "--verdict", "ready",
+        ])
+        assert code == 0
+        out = json.loads(capsys.readouterr().out)
+        assert out["new_status"] == "passed"
+        assert out["verdict_recorded"] == "ready"
+
+        # Verify verdict persisted in graph
+        graph_data = json.loads(Path(dag_path).read_text())
+        gate = next(n for n in graph_data["nodes"] if n["id"] == "constitution-gate")
+        assert gate["verdict"] == "ready"
+        latest_entry = gate["history"][-1]
+        assert latest_entry["verdict"] == "ready"
+
+    def test_status_without_verdict_omits_field(self, tmp_path, capsys):
+        """Status command without --verdict omits verdict_recorded from output."""
+        dag_path = _bootstrap_graph(tmp_path, capsys)
+        code = main(["status", dag_path, "--node", "constitution-gate", "--status", "passed"])
+        assert code == 0
+        out = json.loads(capsys.readouterr().out)
+        assert "verdict_recorded" not in out
+
 
 class TestRecordCommand:
     EVIDENCE = json.dumps([{

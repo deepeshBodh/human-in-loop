@@ -230,11 +230,6 @@ class TestGraphNode:
                 produces=["output"],
             ),
             agent="test-agent",
-            evidence=[
-                EvidenceAttachment(
-                    id="ev-01", type="file", description="d", reference="r"
-                )
-            ],
         )
         data = node.model_dump()
         restored = GraphNode.model_validate(data)

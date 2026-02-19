@@ -84,7 +84,7 @@ Fields `status`, `node_added`, `edges_inferred`, and `validation` come from the 
 | task (with built-in agent) | Built-in agent (e.g., Explore) | `agent_prompt` + `agent_type` as bare name (e.g., `"Explore"`) |
 | task (skill-based, agent: null) | Skill invocation | `skill_to_invoke` + `skill_args` instead of agent_prompt |
 | gate (with plugin agent) | Plugin agent (e.g., devils-advocate) | `agent_prompt` + `agent_type` as `humaninloop:<name>` |
-| gate (no agent, e.g. constitution-gate) | Supervisor checks directly | `gate_type: "file-check"` + `check_path` + `check_description` |
+| gate (no agent, e.g. constitution-gate) | Assembler evaluates condition in update-status | `gate_type: "deterministic"` + `check_type: "file-check"` + `check_path` + `check_description` |
 | decision | User interaction | `decision_type: "user-clarification"` + `questions` extracted from advocate report |
 | milestone | None | `milestone_type: "completion"` + `required_artifacts` to verify |
 
@@ -128,7 +128,7 @@ Freeze the current pass, add triggered_by edges, and optionally create the next 
 
 ### update-status
 
-Update the status of a supervisor-owned node (decision, milestone, or deterministic gate). These nodes have no domain agent — the Supervisor performs the check or collects user input, then tells the DAG Assembler to record the result.
+Update the status of a supervisor-owned node (decision, milestone, or deterministic gate). These nodes have no domain agent. For decisions, the Supervisor collects user input first. For deterministic gates, the Assembler evaluates the gate condition. For milestones, the Assembler verifies prerequisite nodes are complete.
 
 **Input** (from Supervisor):
 ```json
@@ -141,30 +141,48 @@ Update the status of a supervisor-owned node (decision, milestone, or determinis
 }
 ```
 
-**Process**:
-1. Update node status: `hil-dag status <dag_path> --node <node_id> --status <status>` _(CLI — updates current pass history entry, recomputes derived fields)_
-2. If the node is a gate and a verdict is provided, record it: `hil-dag record <dag_path> --node <node_id> --status <status> --verdict <verdict>` _(CLI — sets both status and verdict atomically)_
-3. Return confirmation
+**Process** (varies by node type):
+
+**Deterministic gates** — The Assembler evaluates the gate condition:
+1. Read the gate's `check_type` and `check_path` from the assemble-and-prepare output (or from the catalog contract)
+2. Evaluate the condition (e.g., check file existence at `check_path`)
+3. Determine status (`"passed"` or `"failed"`) and verdict (`"ready"` or `"critical-gaps"`) based on the evaluation result
+4. Update atomically: `hil-dag status <dag_path> --node <node_id> --status <status> --verdict <verdict>` _(CLI — updates status + verdict in current pass history entry, recomputes derived fields)_
+
+**Decision nodes** — The Supervisor already collected user input:
+1. Update status: `hil-dag status <dag_path> --node <node_id> --status decided` _(CLI)_
+
+**Milestone nodes** — The Assembler verifies prerequisites:
+1. Read the DAG to find all nodes with `depends_on` or `validates` edges leading to this milestone
+2. Verify all prerequisite nodes have status `completed` (tasks) or `passed`/`completed` (gates) in the current pass
+3. If all prerequisites met: `hil-dag status <dag_path> --node <node_id> --status achieved` _(CLI)_
+4. If prerequisites not met: return `{"status": "invalid", "reason": "prerequisite nodes incomplete", "incomplete": [<node_ids>]}`
 
 **Output** (to Supervisor):
 ```json
 {
-  "status_updated": true,
+  "status": "valid",
   "node_id": "constitution-gate",
-  "old_status": "pending",
   "new_status": "passed"
+}
+```
+
+Or on failure:
+```json
+{
+  "status": "invalid",
+  "reason": "prerequisite nodes incomplete",
+  "incomplete": ["analyst-review"]
 }
 ```
 
 **Node type expectations**:
 
-| Node Type | When Called | Status Value |
-|-----------|-----------|--------------|
-| gate (deterministic) | Supervisor verified file exists / condition met | `"passed"` or `"failed"` |
-| decision | Supervisor collected user input via AskUserQuestion | `"decided"` |
-| milestone | Supervisor instructed Assembler to verify prerequisites | `"achieved"` |
-
-For **milestone** nodes, before setting status to `"achieved"`, verify that all required artifacts listed in the milestone's `contract.consumes` exist at their expected paths. If any are missing, return `{"status_updated": false, "reason": "missing prerequisite artifacts", "missing": [...]}` instead.
+| Node Type | Who Evaluates | Status Value | Verdict |
+|-----------|--------------|--------------|---------|
+| gate (deterministic) | Assembler evaluates condition | `"passed"` or `"failed"` | `"ready"` or `"critical-gaps"` |
+| decision | Supervisor collected user input | `"decided"` | — |
+| milestone | Assembler verifies prerequisite nodes | `"achieved"` | — |
 
 ## NL Prompt Construction Patterns
 
@@ -239,17 +257,18 @@ The Supervisor invokes the Skill tool directly with these arguments.
 
 ### For constitution-gate (no agent)
 
-No agent prompt. Return gate check details:
+No agent prompt. Return gate check details for the Assembler to evaluate in `update-status`:
 
 ```json
 {
-  "gate_type": "file-check",
+  "gate_type": "deterministic",
+  "check_type": "file-check",
   "check_path": ".humaninloop/memory/constitution.md",
   "check_description": "Verify project constitution exists"
 }
 ```
 
-The Supervisor checks the file directly and reports pass/fail.
+The Supervisor tells the Assembler to `update-status` this gate. The Assembler evaluates the file existence condition and sets status + verdict.
 
 ## Artifact Path Convention
 

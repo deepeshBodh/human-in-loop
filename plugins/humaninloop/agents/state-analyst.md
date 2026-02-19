@@ -23,7 +23,7 @@ description: |
 
   <example>
   Context: Supervisor wants to parse a domain agent's report after execution
-  user: '{"action": "parse-and-recommend", "node_id": "advocate-review", "dag_path": "...", "catalog_path": "...", "feature_dir": "..."}'
+  user: '{"action": "parse-and-recommend", "node_id": "advocate-review", "pass_number": 1, "dag_path": "...", "catalog_path": "...", "feature_dir": "..."}'
   assistant: "I'll read the advocate report from disk, extract the verdict, gaps, and structured summary, record the analysis results atomically via hil-dag record, and produce ranked recommendations for the next step."
   <commentary>
   Parse-and-recommend action: read from disk, extract structure, record status + evidence + trace atomically, then recommend next nodes.
@@ -196,6 +196,7 @@ Read a domain agent's report from disk, extract structured summary, record analy
 {
   "action": "parse-and-recommend",
   "node_id": "advocate-review",
+  "pass_number": 1,
   "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
   "catalog_path": "path/to/specify-catalog.json",
   "feature_dir": "specs/001-feature"

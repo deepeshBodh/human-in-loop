@@ -66,7 +66,6 @@ class GraphNode(BaseModel):
     status: str
     contract: NodeContract = NodeContract()
     agent: str | None = None
-    evidence: list[EvidenceAttachment] = []
     history: list[NodeHistoryEntry] = []
     verdict: str | None = None
     last_active_pass: int | None = None

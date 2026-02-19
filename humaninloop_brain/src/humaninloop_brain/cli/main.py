@@ -228,17 +228,22 @@ def cmd_status(args: argparse.Namespace) -> int:
 
     pass_number = args.pass_number or graph.current_pass
     try:
-        graph = update_node_history(graph, args.node, pass_number, args.status)
+        graph = update_node_history(
+            graph, args.node, pass_number, args.status, verdict=args.verdict,
+        )
     except (ValueError, FrozenEntryError) as e:
         return _output({"status": "error", "message": str(e)}, 1)
     save_graph(graph, args.dag)
 
-    return _output({
+    result = {
         "status": "success",
         "node_id": args.node,
         "old_status": old_status,
         "new_status": args.status,
-    })
+    }
+    if args.verdict is not None:
+        result["verdict_recorded"] = args.verdict
+    return _output(result)
 
 
 def cmd_record(args: argparse.Namespace) -> int:
@@ -454,6 +459,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_stat.add_argument("dag", help="Path to DAG JSON")
     p_stat.add_argument("--node", required=True, help="Node ID")
     p_stat.add_argument("--status", required=True, help="New status")
+    p_stat.add_argument("--verdict", default=None, help="Gate verdict (for gate nodes only)")
     p_stat.add_argument(
         "--pass", dest="pass_number", type=int, default=None,
         help="Target pass number",

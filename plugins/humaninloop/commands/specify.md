@@ -61,7 +61,7 @@ The Supervisor communicates through exactly three verbs:
 | Verb | Target | Actions |
 |------|--------|---------|
 | **Ask the Analyst** | `humaninloop:state-analyst` | `briefing`, `parse-and-recommend` |
-| **Tell the Assembler** | `humaninloop:dag-assembler` | `assemble-and-prepare`, `freeze-pass` |
+| **Tell the Assembler** | `humaninloop:dag-assembler` | `assemble-and-prepare`, `freeze-pass`, `update-status` |
 | **Dispatch the agent** | Domain agent / Skill | Execute with NL prompt from Assembler |
 
 The Supervisor has **zero direct CLI usage**. All `hil-dag` operations are delegated: agent node status goes through the State Analyst's `parse-and-recommend`, and supervisor-owned node status (milestone, decision, gate-check) goes through the DAG Assembler's `update-status` action.
@@ -167,14 +167,14 @@ If `invalid`, pick differently. On first call, the Assembler auto-creates the St
 | **task** (with `agent_type`) | `Task(subagent_type: agent_type, prompt: agent_prompt)` |
 | **task** (with `skill_to_invoke`) | `Skill(skill: skill_to_invoke, args: skill_args)` |
 | **gate** (with `agent_type`) | `Task(subagent_type: agent_type, prompt: agent_prompt)` |
-| **gate** (with `gate_type`) | Supervisor checks directly (e.g., file exists), then tells Assembler: `{action: "update-status", node_id, status: "passed"/"failed", dag_path}` |
+| **gate** (with `gate_type`) | Tell the Assembler to evaluate and update: `{action: "update-status", node_id, dag_path}`. The Assembler evaluates the gate condition and sets status + verdict. |
 | **decision** | `AskUserQuestion(...)` with questions from Assembler, write answers to `{feature_dir}/.workflow/clarification-answers.md`, then tell Assembler: `{action: "update-status", node_id, status: "decided", dag_path}` |
-| **milestone** | Verify required artifacts exist, then tell Assembler: `{action: "update-status", node_id, status: "achieved", dag_path}` |
+| **milestone** | Tell the Assembler to verify and update: `{action: "update-status", node_id, status: "achieved", dag_path}`. The Assembler verifies prerequisite nodes are complete before setting `achieved`. |
 
 **Parse** (MANDATORY for every agent node): Ask the Analyst to parse the report and recommend next steps.
 ```
 Task(subagent_type: "humaninloop:state-analyst",
-  prompt: {action: "parse-and-recommend", node_id, dag_path, catalog_path, feature_dir},
+  prompt: {action: "parse-and-recommend", node_id, pass_number, dag_path, catalog_path, feature_dir},
   description: "Parse report and recommend")
 ```
 
@@ -204,10 +204,9 @@ Task(subagent_type: "humaninloop:dag-assembler",
 
 **Rule 2 — Gate verdict `ready`** (Completion Procedure):
 1. Tell the Assembler to assemble the milestone node
-2. Verify required artifacts exist
-3. Tell the Assembler to mark milestone achieved: `{action: "update-status", node_id: <milestone_id>, status: "achieved", dag_path}`
-4. Tell the Assembler to freeze the pass with outcome `completed`, detail `ready`
-5. Go to Completion
+2. Tell the Assembler to mark milestone achieved: `{action: "update-status", node_id: <milestone_id>, status: "achieved", dag_path}`. The Assembler verifies prerequisite nodes are complete before setting `achieved` — if invalid, the Assembler returns the reason.
+3. Tell the Assembler to freeze the pass with outcome `completed`, detail `ready`
+4. Go to Completion
 
 **Rule 3 — Gate verdict `critical-gaps`**: Present to user with options (continue / accept current / stop).
 
@@ -260,8 +259,9 @@ Update context status to `completed`. Output:
 |-----------|-------|-----------|
 | Assembly decisions | Supervisor | Based on Analyst recommendations |
 | Dispatch domain agents | Supervisor | Task tool with prompt from Assembler |
-| Mark milestone achieved | DAG Assembler | `update-status` action (supervisor-owned node) |
-| Mark decision decided | DAG Assembler | `update-status` action (supervisor-owned node) |
+| Mark milestone achieved | DAG Assembler | `update-status` action (verifies prerequisite nodes complete) |
+| Mark decision decided | DAG Assembler | `update-status` action (Supervisor provides status) |
+| Evaluate deterministic gates | DAG Assembler | `update-status` action (evaluates condition, sets status + verdict) |
 | Collect human input | Supervisor | `AskUserQuestion` |
 | Watch convergence | Supervisor | `outcome_trajectory` from Analyst |
 | Assemble nodes | DAG Assembler | `assemble-and-prepare` |
