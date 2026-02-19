@@ -212,7 +212,7 @@ Receives intent from the Supervisor (passed through from the State Analyst's rec
 - If the resolved catalog node **already** exists in the DAG: re-open it by adding a new history entry for the current pass. Do NOT re-infer structural edges (they persist from prior assembly). Do NOT duplicate the node.
 
 **Invariant Auto-Resolution**:
-When assembling a node, the Assembler checks invariants. If a prerequisite is missing (e.g., INV-002 requires constitution-gate before task nodes), the Assembler auto-adds the prerequisite. For gates marked `carry_forward: true` in the catalog, the Assembler checks prior pass history — if the gate passed in any prior pass, it auto-adds the node with a `passed` status in the current pass. The Supervisor never knows this happened.
+When assembling a node, the Assembler checks invariants. If a prerequisite is missing (e.g., INV-002 requires constitution-gate before task nodes), the Assembler auto-adds the prerequisite. For gates marked `carry_forward: true` in the catalog, the Assembler checks prior pass history — if the gate passed in any prior pass, it auto-adds the node with a `passed` status in the current pass. On pass 1, where no prior pass history exists, the mechanism auto-resolves the gate with `passed` status — trusting that the Supervisor's workflow has already verified the external prerequisite (e.g., constitution file exists on disk). The Supervisor never knows this happened.
 
 **Output**: `{valid, agent_type, agent_prompt, node_id}` or `{invalid, reason}`.
 
@@ -236,7 +236,7 @@ Updates the status of supervisor-owned nodes (decision, milestone, deterministic
 
 **Node type routing**:
 - **Decision nodes**: Supervisor collects user input via AskUserQuestion, then tells the Assembler to set status to `decided`.
-- **Milestone nodes**: Assembler verifies all prerequisite nodes are complete before setting status to `achieved`. Returns `{invalid, reason}` if prerequisites are not met.
+- **Milestone nodes**: Assembler verifies all prerequisite nodes are complete before setting status to `achieved`. Prerequisite edges are `depends_on` and `validates` — these are the only edge types that imply execution ordering. Other edge types (`produces`, `constrained_by`, `informed_by`, `triggered_by`) represent data flow or metadata and are not treated as prerequisites. Returns `{invalid, reason}` if prerequisites are not met.
 - **Deterministic gates**: Assembler evaluates the gate condition (e.g., file existence check) and sets both `status` and `verdict`.
 
 **Output**: `{valid, node_id, new_status}` or `{invalid, reason}`.
