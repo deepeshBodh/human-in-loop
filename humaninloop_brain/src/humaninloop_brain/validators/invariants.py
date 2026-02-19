@@ -11,14 +11,13 @@ from humaninloop_brain.graph.views import depends_on_view
 
 
 def check_invariants(dag: HasNodesAndEdges, catalog: NodeCatalog) -> ValidationResult:
-    """Check assembly-time invariants.
+    """Check system invariants.
 
     INV-001: Task output must pass through gate before milestone.
     INV-002: Constitution gate exists before spec task nodes.
     INV-003: validates edges originate from gate nodes.
+    INV-004: Maximum 5 passes (structural invariant, not advisory).
     INV-005: depends-on acyclicity (delegates to guard).
-
-    Runtime invariant INV-004 is NOT checked here.
     """
     violations: list[ValidationViolation] = []
 
@@ -124,13 +123,13 @@ def check_invariants(dag: HasNodesAndEdges, catalog: NodeCatalog) -> ValidationR
                     )
                 )
 
-    # INV-004: Maximum 5 passes (runtime warning, checked for v3 StrategyGraph)
+    # INV-004: Maximum 5 passes (structural invariant — not advisory)
     current_pass = getattr(dag, "current_pass", None)
     if current_pass is not None and current_pass > 5:
         violations.append(
             ValidationViolation(
                 code="INV-004",
-                severity="warning",
+                severity="error",
                 message=(
                     f"Current pass ({current_pass}) exceeds maximum of 5 — "
                     f"mandatory human checkpoint required"

@@ -58,7 +58,7 @@ The `recommendation` object comes from the State Analyst's ranked recommendation
    - If `resolution_failed` with `semantic_fallback_failed`: return `{"status": "invalid", "reason": "no matching catalog node for tags or intent", "tags": [...]}`
    - If `resolution_failed` with `no_match` (no intent provided): return `{"status": "invalid", "reason": "no matching catalog node for tags", "tags": [...]}`
 2. **Bootstrap**: If DAG file does not exist, include `--workflow <workflow_id>` in the CLI call. The CLI auto-creates the StrategyGraph on first call _(CLI)_
-3. **Invariant auto-resolution**: If CLI returns an invariant violation for a prerequisite gate with `carry_forward: true` in the catalog, auto-add that gate first with `completed` status, then retry the original assembly. The Supervisor never knows this happened _(agent + CLI)_
+3. **Invariant auto-resolution**: If CLI returns an invariant violation for a prerequisite gate with `carry_forward: true` in the catalog, auto-add that gate first with `passed` status, then retry the original assembly. The Supervisor never knows this happened _(agent + CLI)_
 4. If CLI returns `"status": "invalid"` after auto-resolution attempt, stop and return the validation result _(agent)_
 5. Construct NL prompt for domain agent (see NL Prompt Construction Patterns) _(agent)_
 6. Return combined output: CLI graph result + agent-constructed prompt fields _(agent)_
@@ -67,27 +67,34 @@ The `recommendation` object comes from the State Analyst's ranked recommendation
 ```json
 {
   "status": "valid",
+  "node_id": "analyst-review",
   "node_added": {"id": "analyst-review", "type": "task", "status": "pending"},
   "edges_inferred": 2,
   "validation": {"status": "valid", "checks": [...], "summary": {...}},
-  "agent_prompt": "Read your instructions from: specs/001-feature/.workflow/context.md",
-  "agent_type": "humaninloop:requirements-analyst"
+  "dispatch_mode": "agent",
+  "agent_type": "humaninloop:requirements-analyst",
+  "agent_prompt": "Read your instructions from: specs/001-feature/.workflow/context.md"
 }
 ```
 
-Fields `status`, `node_added`, `edges_inferred`, and `validation` come from the CLI. Fields `agent_prompt`, `agent_type` (or their alternatives below) are constructed by the DAG Assembler agent from the catalog contract and NL Prompt Construction Patterns.
+Fields `status`, `node_added`, `edges_inferred`, and `validation` come from the CLI. The `node_id` field is a top-level convenience (same as `node_added.id`). Fields `dispatch_mode` and its associated fields are constructed by the DAG Assembler agent from the catalog contract and NL Prompt Construction Patterns.
 
-**Special cases by node type**:
+**Dispatch modes** — the Supervisor routes on `dispatch_mode` without interpreting node types:
 
-| Node Type | Agent | Agent-Constructed Output |
-|-----------|-------|--------------------------|
-| task (with plugin agent) | Plugin agent (e.g., requirements-analyst) | `agent_prompt` + `agent_type` as `humaninloop:<name>` |
-| task (with built-in agent) | Built-in agent (e.g., Explore) | `agent_prompt` + `agent_type` as bare name (e.g., `"Explore"`) |
-| task (skill-based, agent: null) | Skill invocation | `skill_to_invoke` + `skill_args` instead of agent_prompt |
-| gate (with plugin agent) | Plugin agent (e.g., devils-advocate) | `agent_prompt` + `agent_type` as `humaninloop:<name>` |
-| gate (no agent, e.g. constitution-gate) | Assembler evaluates condition in update-status | `gate_type: "deterministic"` + `check_type: "file-check"` + `check_path` + `check_description` |
-| decision | User interaction | `decision_type: "user-clarification"` + `unresolved_items` from the recommendation's parameters (provided by Supervisor, sourced from State Analyst's `unresolved` field) |
-| milestone | None | `milestone_type: "completion"` + `required_artifacts` to verify |
+| `dispatch_mode` | When | Additional Fields |
+|-----------------|------|-------------------|
+| `"agent"` | Task or gate nodes with a backing agent | `agent_type`, `agent_prompt` |
+| `"skill"` | Skill-based task nodes (`agent: null` in catalog) | `skill_to_invoke`, `skill_args` |
+| `"supervisor-owned"` | Decision, milestone, or deterministic gate nodes | `supervisor_action` + action-specific fields (see below) |
+| `"auto-resolved"` | Carry-forward gates auto-resolved during invariant check | No additional fields — node already completed |
+
+**Supervisor-owned actions** (returned when `dispatch_mode` is `"supervisor-owned"`):
+
+| `supervisor_action` | When | Additional Fields |
+|---------------------|------|-------------------|
+| `"collect-input"` | Decision nodes requiring user input | `questions` (AskUserQuestion-compatible format, sourced from recommendation parameters) |
+| `"evaluate-gate"` | Deterministic gates (Assembler evaluates in `update-status`) | None |
+| `"verify-milestone"` | Milestone nodes (Assembler verifies prerequisites in `update-status`) | None |
 
 **`agent_type` naming convention**: Plugin agents use `humaninloop:<agent-name>` (e.g., `humaninloop:requirements-analyst`). Built-in Claude Code agents use their bare Task subagent type (e.g., `Explore`).
 
@@ -95,25 +102,41 @@ Fields `status`, `node_added`, `edges_inferred`, and `validation` come from the 
 
 Freeze the current pass, add triggered_by edges, and optionally create the next pass.
 
-**Input** (from Supervisor):
+**Input** (from Supervisor — two modes):
+
+Normal flow (verdict-driven):
 ```json
 {
   "action": "freeze-pass",
   "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
-  "catalog_path": "${CLAUDE_PLUGIN_ROOT}/catalogs/specify-catalog.json",
-  "feature_dir": "specs/001-feature",
   "outcome": "completed",
-  "detail": "advocate-verdict-needs-revision",
-  "rationale": "Advocate found 3 gaps. Freezing pass 1 for new assembly.",
-  "trigger_source": "advocate-review",
-  "triggered_nodes": ["analyst-review", "advocate-review"],
-  "reason": "needs-revision, 3 gaps found"
+  "analyst_response": {
+    "node_id": "advocate-review",
+    "status": "completed",
+    "verdict": "needs-revision",
+    "summary": "Advocate found 3 gaps: 2 knowledge, 1 preference.",
+    "recommendations": [...]
+  }
+}
+```
+
+Halt (emergency stop — no analyst_response):
+```json
+{
+  "action": "freeze-pass",
+  "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
+  "outcome": "halted",
+  "detail": "Domain agent produced unusable output",
+  "rationale": "Parse failure — normal flow cannot continue"
 }
 ```
 
 **Process**:
-1. Freeze DAG pass: `hil-dag freeze <dag_path> --outcome <outcome> --detail <detail> [--triggered-nodes <node_id>...] [--trigger-source <gate_node_id>] [--reason <reason>]` _(CLI — atomically freezes all current-pass history entries, updates pass metadata, creates triggered_by edges from trigger_source gate to each triggered node, creates next pass entry if triggered_nodes provided)_
-2. Return confirmation
+1. **Extract freeze parameters** from input:
+   - From `analyst_response` (normal flow): `detail` from verdict, `trigger_source` from node_id (the gate that triggered the pass transition), `reason` from summary. Determine `triggered_nodes` from graph topology — analyze edges to identify which nodes need re-execution in the next pass.
+   - From explicit fields (halt): use `detail` and `rationale` directly. No triggered_nodes.
+2. Freeze DAG pass: `hil-dag freeze <dag_path> --outcome <outcome> --detail <detail> [--triggered-nodes <node_id>...] [--trigger-source <gate_node_id>] [--reason <reason>]` _(CLI — atomically freezes all current-pass history entries, updates pass metadata, creates triggered_by edges from trigger_source gate to each triggered node, creates next pass entry if triggered_nodes provided)_
+3. Return confirmation
 
 **Output** (to Supervisor):
 ```json
@@ -121,7 +144,7 @@ Freeze the current pass, add triggered_by edges, and optionally create the next 
   "pass_frozen": true,
   "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
   "outcome": "completed",
-  "detail": "advocate-verdict-needs-revision",
+  "outcome_detail": "advocate-verdict-needs-revision",
   "nodes_total": 3,
   "edges_total": 5
 }
@@ -131,14 +154,35 @@ Freeze the current pass, add triggered_by edges, and optionally create the next 
 
 Update the status of a supervisor-owned node (decision, milestone, or deterministic gate). These nodes have no domain agent. For decisions, the Supervisor collects user input first. For deterministic gates, the Assembler evaluates the gate condition. For milestones, the Assembler verifies prerequisite nodes are complete.
 
-**Input** (from Supervisor):
+**Input** (from Supervisor — varies by node type):
+
+Deterministic gate (Assembler evaluates autonomously — no status or verdict from Supervisor):
 ```json
 {
   "action": "update-status",
   "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
-  "node_id": "constitution-gate",
-  "status": "passed",
-  "verdict": null
+  "node_id": "constitution-gate"
+}
+```
+
+Decision node (Supervisor collected user input):
+```json
+{
+  "action": "update-status",
+  "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
+  "node_id": "human-clarification",
+  "status": "decided",
+  "answers": {"Q1": "Option A selected", "Q2": "Custom response"}
+}
+```
+
+Milestone node (Assembler verifies prerequisites):
+```json
+{
+  "action": "update-status",
+  "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
+  "node_id": "spec-complete",
+  "status": "achieved"
 }
 ```
 
@@ -148,15 +192,16 @@ Update the status of a supervisor-owned node (decision, milestone, or determinis
 1. Read the gate's `check_type` and `check_path` from the assemble-and-prepare output (or from the catalog contract)
 2. Evaluate the condition (e.g., check file existence at `check_path`)
 3. Determine status (`"passed"` or `"failed"`) and verdict (`"ready"` or `"critical-gaps"`) based on the evaluation result
-4. Update atomically: `hil-dag status <dag_path> --node <node_id> --status <status> --verdict <verdict>` _(CLI — updates status + verdict in current pass history entry, recomputes derived fields)_
+4. Update atomically: `hil-dag status <dag_path> --node <node_id> --status <status> --verdict <verdict> --pass <current_pass>` _(CLI — updates status + verdict in current pass history entry, recomputes derived fields)_
 
 **Decision nodes** — The Supervisor already collected user input:
-1. Update status: `hil-dag status <dag_path> --node <node_id> --status decided` _(CLI)_
+1. Write answers to the appropriate artifact path (determined from catalog contract)
+2. Update status: `hil-dag status <dag_path> --node <node_id> --status decided --pass <current_pass>` _(CLI)_
 
 **Milestone nodes** — The Assembler verifies prerequisites:
 1. Read the DAG to find all nodes with `depends_on` or `validates` edges leading to this milestone
 2. Verify all prerequisite nodes have status `completed` (tasks) or `passed`/`completed` (gates) in the current pass
-3. If all prerequisites met: `hil-dag status <dag_path> --node <node_id> --status achieved` _(CLI)_
+3. If all prerequisites met: `hil-dag status <dag_path> --node <node_id> --status achieved --pass <current_pass>` _(CLI)_
 4. If prerequisites not met: return `{"status": "invalid", "reason": "prerequisite nodes incomplete", "incomplete": [<node_ids>]}`
 
 **Output** (to Supervisor):
@@ -293,7 +338,7 @@ All artifacts follow a consistent directory structure. Catalog contracts use log
 
 - The DAG Assembler never directly modifies source artifacts (spec.md, reports) — it only writes DAG JSON files and context.md. Domain agents, operating under their own instructions, write to source artifacts.
 - Always validate invariants before confirming node assembly
-- Auto-resolve prerequisite invariant violations when `carry_forward: true` gates have passed in prior passes — the Supervisor is never informed of auto-resolution
+- Auto-resolve prerequisite invariant violations when `carry_forward: true` gates have passed in prior passes — auto-add with `passed` status. The Supervisor is never informed of auto-resolution
 - Report ALL non-auto-resolvable errors to Supervisor — never silently recover
 - Construct NL prompts using decoupled conventions (point agent at artifacts on disk, provide minimal instructions, let the agent's own system prompt guide behavior)
 - Infer edges from contract consumes/produces matching against existing nodes (new nodes only — re-opened nodes skip edge inference)

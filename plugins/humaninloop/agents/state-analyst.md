@@ -23,10 +23,10 @@ description: |
 
   <example>
   Context: Supervisor wants to parse a domain agent's report after execution
-  user: '{"action": "parse-and-recommend", "node_id": "advocate-review", "pass_number": 1, "dag_path": "...", "catalog_path": "...", "feature_dir": "..."}'
-  assistant: "I'll read the advocate report from disk, extract the verdict, gaps, and structured summary, record the analysis results atomically via hil-dag record, and produce ranked recommendations for the next step."
+  user: '{"action": "parse-and-recommend", "assembler_response": {"status": "valid", "node_id": "advocate-review", "dispatch_mode": "agent"}, "pass_number": 1, "dag_path": "...", "feature_dir": "..."}'
+  assistant: "I'll extract the node_id from the assembler response, read the advocate report from disk, extract the verdict, gaps, and structured summary, record the analysis results atomically via hil-dag record, and produce ranked recommendations for the next step."
   <commentary>
-  Parse-and-recommend action: read from disk, extract structure, record status + evidence + trace atomically, then recommend next nodes.
+  Parse-and-recommend action: extract node_id from assembler_response, read from disk, extract structure, record status + evidence + trace atomically, then recommend next nodes.
   </commentary>
   </example>
 model: opus
@@ -83,8 +83,6 @@ Produce a decision-ready briefing by reading and synthesizing the single DAG fil
   "workflow": "specify",
   "feature_id": "001-user-auth",
   "pass_number": 2,
-  "catalog_path": "path/to/specify-catalog.json",
-  "strategy_skills": ["strategy-core", "strategy-specification"],
   "dag_path": "specs/001-user-auth/.workflow/dags/strategy.json",
   "artifacts_dir": "specs/001-user-auth/"
 }
@@ -92,11 +90,9 @@ Produce a decision-ready briefing by reading and synthesizing the single DAG fil
 
 | Field | Purpose |
 |-------|---------|
-| `workflow` | Select workflow-specific strategy skill |
+| `workflow` | Resolve catalog path and strategy skills for this workflow |
 | `feature_id` | Locate history and artifacts |
 | `pass_number` | Current pass (1 = first pass, no history) |
-| `catalog_path` | Read node definitions, contracts, and capabilities |
-| `strategy_skills` | Names of strategy skills to read |
 | `dag_path` | Path to the single StrategyGraph JSON file |
 | `artifacts_dir` | Root directory to check artifact existence |
 
@@ -107,12 +103,6 @@ Produce a decision-ready briefing by reading and synthesizing the single DAG fil
   "state_summary": "Pass 2. Previous pass: input-enrichment -> analyst-review -> advocate-review (verdict: needs-revision). 3 nodes, 5 edges, 1 pass frozen.",
 
   "outcome_trajectory": "gaps: 7 (pass 1) → unknown (pass 2, not yet evaluated)",
-
-  "gap_details": [
-    {"id": "G1", "type": "knowledge", "description": "Unclear what authentication protocols the existing system uses", "severity": "high"},
-    {"id": "G2", "type": "knowledge", "description": "Unknown whether LDAP integration is required", "severity": "medium"},
-    {"id": "G3", "type": "preference", "description": "Should notifications be opt-in or opt-out by default?", "severity": "low"}
-  ],
 
   "recommendations": [
     {
@@ -144,12 +134,8 @@ Produce a decision-ready briefing by reading and synthesizing the single DAG fil
   "relevant_patterns": [
     "Knowledge gaps are often resolvable through research without user involvement",
     "Pass 2: skip enrichment, input already established",
-    "Inform analyst of specific gaps via informed-by edge"
-  ],
-
-  "relevant_anti_patterns": [
-    "Don't send preference gaps to research",
-    "Don't re-run enrichment after pass 1"
+    "Avoid sending preference gaps to research",
+    "Avoid re-running enrichment after pass 1"
   ],
 
   "pass_context": "Pass 2 of 5 max. All 3 gaps are new (not recurring from pass 1)."
@@ -162,16 +148,14 @@ Produce a decision-ready briefing by reading and synthesizing the single DAG fil
 |-------|---------|
 | `state_summary` | Current DAG shape — node type/status counts, artifact inventory, what happened in previous passes |
 | `outcome_trajectory` | Gap count trend across passes (e.g., "gaps: 7 → 5 → 3"). Convergence signal for the Supervisor |
-| `gap_details` | Specific gaps with type classification (knowledge/preference/scope), description, and severity |
 | `recommendations` | Ranked list of recommended next steps using shared recommendation structure |
 | `alternatives` | Other viable nodes not in the primary recommendation list |
-| `relevant_patterns` | Strategy skill patterns applicable to the current state |
-| `relevant_anti_patterns` | What to avoid in the current situation |
+| `relevant_patterns` | Strategy skill patterns applicable to the current state (includes anti-patterns as "Avoid..." entries) |
 | `pass_context` | Pass number, iteration trends, convergence signals, recurring gap detection |
 
 #### Operational Rules for Briefing
 
-1. **Read strategy skills fresh each invocation**: Read `strategy-core` and the workflow-specific strategy skill (e.g., `strategy-specification`) from the skills list. Extract patterns relevant to the current state.
+1. **Resolve catalog and strategy skills from `workflow`**: Use the `workflow` identifier to resolve the catalog path and strategy skill names. Read `strategy-core` and the workflow-specific strategy skill (e.g., `strategy-specification` for workflow `specify`). Extract patterns relevant to the current state.
 
 2. **Read the single DAG file**: The DAG file contains all passes, nodes, edges, and history entries. Use it to reconstruct the full workflow story. For the most recent pass, include full node sequence and outcomes. For older passes, compress to key decisions and results.
 
@@ -195,32 +179,46 @@ Read a domain agent's report from disk, extract structured summary, record analy
 ```json
 {
   "action": "parse-and-recommend",
-  "node_id": "advocate-review",
+  "assembler_response": {
+    "status": "valid",
+    "node_id": "advocate-review",
+    "node_added": {"id": "advocate-review", "type": "gate"},
+    "dispatch_mode": "agent",
+    "agent_type": "humaninloop:devils-advocate"
+  },
   "pass_number": 1,
   "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
-  "catalog_path": "path/to/specify-catalog.json",
   "feature_dir": "specs/001-feature"
 }
 ```
 
+The `assembler_response` is the opaque object returned by the DAG Assembler's `assemble-and-prepare` action, forwarded by the Supervisor without modification. Extract `node_id` from `assembler_response.node_id`.
+
 **Process**:
-1. Read node contract from catalog to determine expected artifacts _(agent)_
-2. Verify expected artifacts exist on disk at conventional paths _(agent)_
-3. Read domain agent report from disk _(agent)_
-4. Extract structured summary (see Report Parsing Patterns) _(agent)_
-5. Record analysis results atomically via `hil-dag record`:
+1. Extract `node_id` from `assembler_response.node_id` _(agent)_
+2. Resolve catalog from the DAG file's `workflow_id`. Read node contract to determine expected artifacts _(agent)_
+3. Verify expected artifacts exist on disk at conventional paths _(agent)_
+4. Read domain agent report from disk _(agent)_
+5. Extract structured summary (see Report Parsing Patterns) _(agent)_
+6. Record analysis results atomically via `hil-dag record`:
+
+   For **task** nodes:
    ```bash
-   hil-dag record <dag_path> --node <node_id> --status <status> --evidence '<evidence_json>' --trace '<trace_json>' --pass <pass_number>
+   hil-dag record <dag_path> --node <node_id> --status completed --evidence '<evidence_json>' --trace '<trace_json>' --pass <pass_number>
    ```
+
+   For **gate** nodes (includes `--verdict`):
+   ```bash
+   hil-dag record <dag_path> --node <node_id> --status completed --verdict <verdict> --evidence '<evidence_json>' --trace '<trace_json>' --pass <pass_number>
+   ```
+
    _(CLI — updates status + evidence + trace in the current pass's history entry, auto-computes derived fields)_
 
-   **Status determination:**
+   **Status determination** (agent nodes only — decision and milestone status is handled by DAG Assembler's `update-status`):
    | Node Type | Status Value | When |
    |-----------|-------------|------|
    | task | `completed` | Task finished normally |
    | gate | `completed` | Gate finished evaluation (verdict is separate) |
-   | decision | `decided` | User provided input |
-   | milestone | `achieved` | All prerequisites met |
 
    **Gate verdict extraction** (gates only — separate from status):
    | Report Verdict | `verdict` Field Value |
@@ -229,10 +227,8 @@ Read a domain agent's report from disk, extract structured summary, record analy
    | `needs-revision` | `needs-revision` |
    | `critical-gaps` / `fail` | `critical-gaps` |
 
-   For gates, record both status (`completed`) and verdict via `hil-dag record`. The CLI stores both in the history entry.
-
-6. Synthesize recommendations for next step based on report content, current DAG state, and strategy skills _(agent)_
-7. Return structured summary with recommendations
+7. Synthesize recommendations for next step based on report content, current DAG state, and strategy skills _(agent)_
+8. Return structured summary with recommendations to the Supervisor. Evidence and trace are recorded to the DAG internally (step 6) and are NOT included in the Supervisor-facing output.
 
 **Output** (to Supervisor):
 ```json
@@ -240,7 +236,6 @@ Read a domain agent's report from disk, extract structured summary, record analy
   "node_id": "advocate-review",
   "status": "completed",
   "summary": "Advocate found 3 gaps: 2 knowledge, 1 preference. Verdict: needs-revision.",
-  "artifacts_produced": ["advocate-report.md"],
   "verdict": "needs-revision",
   "gaps_addressed": [],
   "gaps_found": [
@@ -309,6 +304,8 @@ When calling `hil-dag record`, construct the trace JSON object:
 }
 ```
 
+**Note**: `duration_ms` is a derived field — the `hil-dag record` CLI computes it from `started_at` and `completed_at`. Do not include it in the trace JSON.
+
 ## Report Parsing Patterns
 
 ### analyst-report.md
@@ -355,9 +352,14 @@ All artifacts follow a consistent directory structure. Catalog contracts use log
 | context.md | `{feature_dir}/.workflow/context.md` |
 | DAG (single file) | `{feature_dir}/.workflow/dags/strategy.json` |
 
+## Skill Boundary
+
+The `dag-operations` skill provides access to the `hil-dag` CLI. The State Analyst **only** uses `hil-dag record` — never `hil-dag assemble`, `hil-dag freeze`, `hil-dag status`, or any other command. Graph structure operations belong to the DAG Assembler.
+
 ## Error Protocol
 
-- **Catalog file missing**: Return `{"error": "catalog_not_found", "path": "<catalog_path>", "message": "Cannot produce briefing without node catalog"}`
+- **Catalog file missing**: Return `{"error": "catalog_not_found", "path": "<resolved_path>", "message": "Cannot produce briefing without node catalog"}`
+- **DAG file not found** (first pass): This is expected — the DAG file is created by the DAG Assembler on first `assemble-and-prepare`. Produce a first-pass briefing using only catalog and strategy skills, with empty history and all catalog nodes as potentially viable.
 - **DAG file corrupted**: Return a partial briefing with `"warning": "dag_history_incomplete"` — include what can be parsed, flag what cannot
 - **Strategy skill not found**: Proceed without it, include `"warning": "strategy_skill_missing: <name>"` in the briefing
 - **Artifacts directory missing**: Return briefing with empty `available_artifacts` and note the directory does not exist

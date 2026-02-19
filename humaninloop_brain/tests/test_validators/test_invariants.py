@@ -185,13 +185,13 @@ class TestINV004:
         inv004 = [v for v in result.violations if v.code == "INV-004"]
         assert len(inv004) == 0
 
-    def test_over_limit_warning(self, load_fixture):
+    def test_over_limit_error(self, load_fixture):
         catalog = _make_catalog(load_fixture)
         sg = StrategyGraph(id="sg", workflow_id="w", current_pass=6)
         result = check_invariants(sg, catalog)
         inv004 = [v for v in result.violations if v.code == "INV-004"]
         assert len(inv004) == 1
-        assert inv004[0].severity == "warning"
+        assert inv004[0].severity == "error"
 
 
 class TestINV005:

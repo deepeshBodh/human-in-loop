@@ -119,10 +119,12 @@ class TestSpecifyCatalogConsistency:
                 f"Node type '{node_type}' from catalog not found in specify.md routing"
             )
 
-    def test_strategy_skills_referenced(self, specify_text):
-        """specify.md references strategy-core and strategy-specification."""
-        assert "strategy-core" in specify_text
-        assert "strategy-specification" in specify_text
+    def test_strategy_skills_delegated_to_analyst(self, specify_text):
+        """specify.md delegates strategy skill resolution to the Analyst via workflow identifier."""
+        # V3: Supervisor does not name strategy skills directly — the Analyst
+        # resolves them from the workflow identifier
+        assert "workflow" in specify_text
+        assert "Analyst" in specify_text or "analyst" in specify_text
 
     def test_advocate_verdicts_covered(self, specify_text, catalog):
         """All advocate verdict values from catalog are handled in specify.md."""
@@ -216,13 +218,12 @@ class TestStateAnalystCatalogConsistency:
             assert gap_type in analyst_text
 
     def test_output_fields_documented(self, analyst_text):
-        """All required output fields are documented."""
+        """All required V3 output fields are documented."""
+        # V3 briefing output fields (gap_details and relevant_anti_patterns removed)
         required_fields = [
             "state_summary",
-            "gap_details",
             "recommendations",
             "relevant_patterns",
-            "relevant_anti_patterns",
             "pass_context",
             "outcome_trajectory",
             "alternatives",
@@ -307,11 +308,11 @@ class TestCrossAgentRoutingCoverage:
                 f"NL prompt pattern in DAG Assembler"
             )
 
-    def test_all_node_types_in_routing_table(self, catalog, specify_text):
-        """All 4 node types appear in specify.md Step 4 routing table."""
-        for node_type in ["task", "gate", "decision", "milestone"]:
-            assert f"**{node_type}**" in specify_text, (
-                f"Node type '{node_type}' not in specify.md routing table"
+    def test_dispatch_modes_in_routing_table(self, catalog, specify_text):
+        """V3 dispatch_mode routing covers all 4 modes in specify.md."""
+        for mode in ["agent", "skill", "supervisor-owned", "auto-resolved"]:
+            assert mode in specify_text, (
+                f"dispatch_mode '{mode}' not in specify.md routing table"
             )
 
     def test_skill_based_nodes_have_skill_reference(self, catalog, assembler_text):

@@ -9,7 +9,7 @@ from pathlib import Path
 from humaninloop_brain.entities.catalog import NodeCatalog
 from humaninloop_brain.entities.dag_pass import PassEntry
 from humaninloop_brain.entities.edges import Edge
-from humaninloop_brain.entities.enums import EdgeType, TYPE_STATUS_MAP
+from humaninloop_brain.entities.enums import EdgeType, GateVerdict, NodeType, TYPE_STATUS_MAP
 from humaninloop_brain.entities.nodes import (
     EvidenceAttachment,
     GraphNode,
@@ -30,11 +30,16 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _latest_history_entry(history: list[NodeHistoryEntry]) -> NodeHistoryEntry:
+    """Return the history entry with the highest pass number."""
+    return max(history, key=lambda e: e.pass_number)
+
+
 def _recompute_derived(node: GraphNode) -> GraphNode:
     """Return new GraphNode with status/verdict/last_active_pass derived from latest history entry."""
     if not node.history:
         return node
-    latest = node.history[-1]
+    latest = _latest_history_entry(node.history)
     return GraphNode(
         id=node.id,
         type=node.type,
@@ -50,11 +55,19 @@ def _recompute_derived(node: GraphNode) -> GraphNode:
     )
 
 
-def create_strategy_graph(workflow_id: str) -> StrategyGraph:
-    """Create a new StrategyGraph with an initial pass 1 entry."""
+def create_strategy_graph(
+    workflow_id: str, graph_id: str | None = None,
+) -> StrategyGraph:
+    """Create a new StrategyGraph with an initial pass 1 entry.
+
+    Args:
+        workflow_id: The workflow type (e.g., "specify").
+        graph_id: Optional custom graph ID. Defaults to "{workflow_id}-strategy".
+            Use "{workflow_id}-{feature_id}" for feature-level disambiguation.
+    """
     now = _now_iso()
     return StrategyGraph(
-        id=f"{workflow_id}-strategy",
+        id=graph_id or f"{workflow_id}-strategy",
         workflow_id=workflow_id,
         created_at=now,
         passes=[PassEntry(pass_number=1, created_at=now)],
@@ -175,6 +188,20 @@ def update_node_history(
                 f"'{node.type.value}'. Valid: {sorted(valid_values)}"
             )
 
+        # Validate verdict: only allowed on gate nodes, must be valid GateVerdict
+        if verdict is not None:
+            if node.type != NodeType.gate:
+                raise ValueError(
+                    f"Verdict is only valid for gate nodes, but node "
+                    f"'{node_id}' is type '{node.type.value}'"
+                )
+            valid_verdicts = {v.value for v in GateVerdict}
+            if verdict not in valid_verdicts:
+                raise ValueError(
+                    f"Verdict '{verdict}' is not valid. "
+                    f"Valid verdicts: {sorted(valid_verdicts)}"
+                )
+
         # Find or create history entry for this pass
         new_history = list(node.history)
         entry_idx = None
@@ -212,7 +239,8 @@ def update_node_history(
             )
 
         # Build updated node with derived fields from latest history entry
-        latest = new_history[-1]
+        # Use max(pass_number) not [-1] to handle out-of-order appends correctly
+        latest = _latest_history_entry(new_history)
         updated = GraphNode(
             id=node.id,
             type=node.type,
@@ -250,15 +278,38 @@ def freeze_current_pass(
             Required when triggered_nodes is provided. Each triggered_by edge
             runs from this source to each triggered node.
     """
-    if triggered_nodes and not trigger_source:
+    if triggered_nodes is not None and not trigger_source:
         raise ValueError(
             "trigger_source is required when triggered_nodes is provided"
         )
 
+    # Validate trigger_source exists and is a gate node
+    node_ids = {n.id for n in graph.nodes}
+    if trigger_source is not None:
+        if trigger_source not in node_ids:
+            raise ValueError(
+                f"trigger_source '{trigger_source}' does not exist in graph"
+            )
+        source_node = next(n for n in graph.nodes if n.id == trigger_source)
+        from humaninloop_brain.entities.enums import NodeType
+        if source_node.type != NodeType.gate:
+            raise ValueError(
+                f"trigger_source '{trigger_source}' is type "
+                f"'{source_node.type.value}' but must be a gate node"
+            )
+
+    # Validate triggered_nodes all exist in graph
+    if triggered_nodes:
+        missing = [nid for nid in triggered_nodes if nid not in node_ids]
+        if missing:
+            raise ValueError(
+                f"triggered_nodes reference nonexistent nodes: {missing}"
+            )
+
     # INV-004: Refuse to create pass beyond maximum (structural invariant)
     _MAX_PASSES = 5
     current = graph.current_pass
-    if triggered_nodes and current >= _MAX_PASSES:
+    if triggered_nodes is not None and current >= _MAX_PASSES:
         raise ValueError(
             f"INV-004: Cannot create pass {current + 1}. "
             f"Maximum {_MAX_PASSES} passes reached — mandatory human checkpoint required."
@@ -281,7 +332,7 @@ def freeze_current_pass(
                 )
                 changed = True
         if changed:
-            latest = new_history[-1]
+            latest = _latest_history_entry(new_history)
             new_nodes[i] = GraphNode(
                 id=node.id,
                 type=node.type,
@@ -319,7 +370,7 @@ def freeze_current_pass(
         "edges": new_edges,
     }
 
-    if triggered_nodes:
+    if triggered_nodes is not None:
         next_pass = current + 1
         for target_node_id in triggered_nodes:
             edge_id = f"triggered-by-{trigger_source}-{target_node_id}-pass{current}-to-pass{next_pass}"
@@ -339,8 +390,8 @@ def freeze_current_pass(
         new_passes.append(PassEntry(pass_number=next_pass, created_at=now))
         updates["current_pass"] = next_pass
 
-    # If no next pass created, mark graph as done
-    if not triggered_nodes:
+    # If no next pass created (triggered_nodes is None), mark graph as done
+    if triggered_nodes is None:
         updates["status"] = "completed"
         updates["completed_at"] = now
 
@@ -348,14 +399,53 @@ def freeze_current_pass(
 
 
 def save_graph(graph: StrategyGraph, path: str | Path) -> None:
-    """Save StrategyGraph to a JSON file.
+    """Save StrategyGraph to a JSON file using atomic write-validate-swap.
 
     Uses ``by_alias=True`` so ``pass_number`` serializes as ``"pass"`` in
     JSON, matching the V3 design doc schema.
+
+    Atomic write strategy (V3 risk mitigation for single-file corruption):
+    1. Backup existing file (if present) to .bak
+    2. Write to a temporary file (.tmp)
+    3. Validate the temporary file can be parsed back
+    4. Atomically rename .tmp to target path
     """
+    import os
+    import tempfile
+
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(graph.model_dump_json(indent=2, by_alias=True))
+    content = graph.model_dump_json(indent=2, by_alias=True)
+
+    # Step 1: Backup existing file
+    if path.exists():
+        backup = path.with_suffix(path.suffix + ".bak")
+        try:
+            backup.write_text(path.read_text())
+        except OSError:
+            pass  # Best-effort backup
+
+    # Step 2: Write to temporary file in the same directory
+    fd, tmp_path = tempfile.mkstemp(
+        dir=str(path.parent), suffix=".tmp", prefix=path.stem,
+    )
+    try:
+        os.write(fd, content.encode())
+        os.close(fd)
+
+        # Step 3: Validate the written file parses back
+        written = Path(tmp_path).read_text()
+        StrategyGraph.model_validate_json(written)
+
+        # Step 4: Atomic rename (same filesystem)
+        os.replace(tmp_path, str(path))
+    except Exception:
+        # Clean up temp file on failure
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
 
 
 def load_graph_file(path: str | Path) -> StrategyGraph:

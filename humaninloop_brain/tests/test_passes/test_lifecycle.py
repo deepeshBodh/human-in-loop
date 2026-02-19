@@ -121,11 +121,13 @@ class TestAddOrReopenNode:
     def test_reopen_unfrozen_pass_allowed(self, graph, catalog):
         """Reopening a node for a different (unfrozen) pass succeeds."""
         graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph, _ = add_or_reopen_node(graph, "advocate-review", catalog, 1)
         graph = update_node_history(graph, "analyst-review", 1, "completed")
+        graph = update_node_history(graph, "advocate-review", 1, "completed", verdict="needs-revision")
         graph = freeze_current_pass(
             graph, "completed", "needs-revision",
             triggered_nodes=["analyst-review"],
-            trigger_source="analyst-review",
+            trigger_source="advocate-review",
             reason="test",
         )
         # Pass 2 is unfrozen — reopening for pass 2 must succeed

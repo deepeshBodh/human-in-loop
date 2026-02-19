@@ -23,7 +23,9 @@ from humaninloop_brain.passes.lifecycle import (
 )
 from humaninloop_brain.validators.structural import validate_structure
 
-_VALID_OUTCOMES = frozenset({"completed", "halted"})
+from humaninloop_brain.entities.enums import PassOutcome
+
+_VALID_OUTCOMES = frozenset(o.value for o in PassOutcome)
 
 
 def validation_result_to_output(result: ValidationResult) -> dict:
@@ -190,7 +192,8 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                 "status": "error",
                 "message": "--workflow required when DAG file does not exist (bootstrap)",
             }, 1)
-        graph = create_strategy_graph(args.workflow)
+        graph_id = getattr(args, "graph_id", None)
+        graph = create_strategy_graph(args.workflow, graph_id=graph_id)
     else:
         graph = _load_graph(str(path))
 
@@ -270,16 +273,46 @@ def cmd_assemble(args: argparse.Namespace) -> int:
 def cmd_status(args: argparse.Namespace) -> int:
     graph = _load_graph(args.dag)
 
-    # Find current status
-    old_status = None
+    # Find target node
+    target_node = None
     for node in graph.nodes:
         if node.id == args.node:
-            old_status = node.status
+            target_node = node
             break
-    if old_status is None:
+    if target_node is None:
         return _output({"status": "error", "message": f"Node '{args.node}' not found"}, 1)
 
+    old_status = target_node.status
     pass_number = args.pass_number or graph.current_pass
+
+    # Node-type routing: milestone prerequisite verification
+    from humaninloop_brain.entities.enums import NodeType
+    if target_node.type == NodeType.milestone and args.status == "achieved":
+        # Verify all prerequisite nodes are complete in the current pass
+        prereq_node_ids = set()
+        for edge in graph.edges:
+            if edge.target == args.node and edge.type.value in ("depends_on", "validates"):
+                prereq_node_ids.add(edge.source)
+        incomplete = []
+        _TERMINAL = {"completed", "passed", "achieved", "decided"}
+        for prereq_id in prereq_node_ids:
+            prereq = next((n for n in graph.nodes if n.id == prereq_id), None)
+            if prereq is None:
+                incomplete.append(prereq_id)
+                continue
+            # Check current pass history entry
+            current_entry = next(
+                (e for e in prereq.history if e.pass_number == pass_number), None,
+            )
+            if current_entry is None or current_entry.status not in _TERMINAL:
+                incomplete.append(prereq_id)
+        if incomplete:
+            return _output({
+                "status": "invalid",
+                "reason": "prerequisite nodes incomplete",
+                "incomplete": incomplete,
+            }, 1)
+
     try:
         graph = update_node_history(
             graph, args.node, pass_number, args.status, verdict=args.verdict,
@@ -396,7 +429,7 @@ def cmd_freeze(args: argparse.Namespace) -> int:
             "message": "Current pass is already frozen",
         }, 1)
 
-    triggered = args.triggered_nodes or None
+    triggered = args.triggered_nodes  # None if flag absent, [] if flag with no args
     try:
         graph = freeze_current_pass(
             graph, args.outcome, args.detail,
@@ -505,6 +538,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Intent description for semantic fallback when capability tags fail",
     )
     p_asm.add_argument("--workflow", help="Workflow ID (required for bootstrap)")
+    p_asm.add_argument(
+        "--id", dest="graph_id", default=None,
+        help="Custom graph ID for bootstrap (default: {workflow}-strategy)",
+    )
     p_asm.add_argument(
         "--pass", dest="pass_number", type=int, default=None,
         help="Target pass number",
