@@ -258,3 +258,70 @@ class TestNodeCatalog:
         catalog = NodeCatalog.model_validate(data)
         matches = catalog.resolve_by_capabilities([])
         assert matches == []
+
+
+class TestResolveByDescription:
+    """Tests for semantic description fallback (V3 tier-2 intent resolution)."""
+
+    def test_unique_match_by_description(self, load_fixture):
+        """Intent matching a single node's description returns that node."""
+        data = load_fixture("specify-catalog.json")
+        catalog = NodeCatalog.model_validate(data)
+        matches = catalog.resolve_by_description(
+            "Investigate specific knowledge gaps identified by validation"
+        )
+        assert len(matches) == 1
+        assert matches[0].id == "targeted-research"
+
+    def test_no_match_returns_empty(self, load_fixture):
+        """Intent with no word overlap returns empty list."""
+        data = load_fixture("specify-catalog.json")
+        catalog = NodeCatalog.model_validate(data)
+        matches = catalog.resolve_by_description("zzz qqq xxx")
+        assert matches == []
+
+    def test_empty_intent_returns_empty(self, load_fixture):
+        """Empty intent string returns empty list."""
+        data = load_fixture("specify-catalog.json")
+        catalog = NodeCatalog.model_validate(data)
+        matches = catalog.resolve_by_description("")
+        assert matches == []
+
+    def test_node_type_filter(self, load_fixture):
+        """Node type filter narrows semantic results."""
+        data = load_fixture("specify-catalog.json")
+        catalog = NodeCatalog.model_validate(data)
+        # "specification" appears in both analyst-review (task) and
+        # advocate-review (gate) descriptions
+        matches = catalog.resolve_by_description(
+            "specification", node_type=NodeType.task,
+        )
+        task_ids = {m.id for m in matches}
+        assert all(m.type == NodeType.task for m in matches)
+        # Should not include advocate-review (gate type)
+        assert "advocate-review" not in task_ids
+
+    def test_candidates_parameter_narrows_pool(self, load_fixture):
+        """Providing candidates restricts search to those nodes only."""
+        data = load_fixture("specify-catalog.json")
+        catalog = NodeCatalog.model_validate(data)
+        # Get two candidates via capability match
+        candidates = catalog.resolve_by_capabilities(
+            ["gap-detection", "research"],
+        )
+        assert len(candidates) == 2
+        # Disambiguate using intent that matches targeted-research better
+        matches = catalog.resolve_by_description(
+            "Investigate knowledge gaps through research",
+            candidates=candidates,
+        )
+        assert len(matches) == 1
+        assert matches[0].id == "targeted-research"
+
+    def test_capabilities_included_in_scoring(self, load_fixture):
+        """Capability tag words contribute to description matching score."""
+        data = load_fixture("specify-catalog.json")
+        catalog = NodeCatalog.model_validate(data)
+        # "enrichment" appears in input-enrichment's capabilities
+        matches = catalog.resolve_by_description("input enrichment")
+        assert any(m.id == "input-enrichment" for m in matches)

@@ -53,9 +53,10 @@ Add or re-open a node in the current DAG pass, validate, and construct the domai
 The `recommendation` object comes from the State Analyst's ranked recommendations list, passed through without modification by the Supervisor. The DAG Assembler resolves it to a catalog node via capability tag matching.
 
 **Process** (CLI steps use `hil-dag`; agent steps are DAG Assembler logic):
-1. **Resolve node**: Run `hil-dag assemble <dag_path> --catalog <catalog_path> --capability-tags <tags> [--node-type <type>] [--workflow <workflow_id>]` _(CLI — resolves tags to catalog node, assembles, validates)_
-   - If `resolution_failed` with `ambiguous`: read candidate descriptions and recommendation `intent`, pick best match, retry with `--node <chosen_id>`
-   - If `resolution_failed` with `no_match`: return `{"status": "invalid", "reason": "no matching catalog node for tags", "tags": [...]}`
+1. **Resolve node**: Run `hil-dag assemble <dag_path> --catalog <catalog_path> --capability-tags <tags> --intent "<recommendation_intent>" [--node-type <type>] [--workflow <workflow_id>]` _(CLI — resolves tags to catalog node with semantic description fallback, assembles, validates)_
+   - Always pass `--intent` with the recommendation's `intent` text — the CLI uses it as a semantic fallback when capability tags produce zero or ambiguous matches
+   - If `resolution_failed` with `semantic_fallback_failed`: return `{"status": "invalid", "reason": "no matching catalog node for tags or intent", "tags": [...]}`
+   - If `resolution_failed` with `no_match` (no intent provided): return `{"status": "invalid", "reason": "no matching catalog node for tags", "tags": [...]}`
 2. **Bootstrap**: If DAG file does not exist, include `--workflow <workflow_id>` in the CLI call. The CLI auto-creates the StrategyGraph on first call _(CLI)_
 3. **Invariant auto-resolution**: If CLI returns an invariant violation for a prerequisite gate with `carry_forward: true` in the catalog, auto-add that gate first with `completed` status, then retry the original assembly. The Supervisor never knows this happened _(agent + CLI)_
 4. If CLI returns `"status": "invalid"` after auto-resolution attempt, stop and return the validation result _(agent)_

@@ -642,6 +642,88 @@ class TestAssembleCapabilityTags:
         assert out["node_added"]["id"] == "targeted-research"
 
 
+class TestAssembleSemanticFallback:
+    """Tests for tier-2 semantic description fallback in capability resolution."""
+
+    def test_no_match_with_intent_resolves_by_description(self, tmp_path, capsys):
+        """When tags fail but intent matches one node, resolution succeeds."""
+        dag_path = _bootstrap_graph(
+            tmp_path, capsys,
+            nodes=["constitution-gate", "analyst-review", "advocate-review"],
+        )
+        code = main([
+            "assemble", dag_path,
+            "--catalog", CATALOG,
+            "--capability-tags", "nonexistent-tag",
+            "--intent", "Investigate specific knowledge gaps identified by validation",
+        ])
+        assert code == 0
+        out = json.loads(capsys.readouterr().out)
+        assert out["status"] == "valid"
+        assert out["node_added"]["id"] == "targeted-research"
+
+    def test_no_match_without_intent_still_fails(self, tmp_path, capsys):
+        """When tags fail and no intent provided, returns no_match error."""
+        dag_path = _bootstrap_graph(tmp_path, capsys)
+        code = main([
+            "assemble", dag_path,
+            "--catalog", CATALOG,
+            "--capability-tags", "nonexistent-tag",
+        ])
+        assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert out["status"] == "resolution_failed"
+        assert out["reason"] == "no_match"
+        assert "resolution" not in out  # no semantic fallback attempted
+
+    def test_ambiguous_with_intent_disambiguates(self, tmp_path, capsys):
+        """When tags match multiple nodes but intent disambiguates, resolution succeeds."""
+        dag_path = _bootstrap_graph(
+            tmp_path, capsys,
+            nodes=["constitution-gate", "analyst-review", "advocate-review"],
+        )
+        # "gap-detection" + "research" matches advocate-review and targeted-research
+        # Intent about "knowledge gaps through research" should favor targeted-research
+        code = main([
+            "assemble", dag_path,
+            "--catalog", CATALOG,
+            "--capability-tags", "gap-detection", "research",
+            "--intent", "Investigate knowledge gaps through research",
+        ])
+        assert code == 0
+        out = json.loads(capsys.readouterr().out)
+        assert out["status"] == "valid"
+        assert out["node_added"]["id"] == "targeted-research"
+
+    def test_ambiguous_without_intent_still_fails(self, tmp_path, capsys):
+        """When tags match multiple nodes and no intent, returns ambiguous error."""
+        dag_path = _bootstrap_graph(tmp_path, capsys)
+        code = main([
+            "assemble", dag_path,
+            "--catalog", CATALOG,
+            "--capability-tags", "gap-detection", "research",
+        ])
+        assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert out["status"] == "resolution_failed"
+        assert out["reason"] == "ambiguous"
+
+    def test_no_match_intent_also_fails(self, tmp_path, capsys):
+        """When tags fail and intent also fails, returns no_match with semantic note."""
+        dag_path = _bootstrap_graph(tmp_path, capsys)
+        code = main([
+            "assemble", dag_path,
+            "--catalog", CATALOG,
+            "--capability-tags", "zzz-nonexistent",
+            "--intent", "qqq xxx yyy zzz",
+        ])
+        assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert out["status"] == "resolution_failed"
+        assert out["reason"] == "no_match"
+        assert out["resolution"] == "semantic_fallback_failed"
+
+
 class TestCatalogValidateCommand:
     def test_valid(self, capsys):
         code = main(["catalog-validate", CATALOG])

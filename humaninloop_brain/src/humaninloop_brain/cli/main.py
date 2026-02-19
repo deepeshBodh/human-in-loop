@@ -107,33 +107,79 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         from humaninloop_brain.entities.enums import NodeType as NT
         nt = NT(node_type_filter) if node_type_filter else None
         matches = catalog.resolve_by_capabilities(capability_tags, nt)
-        if len(matches) == 0:
-            available = [
-                {"id": n.id, "name": n.name, "capabilities": n.capabilities}
-                for n in catalog.nodes
-            ]
-            return _output({
-                "status": "resolution_failed",
-                "reason": "no_match",
-                "tags": capability_tags,
-                "available_nodes": available,
-            }, 1)
-        if len(matches) > 1:
-            candidates = [
-                {
-                    "id": n.id,
-                    "name": n.name,
-                    "capabilities": n.capabilities,
-                    "description": n.description,
-                }
-                for n in matches
-            ]
-            return _output({
-                "status": "resolution_failed",
-                "reason": "ambiguous",
-                "candidates": candidates,
-            }, 1)
-        node_id = matches[0].id
+        if len(matches) == 1:
+            node_id = matches[0].id
+        elif len(matches) == 0:
+            # Tier 2: semantic description fallback
+            intent = getattr(args, "intent", None)
+            if intent:
+                semantic = catalog.resolve_by_description(intent, nt)
+                if len(semantic) == 1:
+                    node_id = semantic[0].id
+                else:
+                    available = [
+                        {"id": n.id, "name": n.name, "capabilities": n.capabilities}
+                        for n in catalog.nodes
+                    ]
+                    return _output({
+                        "status": "resolution_failed",
+                        "reason": "no_match",
+                        "resolution": "semantic_fallback_failed",
+                        "tags": capability_tags,
+                        "intent": intent,
+                        "available_nodes": available,
+                    }, 1)
+            else:
+                available = [
+                    {"id": n.id, "name": n.name, "capabilities": n.capabilities}
+                    for n in catalog.nodes
+                ]
+                return _output({
+                    "status": "resolution_failed",
+                    "reason": "no_match",
+                    "tags": capability_tags,
+                    "available_nodes": available,
+                }, 1)
+        else:
+            # Tier 2: disambiguate among capability matches using intent
+            intent = getattr(args, "intent", None)
+            if intent:
+                semantic = catalog.resolve_by_description(
+                    intent, nt, candidates=matches,
+                )
+                if len(semantic) == 1:
+                    node_id = semantic[0].id
+                else:
+                    candidates = [
+                        {
+                            "id": n.id,
+                            "name": n.name,
+                            "capabilities": n.capabilities,
+                            "description": n.description,
+                        }
+                        for n in matches
+                    ]
+                    return _output({
+                        "status": "resolution_failed",
+                        "reason": "ambiguous",
+                        "resolution": "semantic_fallback_failed",
+                        "candidates": candidates,
+                    }, 1)
+            else:
+                candidates = [
+                    {
+                        "id": n.id,
+                        "name": n.name,
+                        "capabilities": n.capabilities,
+                        "description": n.description,
+                    }
+                    for n in matches
+                ]
+                return _output({
+                    "status": "resolution_failed",
+                    "reason": "ambiguous",
+                    "candidates": candidates,
+                }, 1)
     else:
         node_id = args.node
 
@@ -446,6 +492,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_asm.add_argument(
         "--node-type", dest="node_type", default=None,
         help="Node type filter for capability resolution",
+    )
+    p_asm.add_argument(
+        "--intent", default=None,
+        help="Intent description for semantic fallback when capability tags fail",
     )
     p_asm.add_argument("--workflow", help="Workflow ID (required for bootstrap)")
     p_asm.add_argument(

@@ -100,6 +100,48 @@ class NodeCatalog(BaseModel):
         tag_set = set(tags)
         return [n for n in candidates if set(n.capabilities) & tag_set]
 
+    @staticmethod
+    def _tokenize(text: str) -> set[str]:
+        """Lowercase, split on whitespace and hyphens, drop short tokens."""
+        words: set[str] = set()
+        for word in text.lower().replace("-", " ").split():
+            stripped = word.strip(".,;:!?()[]{}\"'")
+            if len(stripped) > 2:
+                words.add(stripped)
+        return words
+
+    def resolve_by_description(
+        self,
+        intent: str,
+        node_type: NodeType | None = None,
+        candidates: list[CatalogNodeDefinition] | None = None,
+    ) -> list[CatalogNodeDefinition]:
+        """Score catalog nodes by word overlap between intent and description/name.
+
+        Semantic fallback for when capability tag resolution fails.
+        Returns nodes with the highest non-zero overlap score.
+        If candidates provided, only scores those nodes.
+        """
+        pool = candidates if candidates is not None else self.nodes
+        if node_type is not None:
+            pool = [n for n in pool if n.type == node_type]
+        intent_words = self._tokenize(intent)
+        if not intent_words:
+            return []
+        scored: list[tuple[int, CatalogNodeDefinition]] = []
+        for node in pool:
+            node_words = self._tokenize(node.description) | self._tokenize(node.name)
+            for cap in node.capabilities:
+                node_words |= self._tokenize(cap)
+            overlap = len(intent_words & node_words)
+            if overlap > 0:
+                scored.append((overlap, node))
+        if not scored:
+            return []
+        scored.sort(key=lambda x: x[0], reverse=True)
+        top_score = scored[0][0]
+        return [n for score, n in scored if score == top_score]
+
     def get_edge_constraint(self, edge_type: EdgeType) -> EdgeConstraint | None:
         """Look up edge constraint by type."""
         return self.edge_constraints.get(edge_type)

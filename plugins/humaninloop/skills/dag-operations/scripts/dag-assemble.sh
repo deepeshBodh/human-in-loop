@@ -6,8 +6,8 @@ set -e
 # Usage (by node ID):
 #   dag-assemble.sh <dag-path> <catalog-path> --node <id> [--workflow <wf>]
 #
-# Usage (by capability tags):
-#   dag-assemble.sh <dag-path> <catalog-path> --capability-tags <t1> [<t2>...] [--node-type <type>] [--workflow <wf>]
+# Usage (by capability tags — primary resolution):
+#   dag-assemble.sh <dag-path> <catalog-path> --capability-tags <t1> [<t2>...] [--node-type <type>] [--intent "<desc>"] [--workflow <wf>]
 
 command -v hil-dag >/dev/null 2>&1 || { echo '{"status":"error","message":"hil-dag not found. Install: cd humaninloop_brain && uv sync"}' >&2; exit 1; }
 
@@ -38,6 +38,10 @@ while [ "$#" -gt 0 ]; do
             ;;
         --node-type)
             CMD+=(--node-type "$2")
+            shift 2
+            ;;
+        --intent)
+            CMD+=(--intent "$2")
             shift 2
             ;;
         --workflow)

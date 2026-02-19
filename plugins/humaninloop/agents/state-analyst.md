@@ -52,7 +52,7 @@ Both `briefing` and `parse-and-recommend` share the same recommendation format. 
 ```json
 {
   "intent": "Produce specification with user stories and functional requirements addressing identified gaps",
-  "capability_tags": ["specification-production", "requirements-analysis"],
+  "capability_tags": ["requirements-analysis", "specification-writing"],
   "rationale": "3 knowledge gaps remain from advocate review. Analyst can address G1 and G2 directly from research findings.",
   "priority": 1,
   "node_type": "task"
@@ -117,7 +117,7 @@ Produce a decision-ready briefing by reading and synthesizing the single DAG fil
   "recommendations": [
     {
       "intent": "Investigate unknown authentication protocols and LDAP requirements through codebase and documentation research",
-      "capability_tags": ["technical-research", "gap-investigation"],
+      "capability_tags": ["research", "knowledge-gap-resolution"],
       "rationale": "G1 and G2 are knowledge gaps resolvable through research without user involvement",
       "priority": 1,
       "node_type": "task"
@@ -134,7 +134,7 @@ Produce a decision-ready briefing by reading and synthesizing the single DAG fil
   "alternatives": [
     {
       "intent": "Produce revised specification incorporating all available context",
-      "capability_tags": ["specification-production", "requirements-analysis"],
+      "capability_tags": ["requirements-analysis", "specification-writing"],
       "rationale": "Available but premature — gaps should be resolved first for better output quality",
       "priority": 3,
       "node_type": "task"
@@ -254,7 +254,7 @@ Read a domain agent's report from disk, extract structured summary, record analy
   "recommendations": [
     {
       "intent": "Investigate unknown authentication protocols and LDAP requirements",
-      "capability_tags": ["technical-research", "gap-investigation"],
+      "capability_tags": ["research", "knowledge-gap-resolution"],
       "rationale": "G1 and G2 are knowledge gaps resolvable through research",
       "priority": 1,
       "node_type": "task"

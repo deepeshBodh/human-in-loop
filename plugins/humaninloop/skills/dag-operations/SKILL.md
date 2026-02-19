@@ -45,8 +45,8 @@ Scripts are invoked by the DAG Assembler agent during workflow execution. The ag
 # Add a node by ID (auto-creates StrategyGraph if file missing; --workflow required for first call)
 ./scripts/dag-assemble.sh <dag-path> <catalog-path> --node <node-id> [--workflow <workflow-id>]
 
-# Add a node by capability tags (resolves to catalog node via tag matching)
-./scripts/dag-assemble.sh <dag-path> <catalog-path> --capability-tags <tag1> [<tag2>...] [--node-type <type>] [--workflow <workflow-id>]
+# Add a node by capability tags (primary resolution — resolves to catalog node via tag matching)
+./scripts/dag-assemble.sh <dag-path> <catalog-path> --capability-tags <tag1> [<tag2>...] [--node-type <type>] [--intent "<description>"] [--workflow <workflow-id>]
 
 # Validate
 ./scripts/dag-validate.sh <dag-path> <catalog-path>
