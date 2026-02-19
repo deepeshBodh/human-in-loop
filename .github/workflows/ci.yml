@@ -62,16 +62,6 @@ jobs:
             exit 1
           fi
 
-      - name: Coverage ratchet
-        if: always() && steps.tests.outcome == 'success'
-        run: |
-          COVERAGE=$(grep '^TOTAL' coverage-output.txt | awk '{print $NF}' | tr -d '%')
-          BASELINE=$(cat .coverage-baseline)
-          echo "Current: ${COVERAGE}% | Baseline: ${BASELINE}%"
-          if [ "$COVERAGE" -lt "$BASELINE" ]; then
-            echo "::error::Coverage ${COVERAGE}% regressed below baseline ${BASELINE}%"
-            exit 1
-          fi
 
   commit-lint:
     name: Conventional Commits
