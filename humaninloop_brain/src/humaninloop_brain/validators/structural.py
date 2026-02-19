@@ -172,9 +172,11 @@ def validate_structure(dag: HasNodesAndEdges, catalog: NodeCatalog) -> Validatio
         if v.code != "INV-005":
             violations.append(v)
 
-    # Step 10: Entry-level immutability — frozen history entries must not have empty status
+    # Step 10: Entry-level immutability
     for node in dag.nodes:
+        seen_passes: set[int] = set()
         for entry in getattr(node, "history", []):
+            # 10a: Frozen entries must have a non-empty status
             if entry.frozen and entry.status == "":
                 violations.append(
                     ValidationViolation(
@@ -187,6 +189,20 @@ def validate_structure(dag: HasNodesAndEdges, catalog: NodeCatalog) -> Validatio
                         node_id=node.id,
                     )
                 )
+            # 10b: Duplicate pass entries within a node indicate frozen bypass
+            if entry.pass_number in seen_passes:
+                violations.append(
+                    ValidationViolation(
+                        code="DUPLICATE_PASS_ENTRY",
+                        severity="error",
+                        message=(
+                            f"Node '{node.id}' has multiple history entries "
+                            f"for pass {entry.pass_number}"
+                        ),
+                        node_id=node.id,
+                    )
+                )
+            seen_passes.add(entry.pass_number)
 
     return ValidationResult(
         valid=len([v for v in violations if v.severity == "error"]) == 0,

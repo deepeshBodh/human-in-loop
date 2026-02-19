@@ -109,6 +109,33 @@ class TestAddOrReopenNode:
         assert node.type == NodeType.milestone
 
 
+    def test_reopen_frozen_pass_rejected(self, graph, catalog):
+        """Reopening a node for a pass with a frozen entry raises FrozenEntryError."""
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph = update_node_history(graph, "analyst-review", 1, "completed")
+        graph = freeze_current_pass(graph, "completed", "done")
+        # Pass 1 entry is now frozen — reopening for pass 1 must fail
+        with pytest.raises(FrozenEntryError, match="frozen"):
+            add_or_reopen_node(graph, "analyst-review", catalog, 1)
+
+    def test_reopen_unfrozen_pass_allowed(self, graph, catalog):
+        """Reopening a node for a different (unfrozen) pass succeeds."""
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph = update_node_history(graph, "analyst-review", 1, "completed")
+        graph = freeze_current_pass(
+            graph, "completed", "needs-revision",
+            triggered_nodes=["analyst-review"],
+            trigger_source="analyst-review",
+            reason="test",
+        )
+        # Pass 2 is unfrozen — reopening for pass 2 must succeed
+        graph, edges = add_or_reopen_node(graph, "analyst-review", catalog, 2)
+        node = next(n for n in graph.nodes if n.id == "analyst-review")
+        assert len(node.history) == 2
+        assert node.history[1].pass_number == 2
+        assert edges == []
+
+
 class TestUpdateNodeHistory:
     def test_update_status(self, graph, catalog):
         graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)

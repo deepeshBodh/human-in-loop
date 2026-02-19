@@ -236,9 +236,16 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                         (s for s in cat_node.valid_statuses if s in _POSITIVE_TERMINAL),
                         "completed",
                     )
-                    graph, _ = add_or_reopen_node(
-                        graph, cat_node.id, catalog, pass_number,
-                    )
+                    # Check if gate already has a history entry for this pass
+                    has_current_entry = False
+                    if existing:
+                        has_current_entry = any(
+                            e.pass_number == pass_number for e in existing.history
+                        )
+                    if not has_current_entry:
+                        graph, _ = add_or_reopen_node(
+                            graph, cat_node.id, catalog, pass_number,
+                        )
                     graph = update_node_history(
                         graph, cat_node.id, pass_number, resolve_status,
                     )

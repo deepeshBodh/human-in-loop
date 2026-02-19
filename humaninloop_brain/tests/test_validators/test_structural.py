@@ -242,3 +242,51 @@ class TestCollectsAllViolations:
         assert "DUPLICATE_NODE_ID" in codes
         assert "SELF_LOOP" in codes
         assert "DANGLING_EDGE_SOURCE" in codes
+
+
+class TestStep10EntryLevelImmutability:
+    """Tests for step 10 — entry-level immutability enforcement."""
+
+    def test_duplicate_pass_entry_detected(self, load_fixture):
+        """Multiple history entries for the same pass are a violation."""
+        catalog = _make_catalog(load_fixture)
+        # Derived status must match latest entry, so use "pending" as top-level
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="analyst-review", type=NodeType.task,
+                    name="n", description="d", status="pending",
+                    history=[
+                        NodeHistoryEntry(pass_number=1, status="completed", frozen=True),
+                        NodeHistoryEntry(pass_number=1, status="pending"),
+                    ],
+                    last_active_pass=1,
+                ),
+            ],
+        )
+        result = validate_structure(dag, catalog)
+        codes = [v.code for v in result.violations]
+        assert "DUPLICATE_PASS_ENTRY" in codes
+
+    def test_valid_history_passes(self, load_fixture):
+        """Distinct pass entries with valid statuses pass validation."""
+        catalog = _make_catalog(load_fixture)
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="analyst-review", type=NodeType.task,
+                    name="n", description="d", status="pending",
+                    history=[
+                        NodeHistoryEntry(pass_number=1, status="completed", frozen=True),
+                        NodeHistoryEntry(pass_number=2, status="pending"),
+                    ],
+                    last_active_pass=2,
+                ),
+            ],
+        )
+        result = validate_structure(dag, catalog)
+        codes = [v.code for v in result.violations]
+        assert "DUPLICATE_PASS_ENTRY" not in codes
+        assert "FROZEN_ENTRY_EMPTY" not in codes

@@ -80,6 +80,13 @@ def add_or_reopen_node(
     if existing_idx is not None:
         # Reopen: add new history entry with initial status from catalog
         node = graph.nodes[existing_idx]
+        # Check for frozen entry at target pass — immutability enforcement
+        for entry in node.history:
+            if entry.pass_number == pass_number and entry.frozen:
+                raise FrozenEntryError(
+                    f"Cannot reopen node '{node_id}' for pass {pass_number}: "
+                    f"history entry is frozen"
+                )
         cat_node = catalog.get_node(node_id)
         initial_status = (
             cat_node.valid_statuses[0] if cat_node and cat_node.valid_statuses
