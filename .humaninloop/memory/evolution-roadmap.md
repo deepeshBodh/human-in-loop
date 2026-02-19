@@ -1,19 +1,19 @@
 # Evolution Roadmap
 
-> Generated: 2026-02-18T19:10:00Z
-> Based on: codebase-analysis.md (2026-02-18), constitution.md v2.0.0
+> Generated: 2026-02-19T04:10:00Z
+> Based on: codebase-analysis.md (2026-02-19), constitution.md v3.0.0
 > Status: active
 
 ---
 
 ## Overview
 
-Gap analysis of the HumanInLoop Plugin Marketplace codebase against constitution v2.0.0 reveals 7 gaps. The codebase is in strong shape -- 6 of 10 core principles are fully satisfied, with the remaining gaps concentrated in CI/CD automation (which blocks enforcement of multiple quality gates) and documentation synchronization. No architectural gaps exist; the emergent ceiling principles (V-X) accurately codify existing practice.
+Gap analysis of the HumanInLoop codebase against constitution v3.0.0 (12 principles) reveals 5 gaps. The project is in strong shape -- 10 of 12 core principles are fully compliant, all quality gates except secret scanning are automated, and the CLAUDE.md is synchronized with the constitution. The remaining gaps are concentrated in security automation (secret scanning, carried forward from v2), enforcement test automation for layer discipline, and documentation hygiene.
 
-The critical finding: **CI is the single largest blocker.** Without GitHub Actions, 7 of 9 quality gates exist only on paper. GAP-001 (CI workflow) is the foundation that enables GAP-003 (secret scanning) and GAP-004 (coverage ratchet). Addressing GAP-001 alone converts the project from "manual compliance" to "automated enforcement."
+The critical finding: **Secret scanning (GAP-003) remains the only Essential Floor gap.** All other gaps are governance improvements (CODEOWNERS, documentation accuracy) or enforcement strengthening (layer dependency test). No architectural or testing gaps exist.
 
-**Total Gaps**: 7
-- P1 (Critical): 2
+**Total Gaps**: 5
+- P1 (Critical): 0
 - P2 (Important): 2
 - P3 (Nice-to-have): 3
 
@@ -23,286 +23,202 @@ The critical finding: **CI is the single largest blocker.** Without GitHub Actio
 
 | ID | Title | Priority | Category | Principle | Depends On | Effort |
 |----|-------|----------|----------|-----------|------------|--------|
-| GAP-001 | Create GitHub Actions CI workflow | P1 | Testing/CI | II, Quality Gates | None | Medium |
-| GAP-002 | Sync CLAUDE.md with constitution v2.0.0 | P1 | Governance | CLAUDE.md Sync | None | Small |
-| GAP-003 | Add secret scanning to CI | P2 | Security | I | GAP-001 | Small |
-| GAP-004 | Establish coverage ratchet baseline | P2 | Testing | II | GAP-001 | Small |
-| GAP-005 | Migrate legacy plugin validators | P3 | Testing | II, V | None | Large |
-| GAP-006 | Create specs/ directory structure | P3 | Governance | N/A (CLAUDE.md ref) | GAP-002 | Small |
-| GAP-007 | Add CODEOWNERS file | P3 | Governance | Governance | None | Small |
+| GAP-003 | Add secret scanning to CI | P2 | Security | I | None | Small |
+| GAP-008 | Add layer dependency enforcement test | P2 | Testing/Architecture | XI | None | Small |
+| GAP-009 | Resolve specs/ directory reference in CLAUDE.md | P3 | Governance | CLAUDE.md Sync | None | Small |
+| GAP-010 | Update constitution skill counts (25/9 to 27/10) | P3 | Constitution Accuracy | VII | None | Small |
+| GAP-011 | Add CODEOWNERS file | P3 | Governance | Governance | None | Small |
 
 ---
 
 ## Dependency Graph
 
 ```
-[CI Foundation] -- Must be addressed first, enables automated enforcement
-    GAP-001: Create GitHub Actions CI workflow
-         |
-         +-- GAP-003: Add secret scanning to CI
-         |
-         +-- GAP-004: Establish coverage ratchet baseline
+[Independent Tracks] -- All gaps can be addressed in parallel; no blocking dependencies
 
-[Documentation Sync] -- Can proceed in parallel with CI
-    GAP-002: Sync CLAUDE.md with constitution v2.0.0
-         |
-         +-- GAP-006: Create specs/ directory structure
+    GAP-003: Add secret scanning to CI (P2, Security)
+    GAP-008: Add layer dependency enforcement test (P2, Testing)
 
-[Independent Tracks] -- No dependencies, address when convenient
-    GAP-005: Migrate legacy plugin validators
-    GAP-007: Add CODEOWNERS file
+    GAP-009: Resolve specs/ directory reference (P3, Governance)
+    GAP-010: Update constitution skill counts (P3, Accuracy)
+    GAP-011: Add CODEOWNERS file (P3, Governance)
 ```
 
-**Critical path**: GAP-001 -> GAP-003 + GAP-004 (CI foundation enables automated enforcement)
+**Critical path**: None -- all gaps are independent. GAP-003 and GAP-008 are the highest priority and can be addressed in parallel.
 
-**Parallel track**: GAP-002 -> GAP-006 (documentation sync, independent of CI)
-
-**Independent**: GAP-005 and GAP-007 can be addressed at any time
+**No blocking relationships exist.** This is a significant improvement from the v2 roadmap where GAP-001 (CI) blocked GAP-003 and GAP-004. With CI now resolved, all remaining gaps are independently addressable.
 
 ---
 
 ## Gap Cards
 
-### GAP-001: Create GitHub Actions CI workflow
-
-| Aspect | Value |
-|--------|-------|
-| Priority | P1 |
-| Category | Testing/CI |
-| Principle Violated | II (Testing Discipline), Quality Gates table (7 of 9 gates require CI) |
-| Blocks | GAP-003 (secret scanning), GAP-004 (coverage ratchet) |
-| Enables | Automated enforcement of 7 of 9 quality gates |
-| Depends On | None |
-| Effort | Medium |
-
-**Current state**: No `.github/workflows/` directory exists. All testing is manual (`cd humaninloop_brain && uv run pytest`). Constitution v2.0.0 mandates CI as a P1 requirement. The Quality Gates table lists 7 gates requiring CI automation: Python Tests, Test Coverage, Coverage Ratchet, Python Syntax, Shell Syntax, JSON Schema, and Secret Scanning. None are currently enforced automatically. This gap was inherited from constitution v1.0.0 (where it was GAP-002) and elevated to P1 per user decision on 2026-02-18.
-
-**Target state**: GitHub Actions workflow runs on every push to main and every PR. At minimum:
-- `cd humaninloop_brain && uv run pytest --cov --cov-fail-under=90` (blocking)
-- `bash -n plugins/humaninloop/scripts/*.sh` (blocking)
-- `cd humaninloop_brain && uv run python -m py_compile src/humaninloop_brain/**/*.py` (blocking)
-- Coverage report posted on PRs
-
-**Suggested approach**:
-1. Create `.github/workflows/ci.yml` with a single job targeting `humaninloop_brain`
-2. Use `actions/setup-python@v5` with Python 3.12 and install uv via `astral-sh/setup-uv@v4`
-3. Run `uv sync` in `humaninloop_brain/` directory
-4. Run pytest with coverage gate: `uv run pytest --cov --cov-fail-under=90 --tb=short`
-5. Add shell syntax check step: `bash -n` on all `.sh` files in `plugins/humaninloop/scripts/`
-6. Add Python compile check: `uv run python -m py_compile` on all `.py` files in `humaninloop_brain/src/`
-7. Trigger on push to `main` and all pull requests
-8. Once stable, extend with GAP-003 (secret scanning) and GAP-004 (coverage ratchet)
-
-**Related files**:
-- `humaninloop_brain/pyproject.toml` (test configuration, dependencies)
-- `humaninloop_brain/tests/` (190 tests across 5 suites)
-- `plugins/humaninloop/scripts/*.sh` (shell scripts to syntax-check)
-
----
-
-### GAP-002: Sync CLAUDE.md with constitution v2.0.0
-
-| Aspect | Value |
-|--------|-------|
-| Priority | P1 |
-| Category | Governance |
-| Principle Violated | CLAUDE.md Synchronization section of constitution |
-| Blocks | GAP-006 (specs/ directory -- need to decide whether to keep reference during sync) |
-| Enables | AI agents operating with current governance rules |
-| Depends On | None |
-| Effort | Small |
-
-**Current state**: CLAUDE.md references constitution v1.0.0 with multiple stale values:
-
-| Section | Current (Stale) | Required (v2.0.0) |
-|---------|----------------|-------------------|
-| Constitution version | v1.0.0 | v2.0.0 |
-| Principles count | 7 principles | 10 principles (add VIII, IX, X) |
-| Coverage thresholds | >= 60% blocking, >= 80% target | >= 90% blocking (humaninloop_brain) |
-| Skill structure | "SKILL.md under 200 lines" | "Progressive disclosure, no hard limit" |
-| Validator Pattern | "Docstring header, validate_file() entry" | "Structured JSON output with checks/summary" |
-| Quality Gates commands | `pytest plugins/ --tb=short` | `cd humaninloop_brain && uv run pytest --cov --cov-fail-under=90` |
-| Two-codebase distinction | Absent | MUST distinguish humaninloop_brain from legacy validators |
-| specs/ directory | Referenced, does not exist | Decide: create or remove reference |
-
-**Target state**: CLAUDE.md synchronized with constitution v2.0.0:
-- Version reference updated to v2.0.0
-- Key Principles table lists all 10 principles with enforcement keywords
-- Quality Gates table matches constitution exactly (9 gates with actual commands)
-- Two-codebase distinction present
-- Coverage thresholds: 90% blocking for humaninloop_brain
-- Skill structure: progressive disclosure guidance
-- specs/ reference resolved (created or removed)
-
-**Suggested approach**:
-1. Update constitution version reference from v1.0.0 to v2.0.0
-2. Rewrite Key Principles table to cover all 10 principles with enforcement keywords
-3. Replace Quality Gates table with constitution v2.0.0 version
-4. Add two-codebase distinction in Development Guidelines
-5. Update commit conventions to include `brain` and `dag` as valid scopes
-6. Resolve specs/ reference (see GAP-006)
-7. Commit message: `docs: sync CLAUDE.md with constitution v2.0.0`
-
-**Related files**:
-- `CLAUDE.md` (file to update)
-- `.humaninloop/memory/constitution.md` (authoritative source, v2.0.0)
-
----
-
-### GAP-003: Add secret scanning to CI
+### GAP-003: Add secret scanning to CI [CARRIED FORWARD]
 
 | Aspect | Value |
 |--------|-------|
 | Priority | P2 |
 | Category | Security |
-| Principle Violated | I (Security by Default) -- "CI MUST run secret scanning on every push (when CI is configured -- see GAP-003)" |
+| Principle Violated | I (Security by Default) -- "CI MUST run secret scanning on every push (GAP-003: not yet configured)" |
 | Blocks | Nothing |
-| Enables | Automated detection of accidentally committed secrets |
-| Depends On | GAP-001 (CI workflow must exist first) |
+| Enables | Automated detection of accidentally committed secrets; full compliance with Principle I |
+| Depends On | None (CI workflow exists at `.github/workflows/ci.yml`) |
 | Effort | Small |
 
-**Current state**: No CI workflow exists. No `git secrets`, `trufflehog`, or GitHub secret scanning is configured. Constitution Principle I mandates: "CI MUST run secret scanning on every push." The Quality Gates table lists "Secret Scanning" with command `git secrets --scan` and enforcement "CI automated (GAP-003)." The codebase currently relies on `.gitignore` patterns and manual code review for secret prevention.
+**Current state**: CI workflow exists and runs tests, coverage, syntax checks, and commit linting. Secret scanning is not configured. Constitution Principle I explicitly annotates this as "GAP-003: not yet configured" in two locations (the principle body and the enforcement section). The Quality Gates table lists "Secret Scanning" with enforcement "GAP-003: not yet configured." The codebase currently relies on `.gitignore` patterns (`.env`, `.env.local`, `.env.*.local`, `*.pem`, `credentials`, `secrets`) and manual code review for secret prevention.
 
-**Target state**: CI pipeline includes a secret scanning step that blocks merge on findings.
+This gap was first identified in constitution v1.0.0, carried through v2.0.0, and remains in v3.0.0. CI now exists (GAP-001 resolved), removing the previous blocker.
+
+**Target state**: CI pipeline includes a secret scanning step that blocks merge on findings. The Quality Gates table and Principle I annotations are updated to remove "GAP-003" markers.
 
 **Suggested approach**:
-1. After GAP-001 is resolved, add a new step to the CI workflow
-2. Evaluate tool options:
-   - `git-secrets` (AWS open source): lightweight, pattern-based, easy to configure
-   - `trufflehog` (Truffle Security): broader pattern matching, entropy detection
-   - GitHub native secret scanning: requires GitHub Advanced Security (availability depends on plan)
-3. Start with `git-secrets` for simplicity:
+1. Add a new step to `.github/workflows/ci.yml` in the `test` job
+2. Use `trufflesecurity/trufflehog@v3` GitHub Action (broader pattern matching than `git-secrets`, no installation step needed):
+   ```yaml
+   - name: Secret scanning
+     uses: trufflesecurity/trufflehog@v3
+     with:
+       extra_args: --only-verified
+   ```
+3. Alternative: `git-secrets` (requires installation step but is lighter weight):
    ```yaml
    - name: Secret scanning
      run: |
+       git clone https://github.com/awslabs/git-secrets.git /tmp/git-secrets
+       cd /tmp/git-secrets && make install
+       cd $GITHUB_WORKSPACE
        git secrets --install
+       git secrets --register-aws
        git secrets --scan
    ```
-4. Configure custom patterns for any project-specific secret formats if needed
-5. Block merge on any findings (exit code 1 from `git secrets --scan`)
+4. After CI passes with scanning enabled, update constitution Principle I to remove "GAP-003: not yet configured" annotations
+5. Update Quality Gates table: change Secret Scanning enforcement from "GAP-003: not yet configured" to "CI automated"
+6. Update CLAUDE.md Quality Gates and Key Principles tables to match
 
 **Related files**:
-- `.github/workflows/ci.yml` (to be created in GAP-001)
-- `.gitignore` (existing secret exclusion patterns: `.env`, `.env.local`, `*.pem`)
+- `.github/workflows/ci.yml` (add scanning step)
+- `.humaninloop/memory/constitution.md` (remove GAP-003 annotations in Principle I and Quality Gates)
+- `CLAUDE.md` (update Quality Gates table and Principle I summary)
+- `.gitignore` (existing exclusion patterns -- complementary, not replaced)
 
 ---
 
-### GAP-004: Establish coverage ratchet baseline
+### GAP-008: Add layer dependency enforcement test
 
 | Aspect | Value |
 |--------|-------|
 | Priority | P2 |
-| Category | Testing |
-| Principle Violated | II (Testing Discipline) -- "Coverage baseline MUST NOT decrease (ratchet rule)" |
+| Category | Testing/Architecture |
+| Principle Violated | XI (Layer Dependency Discipline) -- "Tests SHOULD include an import-order check that scans `from humaninloop_brain.` imports in each module" |
 | Blocks | Nothing |
-| Enables | Prevents coverage regression over time; enforces that new code maintains test quality |
-| Depends On | GAP-001 (CI workflow must exist to enforce ratchet) |
+| Enables | Automated regression detection for layer violations; CI-enforced architecture |
+| Depends On | None |
 | Effort | Small |
 
-**Current state**: humaninloop_brain has 98% coverage (190 tests, 609 statements, 13 misses). Constitution v2.0.0 mandates a ratchet rule: "Coverage baseline MUST NOT decrease." The Quality Gates table specifies "Compare against stored baseline" but no storage or comparison mechanism exists. The 90% threshold is the hard floor, but the ratchet should prevent regression from the current 98% baseline.
+**Current state**: The layer dependency hierarchy (entities -> graph -> validators -> passes -> cli) is perfectly clean -- grep scans confirm zero violations. However, this compliance is enforced only by code review. Constitution Principle XI states: "Tests SHOULD include an import-order check that scans `from humaninloop_brain.` imports in each module." No such test exists in the test suite. The `SHOULD` keyword means this is recommended with valid exceptions, but there is no documented exception for skipping it.
 
-**Target state**: Coverage baseline stored in a version-controlled file. Each CI run compares current coverage against the stored baseline. Coverage decrease fails the build. Baseline is updated (manually or automatically) when coverage increases.
+**Target state**: A pytest test in `humaninloop_brain/tests/` that scans all Python source files in each layer and verifies no imports violate the hierarchy. This test runs as part of the standard test suite and CI pipeline.
 
 **Suggested approach**:
-1. After GAP-001 is resolved, add a coverage ratchet mechanism
-2. Create `humaninloop_brain/.coverage-baseline` containing the number `98`
-3. Add a CI step that:
-   - Runs pytest with `--cov` and captures the coverage percentage
-   - Compares the result against the value in `.coverage-baseline`
-   - Fails if current coverage < stored baseline
-4. Document the process: to update the baseline, submit a PR changing `.coverage-baseline`
-5. Alternative: use a GitHub Action like `codecov/codecov-action` with ratchet support
+1. Create `humaninloop_brain/tests/test_architecture/__init__.py` and `humaninloop_brain/tests/test_architecture/test_layer_imports.py`
+2. Define the allowed import mapping:
+   ```python
+   LAYER_RULES = {
+       "entities": [],  # no internal imports allowed
+       "graph": ["entities"],
+       "validators": ["entities", "graph"],
+       "passes": ["entities", "graph"],
+       "cli": ["entities", "graph", "validators", "passes"],
+   }
+   ```
+3. For each layer directory, scan all `.py` files for `from humaninloop_brain.<layer>` or `import humaninloop_brain.<layer>` patterns
+4. Assert that only allowed layers are imported
+5. Test should produce clear failure messages identifying the violating file, line, and import
+6. Add to the existing test suite -- it will run automatically in CI
 
 **Related files**:
-- `humaninloop_brain/pyproject.toml` (coverage configuration in `[tool.coverage.run]` and `[tool.coverage.report]`)
-- `.github/workflows/ci.yml` (to be created in GAP-001)
-- `humaninloop_brain/.coverage-baseline` (to be created)
+- `humaninloop_brain/tests/` (create new test file)
+- `humaninloop_brain/src/humaninloop_brain/entities/` (layer to verify)
+- `humaninloop_brain/src/humaninloop_brain/graph/` (layer to verify)
+- `humaninloop_brain/src/humaninloop_brain/validators/` (layer to verify)
+- `humaninloop_brain/src/humaninloop_brain/passes/` (layer to verify)
+- `humaninloop_brain/src/humaninloop_brain/cli/` (layer to verify)
 
 ---
 
-### GAP-005: Migrate legacy plugin validators
-
-| Aspect | Value |
-|--------|-------|
-| Priority | P3 |
-| Category | Testing |
-| Principle Violated | II (Testing Discipline) -- "Legacy validators are marked for deprecation" and "New validation logic MUST be built in humaninloop_brain" |
-| Blocks | Nothing (validators MAY remain untested during deprecation period) |
-| Enables | Single well-tested codebase; elimination of untested code; consistent validation API |
-| Depends On | None (can proceed independently at any time) |
-| Effort | Large |
-
-**Current state**: 5 standalone Python validator scripts exist in `plugins/humaninloop/skills/*/scripts/`:
-
-| Validator | Location | Tests |
-|-----------|----------|-------|
-| `validate-requirements.py` | `authoring-requirements/scripts/` | None |
-| `validate-user-stories.py` | `authoring-user-stories/scripts/` | None |
-| `validate-openapi.py` | `patterns-api-contracts/scripts/` | None |
-| `validate-model.py` | `patterns-entity-modeling/scripts/` | None |
-| `check-artifacts.py` | `validation-plan-artifacts/scripts/` | None |
-
-Constitution v2.0.0 explicitly marks these as deprecated: "During the deprecation period, legacy validators MAY remain untested. New validation logic MUST be built in humaninloop_brain." This was the original GAP-001 in constitution v1.0.0 (then called "Configure pytest testing infrastructure") and has been unaddressed since 2026-01-13. Per user decision on 2026-02-18, the approach changed from "test the validators" to "deprecate and migrate."
-
-**Target state**: Validation logic migrated to `humaninloop_brain` as new CLI subcommands or Python API functions. Legacy scripts either removed or replaced with thin wrappers calling the new implementation. All validation logic covered by humaninloop_brain's 90% coverage threshold.
-
-**Suggested approach**:
-1. Audit each validator to catalog its validation rules and JSON output schema
-2. Design new `humaninloop_brain` modules to absorb this logic (likely in `validators/` layer)
-3. Implement one validator at a time, starting with the simplest
-4. Add tests in humaninloop_brain test suite for each migrated validator
-5. Update skill script references to call the new implementation
-6. Migration order (simplest to most complex):
-   - `check-artifacts.py` (artifact existence checks)
-   - `validate-model.py` (entity model validation)
-   - `validate-requirements.py` (requirements structure validation)
-   - `validate-user-stories.py` (user story format validation)
-   - `validate-openapi.py` (OpenAPI spec validation -- most complex)
-7. Each migrated validator is a separate PR with tests
-
-**Related files**:
-- `plugins/humaninloop/skills/authoring-requirements/scripts/validate-requirements.py`
-- `plugins/humaninloop/skills/authoring-user-stories/scripts/validate-user-stories.py`
-- `plugins/humaninloop/skills/patterns-api-contracts/scripts/validate-openapi.py`
-- `plugins/humaninloop/skills/patterns-entity-modeling/scripts/validate-model.py`
-- `plugins/humaninloop/skills/validation-plan-artifacts/scripts/check-artifacts.py`
-- `humaninloop_brain/src/humaninloop_brain/validators/` (target location for migrated logic)
-
----
-
-### GAP-006: Create specs/ directory structure
+### GAP-009: Resolve specs/ directory reference in CLAUDE.md
 
 | Aspect | Value |
 |--------|-------|
 | Priority | P3 |
 | Category | Governance |
-| Principle Violated | N/A (CLAUDE.md references nonexistent directory, not a constitution violation) |
+| Principle Violated | CLAUDE.md Synchronization -- CLAUDE.md references nonexistent `specs/` directory structure |
 | Blocks | Nothing |
-| Enables | Spec-driven development workflow described in CLAUDE.md |
-| Depends On | GAP-002 (decide during CLAUDE.md sync whether to keep or remove the reference) |
+| Enables | Documentation accuracy; prevents developer confusion when following CLAUDE.md workflow |
+| Depends On | None |
 | Effort | Small |
 
-**Current state**: CLAUDE.md Development Workflow section references `specs/in-progress/` and `specs/completed/` directories. The Documentation section links to `specs/` as "Feature specifications (completed, in-progress, planned)." These directories do not exist. No specs have ever been created in this structure. The `/humaninloop:specify` command exists and presumably generates specs, suggesting the workflow was intended but never executed.
+**Current state**: CLAUDE.md Development Workflow section (lines 108-114) references `specs/in-progress/` and `specs/completed/` directories as part of the feature development workflow. The `specs/` directory does not exist in the repository. No specs have been created using this workflow. The `/humaninloop:specify` command exists in the plugin and presumably generates specs, suggesting the workflow was intended but never executed. This gap was carried forward from the v2 roadmap (was GAP-006).
 
 **Target state**: Either:
-- (A) Create `specs/in-progress/`, `specs/completed/`, and `specs/planned/` directories with `.gitkeep` and a brief `README.md` explaining the spec workflow, OR
-- (B) Remove specs/ references from CLAUDE.md if spec-driven development is not the active workflow
+- (A) Create `specs/in-progress/`, `specs/completed/`, and `specs/planned/` directories with `.gitkeep` files, OR
+- (B) Remove `specs/` references from CLAUDE.md Development Workflow section
 
 **Suggested approach**:
-1. During GAP-002 (CLAUDE.md sync), decide whether the specs/ workflow is still desired
+1. Decision: determine whether spec-driven development is the active workflow
 2. If YES (recommended -- the `/humaninloop:specify` command exists):
    - Create `specs/in-progress/.gitkeep`, `specs/completed/.gitkeep`, `specs/planned/.gitkeep`
-   - Create `specs/README.md` with brief explanation of the spec workflow
-3. If NO: remove references from CLAUDE.md Development Workflow and Documentation sections
-4. Commit with the GAP-002 CLAUDE.md sync or as a follow-up
+   - Optionally create `specs/README.md` explaining the spec workflow
+3. If NO: remove lines 108-114 from CLAUDE.md or replace with the actual development workflow
+4. Commit: `docs(claude): resolve specs/ directory reference (GAP-009)`
 
 **Related files**:
-- `CLAUDE.md` (references specs/)
+- `CLAUDE.md` (contains the stale reference, lines 108-114)
 - `plugins/humaninloop/commands/specify.md` (the command that generates specs)
 
 ---
 
-### GAP-007: Add CODEOWNERS file
+### GAP-010: Update constitution skill counts (25/9 to 27/10)
+
+| Aspect | Value |
+|--------|-------|
+| Priority | P3 |
+| Category | Constitution Accuracy |
+| Principle Violated | VII (Skill Structure Requirements) -- count discrepancy, not a structural violation |
+| Blocks | Nothing |
+| Enables | Accurate constitution; prevents confusion about expected skill inventory |
+| Depends On | None |
+| Effort | Small |
+
+**Current state**: Constitution Principle VII states "9 categories, 25 skills" with category listing: `analysis-*` (4), `authoring-*` (6), `brownfield-*` (1), `dag-*` (1), `patterns-*` (6), `syncing-*` (1), `testing-*` (1), `using-*` (2), `validation-*` (3). Actual count is 27 skills in 10 categories. The missing category is `strategy-*` (2 skills: `strategy-core`, `strategy-specification`). The `authoring-*` category also has a possible count discrepancy -- actual is 6 (`authoring-constitution`, `authoring-design-system`, `authoring-requirements`, `authoring-roadmap`, `authoring-technical-requirements`, `authoring-user-stories`) which matches.
+
+Actual inventory:
+- `analysis-*` (4): codebase, iterative, screenshot, specifications
+- `authoring-*` (6): constitution, design-system, requirements, roadmap, technical-requirements, user-stories
+- `brownfield-*` (1): constitution
+- `dag-*` (1): operations
+- `patterns-*` (6): api-contracts, entity-modeling, flow-mapping, interface-design, technical-decisions, vertical-tdd
+- `strategy-*` (2): core, specification
+- `syncing-*` (1): claude-md
+- `testing-*` (1): end-user
+- `using-*` (2): git-worktrees, github-issues
+- `validation-*` (3): constitution, plan-artifacts, task-artifacts
+
+**Target state**: Constitution Principle VII updated to "10 categories, 27 skills" with `strategy-*` (2) added to the category listing.
+
+**Suggested approach**:
+1. Update constitution Principle VII: "9 categories, 25 skills" to "10 categories, 27 skills"
+2. Add `strategy-*` (2) to the category listing
+3. This is a PATCH version change (count correction, no principle change)
+4. Sync CLAUDE.md if it references skill counts
+5. Commit: `docs(constitution): update skill counts to 27/10 (GAP-010)`
+
+**Related files**:
+- `.humaninloop/memory/constitution.md` (Principle VII, line ~277)
+- `CLAUDE.md` (if skill counts are referenced)
+
+---
+
+### GAP-011: Add CODEOWNERS file
 
 | Aspect | Value |
 |--------|-------|
@@ -314,12 +230,12 @@ Constitution v2.0.0 explicitly marks these as deprecated: "During the deprecatio
 | Depends On | None |
 | Effort | Small |
 
-**Current state**: No CODEOWNERS file exists at root, `.github/CODEOWNERS`, or `docs/CODEOWNERS`. The constitution's Governance section notes: "In absence of CODEOWNERS file, project maintainers have approval authority. Maintainers are identified by repository admin access." This is functional but informal -- there is no automated review assignment and no explicit ownership boundaries.
+**Current state**: No CODEOWNERS file exists. The constitution's Governance section notes the absence and provides a fallback: "Maintainers are identified by repository admin access." This is functional but informal -- there is no automated review assignment and no explicit ownership boundaries for constitution, infrastructure, or plugin changes. This gap was carried forward from the v2 roadmap (was GAP-007).
 
 **Target state**: `.github/CODEOWNERS` file defining ownership for key areas, ensuring constitution and governance changes receive appropriate review.
 
 **Suggested approach**:
-1. Create `.github/CODEOWNERS` with ownership mappings:
+1. Create `.github/CODEOWNERS`:
    ```
    # Constitution and governance
    .humaninloop/          @deepeshBodh
@@ -336,10 +252,25 @@ Constitution v2.0.0 explicitly marks these as deprecated: "During the deprecatio
    ```
 2. Adjust usernames/teams as appropriate for the repository's contributors
 3. Start with a single catch-all owner and refine as the team grows
-4. Ensures PRs touching governance artifacts get proper review
+4. Update constitution Governance section to remove the "In absence of CODEOWNERS" note
+5. Commit: `chore(governance): add CODEOWNERS file (GAP-011)`
 
 **Related files**:
 - `.github/CODEOWNERS` (to be created)
+- `.humaninloop/memory/constitution.md` (Governance section)
+
+---
+
+## Resolved Gaps (from v2 roadmap)
+
+| ID | Title | Resolution | Date |
+|----|-------|------------|------|
+| GAP-001 | Create GitHub Actions CI workflow | Resolved -- `.github/workflows/ci.yml` runs tests, coverage floor (90%), ratchet (98% baseline), Python syntax, shell syntax, commit lint | 2026-02-18 |
+| GAP-002 | Sync CLAUDE.md with constitution | Resolved -- CLAUDE.md synchronized with constitution v3.0.0 | 2026-02-19 |
+| GAP-004 | Establish coverage ratchet baseline | Superseded -- Constitution v3.0.0 removed ratchet concept; 90% blocking floor is the sole coverage gate. CI still has ratchet step (operational detail, not constitutional requirement) | 2026-02-19 |
+| GAP-005 | Migrate legacy plugin validators | Out of scope -- Constitution v3.0.0 removed plugin validators from governance scope. `humaninloop_brain` is the sole governed codebase | 2026-02-19 |
+| GAP-006 | Create specs/ directory structure | Renumbered to GAP-009 and carried forward | 2026-02-19 |
+| GAP-007 | Add CODEOWNERS file | Renumbered to GAP-011 and carried forward | 2026-02-19 |
 
 ---
 
@@ -347,49 +278,54 @@ Constitution v2.0.0 explicitly marks these as deprecated: "During the deprecatio
 
 | Principle | Status | Gaps |
 |-----------|--------|------|
-| I. Security by Default | Partial | GAP-003 (secret scanning requires CI) |
-| II. Testing Discipline | Partial | GAP-001 (CI), GAP-004 (ratchet), GAP-005 (migration) |
+| I. Security by Default | Partial | GAP-003 (secret scanning not in CI) |
+| II. Testing Discipline | **Compliant** | -- |
 | III. Error Handling Standards | **Compliant** | -- |
 | IV. Observability Requirements | **Compliant** | -- |
 | V. Structured Output Pattern | **Compliant** | -- |
 | VI. ADR Discipline | **Compliant** | -- |
-| VII. Skill Structure Requirements | **Compliant** | -- |
+| VII. Skill Structure Requirements | **Compliant** (stale count) | GAP-010 (count inaccuracy, not structural) |
 | VIII. Conventional Commits | **Compliant** | -- |
 | IX. Deterministic Infrastructure | **Compliant** | -- |
 | X. Pydantic Entity Modeling | **Compliant** | -- |
-| Quality Gates (automated) | Non-compliant | GAP-001 (CI enables all automated gates) |
-| CLAUDE.md Synchronization | Non-compliant | GAP-002 (stale sync, 8 drift points) |
-| Governance artifacts | Partial | GAP-006 (specs/), GAP-007 (CODEOWNERS) |
+| XI. Layer Dependency Discipline | **Compliant** (missing test) | GAP-008 (SHOULD-level enforcement test absent) |
+| XII. Catalog-Driven Assembly | **Compliant** | -- |
+| Quality Gates (automated) | **Compliant** (except secret scanning) | GAP-003 |
+| CLAUDE.md Synchronization | **Compliant** (minor drift) | GAP-009 (specs/ reference) |
+| Governance artifacts | Partial | GAP-011 (CODEOWNERS absent) |
 
 ---
 
 ## Recommended Implementation Order
 
-### Phase 1: Immediate (P1) -- Address before new feature work
+### Phase 1: Next iteration (P2) -- Address in regular development
 
 | Order | Gap | Effort | Rationale |
 |-------|-----|--------|-----------|
-| 1 | GAP-001: CI workflow | Medium | Foundation for all automated enforcement |
-| 2 | GAP-002: CLAUDE.md sync | Small | Agents operating on stale instructions |
+| 1 | GAP-003: Secret scanning | Small | Only remaining Essential Floor gap; Principle I compliance |
+| 2 | GAP-008: Layer dependency test | Small | Strengthens architectural enforcement; prevents regression |
 
-These two gaps can be addressed in parallel since they have no dependencies on each other.
+Both are independent and can be addressed in parallel.
 
-### Phase 2: Next iteration (P2) -- Address after CI is running
-
-| Order | Gap | Effort | Rationale |
-|-------|-----|--------|-----------|
-| 3 | GAP-003: Secret scanning | Small | Extends CI with security gate |
-| 4 | GAP-004: Coverage ratchet | Small | Extends CI with regression prevention |
-
-Both depend on GAP-001 and can be addressed in parallel.
-
-### Phase 3: When convenient (P3) -- No urgency
+### Phase 2: When convenient (P3) -- No urgency
 
 | Order | Gap | Effort | Rationale |
 |-------|-----|--------|-----------|
-| 5 | GAP-007: CODEOWNERS | Small | Quick governance improvement |
-| 6 | GAP-006: specs/ directory | Small | Depends on GAP-002 decision |
-| 7 | GAP-005: Validator migration | Large | Long-term, incremental migration |
+| 3 | GAP-010: Skill count update | Small | PATCH constitution update |
+| 4 | GAP-009: specs/ directory | Small | Documentation hygiene |
+| 5 | GAP-011: CODEOWNERS | Small | Governance improvement |
+
+All are independent and can be addressed in any order.
+
+---
+
+## Operational Notes
+
+The following items are NOT constitutional gaps but are worth noting:
+
+1. **Coverage baseline file**: `.coverage-baseline` contains `98` and CI still runs a ratchet step against it. Constitution v3.0.0 removed the ratchet concept. The ratchet CI step is harmless (it raises the bar) but could cause confusion if coverage dips below 98% -- the CI would fail on the ratchet step even though the constitution only requires 90%. Consider either removing the ratchet step from CI or documenting it as an operational choice beyond constitutional requirements.
+
+2. **Skill count drift**: New skills (`strategy-core`, `strategy-specification`) were added without updating the constitution counts. This suggests the constitution amendment process for count updates may need a lighter-weight trigger -- counts are PATCH-level changes that should not require full amendment ceremony.
 
 ---
 
@@ -397,30 +333,31 @@ Both depend on GAP-001 and can be addressed in parallel.
 
 ### When addressing a gap
 
-1. Reference the gap ID in commit messages: `fix(ci): create GitHub Actions workflow (GAP-001)`
-2. Update this roadmap when a gap is resolved: change gap card header to include `[RESOLVED: YYYY-MM-DD]`
-3. Add resolution details to the gap card:
+1. Reference the gap ID in commit messages: `fix(ci): add secret scanning to CI pipeline (GAP-003)`
+2. Update this roadmap when a gap is resolved: move gap card to "Resolved Gaps" table
+3. Add resolution details:
    ```markdown
-   **Resolution**: [Brief description of how gap was addressed]
-   **PR/Commit**: [Link or hash]
+   | GAP-XXX | [Title] | [How resolved] | YYYY-MM-DD |
    ```
-4. If work reveals new gaps, add them with the next sequential ID (GAP-008, GAP-009, etc.)
+4. If work reveals new gaps, add them with the next sequential ID (GAP-012, GAP-013, etc.)
+5. Update constitution to remove GAP-XXX annotations if applicable
 
 ### When reviewing this roadmap
 
 - Review after each major release or quarterly, whichever comes first
-- Move resolved gaps to a "Resolved Gaps" section at the bottom
-- Re-prioritize remaining gaps based on current project needs
 - Verify no new constitution requirements exist without corresponding gap analysis
+- Update counts and statistics that may have drifted
+- Re-prioritize remaining gaps based on current project needs
 
 ### Gap lifecycle
 
 ```
 Identified -> In Progress -> Resolved
                   |
-                  +-> Deferred (with justification and review date)
+                  +-> Superseded (with rationale)
+                  +-> Out of Scope (with rationale)
 ```
 
 ---
 
-**Roadmap Version**: 2.0.0 | **Created**: 2026-02-18 | **Constitution**: v2.0.0 | **Previous Version**: 1.0.0 (2026-01-13)
+**Roadmap Version**: 3.0.0 | **Created**: 2026-02-19 | **Constitution**: v3.0.0 | **Previous Version**: 2.0.0 (2026-02-18)

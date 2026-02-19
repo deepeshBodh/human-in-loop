@@ -1,122 +1,108 @@
-# Architect Report: Evolution Roadmap v2.0.0
+# Architect Report: Evolution Roadmap (v3.0.0)
 
-> Generated: 2026-02-18
 > Phase: Evolution Roadmap
+> Date: 2026-02-19
 > Agent: Principal Architect
-> Inputs: codebase-analysis.md (2026-02-18), constitution.md v2.0.0
+> Constitution: v3.0.0
+> Codebase Analysis: 2026-02-19
 
 ---
 
 ## Gap Summary
 
-Gap analysis of the HumanInLoop Plugin Marketplace codebase against constitution v2.0.0 identified **7 gaps** across 3 priority levels.
+Gap analysis of the HumanInLoop codebase against the v3.0.0 constitution (12 principles) identified **5 gaps**. This is a significant reduction from the v2 roadmap (7 gaps), with GAP-001 (CI) resolved, GAP-004 (ratchet) superseded, and GAP-005 (validator migration) out of scope.
 
-| Priority | Count | Categories |
-|----------|-------|------------|
-| P1 (Critical) | 2 | CI/CD, Governance (CLAUDE.md sync) |
-| P2 (Important) | 2 | Security, Testing |
-| P3 (Nice-to-have) | 3 | Testing (migration), Governance (specs/, CODEOWNERS) |
+| Priority | Count | Gaps |
+|----------|-------|------|
+| P1 (Critical) | 0 | -- |
+| P2 (Important) | 2 | GAP-003, GAP-008 |
+| P3 (Nice-to-have) | 3 | GAP-009, GAP-010, GAP-011 |
 
-**Compliance score**: 6 of 10 core principles are fully compliant. The remaining 4 gaps affect only Principles I (Security) and II (Testing), plus infrastructure concerns (Quality Gates enforcement, CLAUDE.md synchronization).
-
-No gaps were found in:
-- III. Error Handling Standards
-- IV. Observability Requirements
-- V. Structured Output Pattern
-- VI. ADR Discipline
-- VII. Skill Structure Requirements
-- VIII. Conventional Commits
-- IX. Deterministic Infrastructure
-- X. Pydantic Entity Modeling
-
-The emergent ceiling principles (V-X) have zero gaps because they were written to codify existing practice. This is the expected outcome of brownfield constitution authoring done correctly.
+**10 of 12 principles are fully compliant.** The two partial-compliance principles are:
+- Principle I (Security): Missing secret scanning in CI (GAP-003)
+- Principle XI (Layer Dependency): Import hierarchy is clean but lacks an automated enforcement test (GAP-008)
 
 ---
 
 ## Critical Gaps (P1)
 
-### GAP-001: Create GitHub Actions CI workflow
+None. The project has no critical gaps. All P1 items from the v2 roadmap (GAP-001: CI workflow, GAP-002: CLAUDE.md sync) have been resolved.
 
-**Why P1**: This is the single largest blocker in the project. Without CI, 7 of 9 quality gates exist only as code review expectations with no automated enforcement. The constitution mandates CI as a P1 requirement per user decision. Two other gaps (GAP-003: secret scanning, GAP-004: coverage ratchet) are blocked until this is resolved.
+---
 
-**Effort**: Medium (single workflow file, but requires uv setup, pytest integration, and multi-step validation)
+## Important Gaps (P2)
 
-**Impact**: Resolving this gap alone moves the project from "manual compliance" to "automated enforcement" for the majority of quality gates.
+### GAP-003: Add secret scanning to CI
 
-### GAP-002: Sync CLAUDE.md with constitution v2.0.0
+- **Principle**: I (Security by Default)
+- **Category**: Security (Essential Floor)
+- **Status**: Carried forward from v1.0.0 -- the longest-standing open gap in the project
+- **Impact**: Only remaining Essential Floor gap. Without secret scanning, accidental credential commits rely on `.gitignore` patterns and manual review
+- **Effort**: Small -- add a step to the existing `.github/workflows/ci.yml`
+- **Blocker removed**: GAP-001 (CI) is resolved, so this can proceed immediately
 
-**Why P1**: CLAUDE.md is the primary instruction file for AI agents. It currently references constitution v1.0.0 with 8 identified drift points: wrong coverage thresholds (60%/80% vs 90%), wrong principle count (7 vs 10), obsolete skill line limit (200 lines vs progressive disclosure), missing two-codebase distinction, and stale quality gate commands. Every AI agent interaction operates on outdated governance.
+### GAP-008: Add layer dependency enforcement test
 
-**Effort**: Small (text updates to an existing file, no code changes)
-
-**Impact**: Immediate correction of agent behavior to align with current governance.
+- **Principle**: XI (Layer Dependency Discipline)
+- **Category**: Testing/Architecture
+- **Status**: New gap identified in v3.0.0 analysis
+- **Impact**: The `entities -> graph -> validators -> passes -> cli` import hierarchy is currently clean (verified by grep), but compliance depends on code review alone. A pytest test would catch violations automatically before review
+- **Effort**: Small -- single test file scanning imports against a rules table
 
 ---
 
 ## Dependency Chain
 
+No blocking dependencies exist between any gaps. All 5 gaps can be addressed independently and in parallel.
+
 ```
-[CI Foundation] -- Critical path, address first
-    GAP-001: Create GitHub Actions CI workflow         [P1, Medium, No deps]
-         |
-         +-- GAP-003: Add secret scanning to CI        [P2, Small]
-         |
-         +-- GAP-004: Establish coverage ratchet        [P2, Small]
-
-[Documentation Sync] -- Parallel with CI
-    GAP-002: Sync CLAUDE.md with constitution v2.0.0   [P1, Small, No deps]
-         |
-         +-- GAP-006: Create specs/ directory           [P3, Small]
-
-[Independent] -- No dependencies
-    GAP-005: Migrate legacy plugin validators           [P3, Large]
-    GAP-007: Add CODEOWNERS file                        [P3, Small]
+[All Independent -- no blocking relationships]
+    GAP-003: Add secret scanning to CI ............... P2, Small
+    GAP-008: Add layer dependency enforcement test .... P2, Small
+    GAP-009: Resolve specs/ directory reference ........ P3, Small
+    GAP-010: Update constitution skill counts .......... P3, Small
+    GAP-011: Add CODEOWNERS file ...................... P3, Small
 ```
 
-**Key observation**: The two P1 gaps have no dependencies on each other and can be addressed in parallel. GAP-001 is the foundation for the entire automated enforcement strategy. GAP-002 is a documentation fix with immediate impact on agent quality.
+This is a significant improvement from the v2 roadmap where GAP-001 (CI) blocked GAP-003 and GAP-004. With CI resolved, the entire dependency chain is flattened.
 
-**Maximum parallelism**: At any point, up to 4 gaps can be worked simultaneously (GAP-001 + GAP-002 in Phase 1; GAP-003 + GAP-004 in Phase 2; GAP-005 + GAP-007 anytime).
-
----
-
-## Comparison with v1.0.0 Roadmap
-
-The previous roadmap (v1.0.0, 2026-01-13) identified 6 gaps. Here is the mapping to v2.0.0:
-
-| v1.0.0 Gap | v1.0.0 Priority | Status | v2.0.0 Mapping |
-|------------|-----------------|--------|----------------|
-| GAP-001: Configure pytest | P1 | Resolved (humaninloop_brain has pytest) | N/A -- addressed by humaninloop_brain |
-| GAP-002: Add CI workflow | P1 | Unresolved | GAP-001 (elevated, same scope) |
-| GAP-003: Add validator test coverage | P2 | Strategy changed | GAP-005 (deprecate, not test) |
-| GAP-004: Add structured logging | P2 | Deferred | Dropped (constitution scoped to CLI tools) |
-| GAP-005: Standardize SKILL.md frontmatter | P2 | Strategy changed | Dropped (user removed hard limit) |
-| GAP-006: Resolve version mismatch | P3 | Likely resolved | Dropped (versions now at 2.0.0) |
-
-**Net change**: 6 old gaps reduced to 2 carried forward (CI, validator migration), 4 new gaps added (CLAUDE.md sync, secret scanning, coverage ratchet, specs/, CODEOWNERS). Total increased from 6 to 7, but the increase reflects more thorough analysis of governance artifacts, not deterioration of the codebase.
+**Recommended order**: GAP-003 and GAP-008 first (parallel), then P3 items in any order.
 
 ---
 
-## Recommendations
+## What Changed from v2 Roadmap
 
-1. **Address GAP-001 and GAP-002 before any new feature work.** These are the foundation. CI enables enforcement; CLAUDE.md sync enables correct agent behavior.
-
-2. **GAP-003 and GAP-004 should be added to the CI workflow in the same PR or immediately after.** They are small additions to an existing workflow file.
-
-3. **GAP-005 (validator migration) is a long-term effort.** It should be broken into 5 separate PRs (one per validator) and tracked as an epic. No urgency -- the constitution explicitly permits legacy validators to remain untested during the deprecation period.
-
-4. **GAP-006 requires a decision during GAP-002 work**: create the specs/ directory or remove references. Recommendation: create it, since the `/humaninloop:specify` command exists and the spec-driven workflow is documented.
-
-5. **GAP-007 (CODEOWNERS) is the easiest governance win.** A single file with 5 lines provides automated review assignment for all PRs.
-
----
-
-## Output Files
-
-| File | Path | Description |
-|------|------|-------------|
-| Evolution Roadmap | `.humaninloop/memory/evolution-roadmap.md` | 7 gap cards with dependencies, priorities, effort estimates, and implementation order |
-| Architect Report | `.humaninloop/memory/architect-report.md` | This file -- summary report with gap counts and dependency chain |
+| v2 Gap | Status | Disposition |
+|--------|--------|-------------|
+| GAP-001: CI workflow | Resolved | `.github/workflows/ci.yml` exists with tests, coverage, syntax, commit lint |
+| GAP-002: CLAUDE.md sync | Resolved | Synchronized with constitution v3.0.0 |
+| GAP-003: Secret scanning | Carried forward | Blocker removed (CI exists), priority unchanged (P2) |
+| GAP-004: Coverage ratchet | Superseded | Constitution v3.0.0 removed ratchet; 90% flat floor only |
+| GAP-005: Validator migration | Out of scope | Constitution v3.0.0 removed plugin validators from governance |
+| GAP-006: specs/ directory | Renumbered to GAP-009 | Carried forward as P3 |
+| GAP-007: CODEOWNERS | Renumbered to GAP-011 | Carried forward as P3 |
+| GAP-008: Layer test | -- | New gap identified in v3.0.0 analysis |
+| GAP-010: Skill counts | -- | New gap identified in v3.0.0 analysis |
 
 ---
 
-**Report Version**: 2.0.0 | **Generated**: 2026-02-18
+## Operational Notes
+
+1. **Coverage baseline mismatch**: `.coverage-baseline` contains `98` and CI enforces a ratchet against it. Constitution v3.0.0 removed the ratchet -- 90% flat floor is authoritative. The ratchet step is not a gap (it is stricter than required) but could cause CI failures if coverage dips below 98%. Consider removing the ratchet step or documenting it as a voluntary operational standard.
+
+2. **Skill count drift pattern**: Two skills added without updating constitution counts suggests the amendment process may be too heavyweight for PATCH-level changes. Consider whether exact counts belong in the constitution or whether Principle VII should reference the skill directory as source of truth.
+
+---
+
+## Artifacts Produced
+
+| Artifact | Location |
+|----------|----------|
+| Evolution Roadmap | `.humaninloop/memory/evolution-roadmap.md` |
+| Architect Report | `.humaninloop/memory/architect-report.md` |
+
+Both artifacts are based on:
+- Codebase analysis at `.humaninloop/memory/codebase-analysis.md`
+- Constitution at `.humaninloop/memory/constitution.md` (v3.0.0)
+- CI workflow at `.github/workflows/ci.yml`
+- Verified: layer imports (grep, zero violations), skill directories (27 count), ADRs (7 files), test suite (381 tests), quality gates (all automated except secret scanning)
