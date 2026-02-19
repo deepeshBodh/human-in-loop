@@ -147,10 +147,11 @@ class TestDAGAssemblerCatalogConsistency:
     def test_assembler_exists(self):
         assert DAG_ASSEMBLER.exists()
 
-    def test_two_actions_documented(self, assembler_text):
-        """DAG Assembler documents its 2 actions."""
+    def test_three_actions_documented(self, assembler_text):
+        """DAG Assembler documents its 3 actions (V3 design doc L200-244)."""
         assert "assemble-and-prepare" in assembler_text
         assert "freeze-pass" in assembler_text
+        assert "update-status" in assembler_text
 
     def test_artifact_path_convention_covers_catalog(self, assembler_text, catalog):
         """Artifact path convention table covers all catalog artifacts."""
