@@ -28,7 +28,7 @@ def check_acyclicity(dag: HasNodesAndEdges) -> ValidationResult:
                 ValidationViolation(
                     code="CYCLE",
                     severity="error",
-                    message=f"Cycle in depends-on edges: {cycle_path}",
+                    message=f"Cycle in depends_on edges: {cycle_path}",
                 )
             ],
         )

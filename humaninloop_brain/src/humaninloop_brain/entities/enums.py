@@ -15,12 +15,12 @@ class NodeType(str, Enum):
 class EdgeType(str, Enum):
     """The six edge types with distinct cascade semantics."""
 
-    depends_on = "depends-on"
+    depends_on = "depends_on"
     produces = "produces"
     validates = "validates"
-    constrained_by = "constrained-by"
-    informed_by = "informed-by"
-    triggered_by = "triggered-by"
+    constrained_by = "constrained_by"
+    informed_by = "informed_by"
+    triggered_by = "triggered_by"
 
 
 class PassOutcome(str, Enum):

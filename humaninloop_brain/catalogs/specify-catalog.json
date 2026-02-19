@@ -56,7 +56,9 @@
       "valid_statuses": ["pending", "in-progress", "completed"],
       "verdict_field": "verdict",
       "verdict_values": ["ready", "needs-revision", "critical-gaps"],
-      "capabilities": ["specification-validation", "gap-detection"]
+      "capabilities": ["specification-validation", "gap-detection"],
+      "carry_forward": false,
+      "gate_type": "adversarial-review"
     },
     {
       "id": "human-clarification",
@@ -129,7 +131,7 @@
     }
   ],
   "edge_constraints": {
-    "depends-on": {
+    "depends_on": {
       "valid_sources": ["task", "gate", "decision", "milestone"],
       "valid_targets": ["task", "gate", "decision", "milestone"],
       "note": "General execution ordering — must form a DAG"
@@ -144,17 +146,17 @@
       "valid_targets": ["task"],
       "note": "Review relationship — gate evaluates task output"
     },
-    "constrained-by": {
+    "constrained_by": {
       "valid_sources": ["task", "gate", "decision"],
       "valid_targets": ["gate"],
       "note": "Boundary enforcement — work must satisfy gate constraint"
     },
-    "informed-by": {
+    "informed_by": {
       "valid_sources": ["task", "gate", "decision"],
       "valid_targets": ["task", "gate", "decision"],
       "note": "Context flow — not a hard dependency, may cross pass boundaries"
     },
-    "triggered-by": {
+    "triggered_by": {
       "valid_sources": ["task", "gate", "decision", "milestone"],
       "valid_targets": ["task", "gate", "decision", "milestone"],
       "note": "Cross-pass trigger — links a node in a new pass to the gate verdict that triggered revision"

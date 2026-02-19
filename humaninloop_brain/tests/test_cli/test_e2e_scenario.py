@@ -209,7 +209,7 @@ class TestScenario3MultiPassRevision:
         assert data["passes"][1]["frozen"] is False
 
         # Verify triggered-by edges: source is the gate, target is the triggered node
-        triggered_edges = [e for e in data["edges"] if e["type"] == "triggered-by"]
+        triggered_edges = [e for e in data["edges"] if e["type"] == "triggered_by"]
         assert len(triggered_edges) == 2
         for edge in triggered_edges:
             assert edge["source"] == "advocate-review", "trigger source should be the gate node"
@@ -550,8 +550,8 @@ class TestScenario8EdgeInference:
 
         data = json.loads(Path(dag_path).read_text())
         edge_types = {e["type"] for e in data["edges"]}
-        assert "informed-by" in edge_types  # enriched-input is optional for analyst
-        assert "constrained-by" in edge_types  # analyst constrained by constitution-gate
+        assert "informed_by" in edge_types  # enriched-input is optional for analyst
+        assert "constrained_by" in edge_types  # analyst constrained by constitution-gate
 
     def test_edge_id_pattern(self, tmp_path, capsys):
         nodes = ["constitution-gate", "analyst-review", "advocate-review"]
@@ -700,5 +700,5 @@ class TestScenario10NodeReopen:
         assert len(analyst["history"]) == 2
 
         # Triggered-by edges exist
-        triggered = [e for e in data["edges"] if e["type"] == "triggered-by"]
+        triggered = [e for e in data["edges"] if e["type"] == "triggered_by"]
         assert len(triggered) == 2

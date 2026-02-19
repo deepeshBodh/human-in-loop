@@ -36,8 +36,8 @@ class TestLoadGraph:
         g = load_graph(dag)
         # depends-on edge from enrichment to analyst
         edge_data = g.get_edge_data("input-enrichment", "analyst-review")
-        assert "depends-on" in edge_data
-        assert edge_data["depends-on"]["edge_id"] == "edge-dep-enrich-analyst"
+        assert "depends_on" in edge_data
+        assert edge_data["depends_on"]["edge_id"] == "edge-dep-enrich-analyst"
 
     def test_skip_enrichment_pass(self, load_fixture):
         dag = StrategyGraph.model_validate(load_fixture("pass-skip-enrichment.json"))
@@ -50,7 +50,7 @@ class TestLoadGraph:
         dag = StrategyGraph.model_validate(load_fixture("pass-normal.json"))
         g = load_graph(dag)
         edge_data = g.get_edge_data("analyst-review", "advocate-review")
-        assert "depends-on" in edge_data
+        assert "depends_on" in edge_data
         assert "produces" in edge_data
 
 
@@ -141,6 +141,6 @@ class TestLoadStrategyGraph:
         )
         g = load_graph(sg)
         edge_data = g.get_edge_data("a", "a")
-        assert "triggered-by" in edge_data
-        assert edge_data["triggered-by"]["source_pass"] == 1
-        assert edge_data["triggered-by"]["target_pass"] == 2
+        assert "triggered_by" in edge_data
+        assert edge_data["triggered_by"]["source_pass"] == 1
+        assert edge_data["triggered_by"]["target_pass"] == 2

@@ -206,23 +206,24 @@ def update_node_history(
                 )
             )
 
-        # Build updated node with new history, then recompute derived fields
+        # Build updated node with derived fields from latest history entry
+        latest = new_history[-1]
         updated = GraphNode(
             id=node.id,
             type=node.type,
             name=node.name,
             description=node.description,
-            status=node.status,
+            status=latest.status,
             contract=node.contract,
             agent=node.agent,
             evidence=node.evidence,
             history=new_history,
-            verdict=node.verdict,
-            last_active_pass=node.last_active_pass,
+            verdict=latest.verdict,
+            last_active_pass=latest.pass_number,
             schema_version=_V3,
         )
         new_nodes = list(graph.nodes)
-        new_nodes[i] = _recompute_derived(updated)
+        new_nodes[i] = updated
         return graph.model_copy(update={"nodes": new_nodes})
 
     raise ValueError(f"Node '{node_id}' not found in graph")
@@ -276,18 +277,19 @@ def freeze_current_pass(
                 )
                 changed = True
         if changed:
+            latest = new_history[-1]
             new_nodes[i] = GraphNode(
                 id=node.id,
                 type=node.type,
                 name=node.name,
                 description=node.description,
-                status=node.status,
+                status=latest.status,
                 contract=node.contract,
                 agent=node.agent,
                 evidence=node.evidence,
                 history=new_history,
-                verdict=node.verdict,
-                last_active_pass=node.last_active_pass,
+                verdict=latest.verdict,
+                last_active_pass=latest.pass_number,
                 schema_version=_V3,
             )
 

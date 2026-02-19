@@ -83,3 +83,32 @@ class GraphNode(BaseModel):
                 f"'{self.type.value}'. Valid statuses: {sorted(valid_values)}"
             )
         return self
+
+    @model_validator(mode="after")
+    def validate_derived_fields(self) -> GraphNode:
+        """Enforce that status, verdict, and last_active_pass are derived from latest history entry.
+
+        Per V3 design doc (lines 326-334): these fields always equal the
+        corresponding values from the most recent history entry.  Only
+        enforced when history is non-empty — nodes without history (e.g.
+        in test fixtures or during initial construction) are allowed.
+        """
+        if not self.history:
+            return self
+        latest = self.history[-1]
+        if self.status != latest.status:
+            raise ValueError(
+                f"Derived field 'status' ({self.status!r}) must equal "
+                f"latest history entry status ({latest.status!r})"
+            )
+        if self.verdict != latest.verdict:
+            raise ValueError(
+                f"Derived field 'verdict' ({self.verdict!r}) must equal "
+                f"latest history entry verdict ({latest.verdict!r})"
+            )
+        if self.last_active_pass != latest.pass_number:
+            raise ValueError(
+                f"Derived field 'last_active_pass' ({self.last_active_pass!r}) must equal "
+                f"latest history entry pass ({latest.pass_number!r})"
+            )
+        return self

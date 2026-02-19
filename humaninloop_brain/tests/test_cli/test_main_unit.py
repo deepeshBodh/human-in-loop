@@ -512,7 +512,7 @@ class TestFreezeCommand:
         # Verify triggered_by edges and next pass
         data = json.loads(Path(dag_path).read_text())
         assert data["current_pass"] == 2
-        triggered_edges = [e for e in data["edges"] if e["type"] == "triggered-by"]
+        triggered_edges = [e for e in data["edges"] if e["type"] == "triggered_by"]
         assert len(triggered_edges) == 2
         # Verify edges go from gate to triggered nodes, not self-loops
         for edge in triggered_edges:

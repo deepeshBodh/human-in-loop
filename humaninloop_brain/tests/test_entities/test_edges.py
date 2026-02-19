@@ -41,7 +41,7 @@ class TestEdge:
 
     def test_from_json_string_type(self):
         """Edge type can be constructed from JSON string value."""
-        edge = Edge(id="e", source="a", target="b", type="depends-on")
+        edge = Edge(id="e", source="a", target="b", type="depends_on")
         assert edge.type == EdgeType.depends_on
 
     def test_triggered_by_fields(self):
@@ -61,7 +61,7 @@ class TestEdge:
 
     def test_backward_compatible(self):
         """V2 data (no source_pass/target_pass/reason) still deserializes."""
-        data = {"id": "e", "source": "a", "target": "b", "type": "depends-on"}
+        data = {"id": "e", "source": "a", "target": "b", "type": "depends_on"}
         edge = Edge.model_validate(data)
         assert edge.source_pass is None
         assert edge.target_pass is None

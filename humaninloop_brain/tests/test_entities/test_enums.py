@@ -49,11 +49,11 @@ class TestEdgeType:
     def test_count(self):
         assert len(EdgeType) == 6
 
-    def test_kebab_case_values(self):
-        assert EdgeType.depends_on.value == "depends-on"
-        assert EdgeType.constrained_by.value == "constrained-by"
-        assert EdgeType.informed_by.value == "informed-by"
-        assert EdgeType.triggered_by.value == "triggered-by"
+    def test_snake_case_values(self):
+        assert EdgeType.depends_on.value == "depends_on"
+        assert EdgeType.constrained_by.value == "constrained_by"
+        assert EdgeType.informed_by.value == "informed_by"
+        assert EdgeType.triggered_by.value == "triggered_by"
 
 
 class TestPassOutcome:

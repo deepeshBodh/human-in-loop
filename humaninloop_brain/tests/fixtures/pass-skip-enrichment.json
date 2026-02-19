@@ -54,13 +54,13 @@
       "id": "edge-dep-gate-analyst",
       "source": "constitution-gate",
       "target": "analyst-review",
-      "type": "depends-on"
+      "type": "depends_on"
     },
     {
       "id": "edge-dep-analyst-advocate",
       "source": "analyst-review",
       "target": "advocate-review",
-      "type": "depends-on"
+      "type": "depends_on"
     },
     {
       "id": "edge-prod-analyst-advocate",

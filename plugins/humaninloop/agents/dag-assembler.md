@@ -126,6 +126,46 @@ Freeze the current pass, add triggered_by edges, and optionally create the next 
 }
 ```
 
+### update-status
+
+Update the status of a supervisor-owned node (decision, milestone, or deterministic gate). These nodes have no domain agent — the Supervisor performs the check or collects user input, then tells the DAG Assembler to record the result.
+
+**Input** (from Supervisor):
+```json
+{
+  "action": "update-status",
+  "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
+  "node_id": "constitution-gate",
+  "status": "passed",
+  "verdict": null
+}
+```
+
+**Process**:
+1. Update node status: `hil-dag status <dag_path> --node <node_id> --status <status>` _(CLI — updates current pass history entry, recomputes derived fields)_
+2. If the node is a gate and a verdict is provided, record it: `hil-dag record <dag_path> --node <node_id> --status <status> --verdict <verdict>` _(CLI — sets both status and verdict atomically)_
+3. Return confirmation
+
+**Output** (to Supervisor):
+```json
+{
+  "status_updated": true,
+  "node_id": "constitution-gate",
+  "old_status": "pending",
+  "new_status": "passed"
+}
+```
+
+**Node type expectations**:
+
+| Node Type | When Called | Status Value |
+|-----------|-----------|--------------|
+| gate (deterministic) | Supervisor verified file exists / condition met | `"passed"` or `"failed"` |
+| decision | Supervisor collected user input via AskUserQuestion | `"decided"` |
+| milestone | Supervisor instructed Assembler to verify prerequisites | `"achieved"` |
+
+For **milestone** nodes, before setting status to `"achieved"`, verify that all required artifacts listed in the milestone's `contract.consumes` exist at their expected paths. If any are missing, return `{"status_updated": false, "reason": "missing prerequisite artifacts", "missing": [...]}` instead.
+
 ## NL Prompt Construction Patterns
 
 ### For analyst-review (requirements-analyst agent)

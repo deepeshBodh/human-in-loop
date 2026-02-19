@@ -57,13 +57,13 @@
       "id": "edge-dep-research-analyst",
       "source": "targeted-research",
       "target": "analyst-review",
-      "type": "depends-on"
+      "type": "depends_on"
     },
     {
       "id": "edge-dep-analyst-advocate",
       "source": "analyst-review",
       "target": "advocate-review",
-      "type": "depends-on"
+      "type": "depends_on"
     },
     {
       "id": "edge-prod-research-analyst",

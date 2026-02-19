@@ -53,13 +53,13 @@
       "id": "edge-dep-enrich-analyst",
       "source": "input-enrichment",
       "target": "analyst-review",
-      "type": "depends-on"
+      "type": "depends_on"
     },
     {
       "id": "edge-dep-analyst-advocate",
       "source": "analyst-review",
       "target": "advocate-review",
-      "type": "depends-on"
+      "type": "depends_on"
     },
     {
       "id": "edge-prod-enrich-analyst",

@@ -57,19 +57,19 @@
       "id": "edge-dep-clarify-analyst",
       "source": "human-clarification",
       "target": "analyst-review",
-      "type": "depends-on"
+      "type": "depends_on"
     },
     {
       "id": "edge-dep-analyst-advocate",
       "source": "analyst-review",
       "target": "advocate-review",
-      "type": "depends-on"
+      "type": "depends_on"
     },
     {
       "id": "edge-prod-clarify-analyst",
       "source": "human-clarification",
       "target": "analyst-review",
-      "type": "informed-by"
+      "type": "informed_by"
     },
     {
       "id": "edge-prod-analyst-advocate",

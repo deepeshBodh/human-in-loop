@@ -21,7 +21,7 @@ class TestDependsOnView:
         g = load_graph(dag)
         view = depends_on_view(g)
         edges = list(view.edges(keys=True))
-        assert all(k == "depends-on" for _, _, k in edges)
+        assert all(k == "depends_on" for _, _, k in edges)
         assert len(edges) == 2
 
     def test_empty(self):
@@ -98,7 +98,7 @@ class TestTriggeredByView:
         view = triggered_by_view(g)
         edges = list(view.edges(keys=True))
         assert len(edges) == 1
-        assert edges[0][2] == "triggered-by"
+        assert edges[0][2] == "triggered_by"
 
     def test_no_triggered_by_in_normal_graph(self, load_fixture):
         dag = StrategyGraph.model_validate(load_fixture("pass-normal.json"))

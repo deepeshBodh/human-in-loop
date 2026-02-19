@@ -22,7 +22,7 @@ class TestCheckAcyclicity:
         assert result.valid is False
         assert len(result.violations) == 1
         assert result.violations[0].code == "CYCLE"
-        assert "depends-on" in result.violations[0].message
+        assert "depends_on" in result.violations[0].message
 
     def test_empty_dag(self):
         dag = StrategyGraph(id="sg", workflow_id="w")
