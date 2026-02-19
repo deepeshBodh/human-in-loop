@@ -12,12 +12,15 @@ from humaninloop_brain.entities.dag_pass import DAGPass
 from humaninloop_brain.entities.enums import PassOutcome
 from humaninloop_brain.entities.validation import ValidationResult
 from humaninloop_brain.graph.sort import execution_order
+from humaninloop_brain.entities.dag_pass import ExecutionTraceEntry
+from humaninloop_brain.entities.nodes import EvidenceAttachment
 from humaninloop_brain.passes.lifecycle import (
     FrozenPassError,
     add_node,
     create_pass,
     freeze_pass,
     load_pass,
+    record_analysis,
     save_pass,
     update_node_status,
 )
@@ -147,6 +150,54 @@ def cmd_status(args: argparse.Namespace) -> int:
     })
 
 
+def cmd_record(args: argparse.Namespace) -> int:
+    dag = _load_dag(args.dag)
+
+    # Find current status
+    old_status = None
+    for node in dag.nodes:
+        if node.id == args.node:
+            old_status = node.status
+            break
+    if old_status is None:
+        return _output({"status": "error", "message": f"Node '{args.node}' not found"}, 1)
+
+    # Parse evidence JSON
+    try:
+        evidence_raw = json.loads(args.evidence)
+    except json.JSONDecodeError as e:
+        return _output({"status": "error", "message": f"Invalid evidence JSON: {e}"}, 1)
+    try:
+        evidence = [EvidenceAttachment.model_validate(e) for e in evidence_raw]
+    except Exception as e:
+        return _output({"status": "error", "message": f"Invalid evidence schema: {e}"}, 1)
+
+    # Parse trace JSON
+    try:
+        trace_raw = json.loads(args.trace)
+    except json.JSONDecodeError as e:
+        return _output({"status": "error", "message": f"Invalid trace JSON: {e}"}, 1)
+    try:
+        trace_entry = ExecutionTraceEntry.model_validate(trace_raw)
+    except Exception as e:
+        return _output({"status": "error", "message": f"Invalid trace schema: {e}"}, 1)
+
+    try:
+        record_analysis(dag, args.node, args.status, evidence, trace_entry)
+    except (ValueError, FrozenPassError) as e:
+        return _output({"status": "error", "message": str(e)}, 1)
+
+    save_pass(dag, args.dag)
+    return _output({
+        "status": "success",
+        "node_id": args.node,
+        "old_status": old_status,
+        "new_status": args.status,
+        "evidence_added": len(evidence),
+        "trace_recorded": True,
+    })
+
+
 def cmd_freeze(args: argparse.Namespace) -> int:
     dag = _load_dag(args.dag)
     try:
@@ -259,6 +310,15 @@ def build_parser() -> argparse.ArgumentParser:
     p_frz.add_argument("--detail", required=True, help="Outcome detail")
     p_frz.add_argument("--rationale", required=True, help="Assembly rationale")
     p_frz.set_defaults(func=cmd_freeze)
+
+    # record
+    p_rec = subparsers.add_parser("record", help="Record analysis results for a node")
+    p_rec.add_argument("dag", help="Path to DAG pass JSON")
+    p_rec.add_argument("--node", required=True, help="Node ID")
+    p_rec.add_argument("--status", required=True, help="New status")
+    p_rec.add_argument("--evidence", required=True, help="JSON array of evidence entries")
+    p_rec.add_argument("--trace", required=True, help="JSON object for execution trace entry")
+    p_rec.set_defaults(func=cmd_record)
 
     # catalog-validate
     p_cat = subparsers.add_parser("catalog-validate", help="Validate a node catalog")

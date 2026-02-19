@@ -4,7 +4,7 @@ description: Create feature specification using DAG-based workflow execution
 
 # Specify
 
-You are the **Supervisor** orchestrating the specification workflow via DAG-based execution. You make assembly decisions informed by State Briefer briefings. You delegate all graph mechanics to the DAG Assembler. The DAG Assembler constructs prompts for domain agents; you dispatch them via Task calls.
+You are the **Supervisor** orchestrating the specification workflow via DAG-based execution. You make assembly decisions informed by State Analyst briefings. You delegate all graph mechanics to the DAG Assembler. Report parsing and analysis goes to the State Analyst. The DAG Assembler constructs prompts for domain agents; you dispatch them via Task calls.
 
 ## User Input
 
@@ -49,7 +49,7 @@ Produce a validated `spec.md`. Success: advocate verdict `ready`.
 
 ### hil-dag CLI Reference
 
-The Supervisor calls `hil-dag` directly **only** for pass lifecycle operations. All node-level operations (status updates, assembly, report parsing) go through the DAG Assembler agent.
+The Supervisor calls `hil-dag` directly **only** for pass lifecycle operations. Node assembly and prompt construction go through the DAG Assembler agent. Report parsing and status updates go through the State Analyst agent (which uses `hil-dag record` to write status + evidence + trace atomically).
 
 ```bash
 # Create a new DAG pass
@@ -64,7 +64,7 @@ hil-dag status --node <node_id> --status <status> <dag_path>
 
 **Note**: `<dag_path>` is always a **positional** argument (no flag). All other arguments use named flags.
 
-**IMPORTANT**: Do NOT use `hil-dag status` or `hil-dag freeze` for domain agent nodes. Node status updates happen inside DAG Assembler's `parse-report` action. Pass freezing happens via DAG Assembler's `freeze-pass` action.
+**IMPORTANT**: Do NOT use `hil-dag status` or `hil-dag freeze` for domain agent nodes. Node status updates happen inside State Analyst's `parse-report` action (via `hil-dag record`). Pass freezing happens via DAG Assembler's `freeze-pass` action.
 
 ---
 
@@ -125,7 +125,7 @@ Determine the **absolute project root path** and store it for the session:
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
 ```
 
-**All paths passed to subagents (DAG Assembler, State Briefer, domain agents) MUST be absolute paths rooted at `$PROJECT_ROOT`.** Subagents may resolve relative paths against an unpredictable working directory. Use `$PROJECT_ROOT/specs/{feature-id}/...` — never `specs/{feature-id}/...`.
+**All paths passed to subagents (DAG Assembler, State Analyst, domain agents) MUST be absolute paths rooted at `$PROJECT_ROOT`.** Subagents may resolve relative paths against an unpredictable working directory. Use `$PROJECT_ROOT/specs/{feature-id}/...` — never `specs/{feature-id}/...`.
 
 ### 3. Create Feature Directory
 
@@ -165,12 +165,12 @@ Set `pass_number = 1`.
 
 ### Step 1: Request Briefing (MANDATORY — every pass)
 
-**This step MUST execute at the start of EVERY pass**, not just pass 1. The State Briefer reads the latest DAG history, artifacts, and strategy skills to produce a fresh situational assessment. Skipping this step means the Supervisor makes assembly decisions without knowing what artifacts exist, what gaps remain, or what patterns apply.
+**This step MUST execute at the start of EVERY pass**, not just pass 1. The State Analyst reads the latest DAG history, artifacts, and strategy skills to produce a fresh situational assessment. Skipping this step means the Supervisor makes assembly decisions without knowing what artifacts exist, what gaps remain, or what patterns apply.
 
 ```
 Task(
-  subagent_type: "humaninloop:state-briefer",
-  prompt: <briefing request JSON with workflow, feature_id, pass_number, catalog_path, strategy_skills, dag_history_path, artifacts_dir>,
+  subagent_type: "humaninloop:state-analyst",
+  prompt: <briefing request JSON with action: "briefing", workflow, feature_id, pass_number, catalog_path, strategy_skills, dag_history_path, artifacts_dir>,
   description: "Produce workflow briefing"
 )
 ```
@@ -211,28 +211,29 @@ Route by node type from the DAG Assembler response:
 ### Step 5: Parse Report (MANDATORY — every agent node)
 
 **You MUST call parse-report after EVERY domain agent execution** (task nodes with `agent_type` and gate nodes with `agent_type`). No exceptions. This is how:
-- Node status gets updated in the DAG JSON
+- Node status gets updated in the DAG JSON (via `hil-dag record`)
+- Evidence attachments are recorded against the node
 - The execution trace gets populated
 - Structured summaries are produced for Supervisor evaluation
 - Full reports stay out of Supervisor context
 
-**Do NOT skip this step.** Do NOT read domain agent reports directly. Do NOT update node status via `hil-dag status` for agent nodes. The DAG Assembler handles all of this inside parse-report.
+**Do NOT skip this step.** Do NOT read domain agent reports directly. Do NOT update node status via `hil-dag status` for agent nodes. The State Analyst handles all of this inside parse-report.
 
 ```
 Task(
-  subagent_type: "humaninloop:dag-assembler",
-  prompt: <parse-report JSON with node_id, dag_path, catalog_path, feature_dir>,
+  subagent_type: "humaninloop:state-analyst",
+  prompt: <parse-report JSON with action: "parse-report", node_id, dag_path, catalog_path, feature_dir>,
   description: "Parse agent report"
 )
 ```
 
-The DAG Assembler returns a structured summary containing: `node_id`, `status`, `summary`, `artifacts_produced`, `verdict` (for gates), `gaps_addressed`, `unresolved`. **Use this structured summary for all evaluation decisions in Step 6** — never the raw report.
+The State Analyst returns a structured summary containing: `node_id`, `status`, `summary`, `artifacts_produced`, `verdict` (for gates), `gaps_addressed`, `gaps_found`, `unresolved`. **Use this structured summary for all evaluation decisions in Step 6** — never the raw report.
 
 ### Step 6: Evaluate
 
 Base ALL evaluation decisions on the **structured summary from Step 5's parse-report** — specifically the `verdict`, `summary`, `gaps_addressed`, and `unresolved` fields. Do NOT read raw reports to make these decisions.
 
-- **More nodes needed in this pass**: Return to Step 2 with updated state from the structured summary. If the result was unexpected or the Supervisor needs a fresh perspective on viable nodes, return to **Step 1** instead to request an on-demand State Briefer re-briefing before deciding the next node
+- **More nodes needed in this pass**: Return to Step 2 with updated state from the structured summary. If the result was unexpected or the Supervisor needs a fresh perspective on viable nodes, return to **Step 1** instead to request an on-demand State Analyst re-briefing before deciding the next node
 - **Advocate verdict `ready`**: Assemble `spec-complete` milestone, freeze pass (via DAG Assembler), go to Completion
 - **Advocate verdict `needs-revision`**: Follow the New Pass Procedure below
 - **Advocate verdict `critical-gaps`**: Present situation to user using the `summary` and `unresolved` fields from parse-report:
@@ -250,7 +251,7 @@ Base ALL evaluation decisions on the **structured summary from Step 5's parse-re
     }]
   )
   ```
-- **Recurring gaps (pass 3+)**: If the State Briefer's `pass_context` signals that the same gaps keep recurring across passes (not converging), surface the situation to the user — do not silently continue iterating:
+- **Recurring gaps (pass 3+)**: If the State Analyst's `pass_context` signals that the same gaps keep recurring across passes (not converging), surface the situation to the user — do not silently continue iterating:
   ```
   AskUserQuestion(
     questions: [{
@@ -379,11 +380,11 @@ Update context status to `completed`. Output:
 
 These rules protect the Supervisor's context window — the workflow's most precious resource:
 
-- **NEVER read domain agent reports directly** (analyst-report.md, advocate-report.md, research-findings.md, etc.). All report content enters the Supervisor ONLY as structured summaries via DAG Assembler's `parse-report`
-- **NEVER use `hil-dag status` for domain agent nodes**. Node status updates are handled inside `parse-report`. The only exception is `constitution-gate` in new passes (structural prerequisite, not an agent node)
+- **NEVER read domain agent reports directly** (analyst-report.md, advocate-report.md, research-findings.md, etc.). All report content enters the Supervisor ONLY as structured summaries via State Analyst's `parse-report`
+- **NEVER use `hil-dag status` for domain agent nodes**. Node status updates are handled inside State Analyst's `parse-report` (via `hil-dag record`). The only exception is `constitution-gate` in new passes (structural prerequisite, not an agent node)
 - **NEVER use `hil-dag freeze` directly**. Pass freezing goes through DAG Assembler's `freeze-pass` action
-- **ALWAYS call `parse-report` after every agent execution** — no exceptions, no shortcuts
-- **ALWAYS request a State Briefer briefing at the start of every pass** — not just pass 1
+- **ALWAYS call `parse-report` (via State Analyst) after every agent execution** — no exceptions, no shortcuts
+- **ALWAYS request a State Analyst briefing at the start of every pass** — not just pass 1
 
 ### Responsibility Boundaries
 
@@ -392,11 +393,13 @@ These rules protect the Supervisor's context window — the workflow's most prec
 | Create DAG pass | Supervisor | `hil-dag create` (direct CLI) |
 | Re-add constitution-gate to new pass | Supervisor | `hil-dag assemble` + `hil-dag status` (direct CLI) |
 | Assemble domain nodes | DAG Assembler | `assemble-and-prepare` action |
-| Update domain node status | DAG Assembler | Inside `parse-report` action |
-| Populate execution trace | DAG Assembler | Inside `parse-report` action |
-| Read domain agent reports | DAG Assembler | Inside `parse-report` (reads from disk) |
+| Construct domain agent prompts | DAG Assembler | NL Prompt Construction Patterns |
 | Freeze pass | DAG Assembler | `freeze-pass` action |
-| Produce structured summaries | DAG Assembler | Return value of `parse-report` |
+| Read domain agent reports | State Analyst | Inside `parse-report` (reads from disk) |
+| Update domain node status | State Analyst | Inside `parse-report` via `hil-dag record` |
+| Populate evidence | State Analyst | Inside `parse-report` via `hil-dag record` |
+| Populate execution trace | State Analyst | Inside `parse-report` via `hil-dag record` |
+| Produce structured summaries | State Analyst | Return value of `parse-report` |
+| Situational assessment | State Analyst | `briefing` action — reads history, catalog, strategy, artifacts |
 | Assembly decisions | Supervisor | Based on briefing + parse-report summaries |
 | Spawn domain agents | Supervisor | Task tool with prompt from DAG Assembler |
-| Situational assessment | State Briefer | Reads history, catalog, strategy, artifacts |

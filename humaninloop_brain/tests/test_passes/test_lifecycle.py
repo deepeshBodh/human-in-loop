@@ -5,13 +5,16 @@ import pytest
 from humaninloop_brain.entities.catalog import NodeCatalog
 from humaninloop_brain.entities.dag_pass import DAGPass, ExecutionTraceEntry
 from humaninloop_brain.entities.enums import PassOutcome
+from humaninloop_brain.entities.nodes import EvidenceAttachment
 from humaninloop_brain.passes.lifecycle import (
     FrozenPassError,
+    add_evidence,
     add_node,
     add_trace_entry,
     create_pass,
     freeze_pass,
     load_pass,
+    record_analysis,
     save_pass,
     update_node_status,
 )
@@ -114,6 +117,116 @@ class TestAddTraceEntry:
         )
         with pytest.raises(FrozenPassError):
             add_trace_entry(dag, entry)
+
+
+class TestAddEvidence:
+    def _make_evidence(self, id: str = "E1") -> EvidenceAttachment:
+        return EvidenceAttachment(
+            id=id,
+            type="report-summary",
+            description="Test evidence",
+            reference="test/path.md",
+        )
+
+    def test_add_single_evidence(self, catalog):
+        dag = create_pass("w", 1)
+        dag, _ = add_node(dag, "input-enrichment", catalog)
+        ev = self._make_evidence()
+        add_evidence(dag, "input-enrichment", [ev])
+        assert len(dag.nodes[0].evidence) == 1
+        assert dag.nodes[0].evidence[0].id == "E1"
+
+    def test_add_multiple_evidence(self, catalog):
+        dag = create_pass("w", 1)
+        dag, _ = add_node(dag, "input-enrichment", catalog)
+        evs = [self._make_evidence("E1"), self._make_evidence("E2")]
+        add_evidence(dag, "input-enrichment", evs)
+        assert len(dag.nodes[0].evidence) == 2
+
+    def test_append_to_existing(self, catalog):
+        dag = create_pass("w", 1)
+        dag, _ = add_node(dag, "input-enrichment", catalog)
+        add_evidence(dag, "input-enrichment", [self._make_evidence("E1")])
+        add_evidence(dag, "input-enrichment", [self._make_evidence("E2")])
+        assert len(dag.nodes[0].evidence) == 2
+        assert dag.nodes[0].evidence[0].id == "E1"
+        assert dag.nodes[0].evidence[1].id == "E2"
+
+    def test_unknown_node(self):
+        dag = create_pass("w", 1)
+        with pytest.raises(ValueError, match="not found"):
+            add_evidence(dag, "nonexistent", [self._make_evidence()])
+
+    def test_reject_frozen_pass(self, catalog):
+        dag = create_pass("w", 1)
+        dag, _ = add_node(dag, "input-enrichment", catalog)
+        freeze_pass(dag, PassOutcome.completed, "d", "r")
+        with pytest.raises(FrozenPassError):
+            add_evidence(dag, "input-enrichment", [self._make_evidence()])
+
+    def test_preserves_other_fields(self, catalog):
+        dag = create_pass("w", 1)
+        dag, _ = add_node(dag, "input-enrichment", catalog)
+        original = dag.nodes[0]
+        add_evidence(dag, "input-enrichment", [self._make_evidence()])
+        updated = dag.nodes[0]
+        assert updated.id == original.id
+        assert updated.type == original.type
+        assert updated.name == original.name
+        assert updated.status == original.status
+        assert updated.contract == original.contract
+
+
+class TestRecordAnalysis:
+    def _make_evidence(self) -> EvidenceAttachment:
+        return EvidenceAttachment(
+            id="E1",
+            type="report-summary",
+            description="Test evidence",
+            reference="test/path.md",
+        )
+
+    def _make_trace(self, node_id: str = "input-enrichment") -> ExecutionTraceEntry:
+        return ExecutionTraceEntry(
+            node_id=node_id,
+            started_at="2026-01-15T10:00:00Z",
+            completed_at="2026-01-15T10:05:00Z",
+            verdict="completed",
+            agent_report_summary="Task completed successfully",
+        )
+
+    def test_full_record(self, catalog):
+        dag = create_pass("w", 1)
+        dag, _ = add_node(dag, "input-enrichment", catalog)
+        record_analysis(
+            dag, "input-enrichment", "completed",
+            [self._make_evidence()], self._make_trace(),
+        )
+        assert dag.nodes[0].status == "completed"
+        assert len(dag.nodes[0].evidence) == 1
+        assert len(dag.execution_trace) == 1
+
+    def test_invalid_status_aborts(self, catalog):
+        dag = create_pass("w", 1)
+        dag, _ = add_node(dag, "input-enrichment", catalog)
+        with pytest.raises(ValueError, match="not valid for node type"):
+            record_analysis(
+                dag, "input-enrichment", "passed",
+                [self._make_evidence()], self._make_trace(),
+            )
+        # Evidence and trace should NOT have been added
+        assert len(dag.nodes[0].evidence) == 0
+        assert len(dag.execution_trace) == 0
+
+    def test_reject_frozen_pass(self, catalog):
+        dag = create_pass("w", 1)
+        dag, _ = add_node(dag, "input-enrichment", catalog)
+        freeze_pass(dag, PassOutcome.completed, "d", "r")
+        with pytest.raises(FrozenPassError):
+            record_analysis(
+                dag, "input-enrichment", "completed",
+                [self._make_evidence()], self._make_trace(),
+            )
 
 
 class TestFreezePass:

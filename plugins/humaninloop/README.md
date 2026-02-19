@@ -97,10 +97,10 @@ Create a feature specification with integrated quality validation.
 **Workflow (DAG-based execution):**
 1. Generate short name from description (2-4 words, e.g., `user-auth`)
 2. Create feature branch and directory using `create-new-feature.sh` script
-3. State Briefer produces workflow briefing from DAG history, catalog, and strategy skills
+3. State Analyst produces workflow briefing from DAG history, catalog, and strategy skills
 4. Supervisor makes assembly decision; DAG Assembler validates and builds graph node
 5. Domain agents execute (Requirements Analyst produces spec, Devil's Advocate reviews)
-6. DAG Assembler parses agent reports, updates node status
+6. State Analyst parses agent reports, records status + evidence + trace via `hil-dag record`
 7. Loop until advocate verdict is `ready` or user accepts current state
 
 **Branch Format:** `###-short-name` (e.g., `001-user-auth`)
@@ -216,8 +216,8 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 
 | Agent | Purpose |
 |-------|---------|
-| **DAG Assembler** | Deterministic graph assembly specialist that translates Supervisor decisions into validated DAG mutations via the `hil-dag` CLI. Constructs prompts for domain agents from catalog contracts. Uses skill: `dag-operations` |
-| **State Briefer** | Reads DAG history, current pass state, strategy skills, and catalog to produce structured workflow briefings for the Supervisor |
+| **DAG Assembler** | Pure graph mechanics: translates Supervisor decisions into validated DAG mutations via the `hil-dag` CLI. Constructs prompts for domain agents from catalog contracts. Uses skill: `dag-operations` |
+| **State Analyst** | Reads DAG history, parses domain agent reports, and produces structured briefings and summaries for the Supervisor. Records analysis results atomically via `hil-dag record`. Uses skill: `dag-operations` |
 | **Requirements Analyst** | Transforms feature requests into precise specifications with user stories, requirements, and acceptance criteria |
 | **Devil's Advocate** | Adversarial reviewer who stress-tests specs, finds gaps, challenges assumptions, and generates clarifying questions |
 

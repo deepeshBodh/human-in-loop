@@ -25,7 +25,7 @@ CATALOG_PATHS = [
 
 # Agent spec paths
 SPECIFY_CMD = PLUGIN_ROOT / "commands" / "specify.md"
-STATE_BRIEFER = PLUGIN_ROOT / "agents" / "state-briefer.md"
+STATE_ANALYST = PLUGIN_ROOT / "agents" / "state-analyst.md"
 DAG_ASSEMBLER = PLUGIN_ROOT / "agents" / "dag-assembler.md"
 REQUIREMENTS_ANALYST = PLUGIN_ROOT / "agents" / "requirements-analyst.md"
 DEVILS_ADVOCATE = PLUGIN_ROOT / "agents" / "devils-advocate.md"
@@ -147,10 +147,9 @@ class TestDAGAssemblerCatalogConsistency:
     def test_assembler_exists(self):
         assert DAG_ASSEMBLER.exists()
 
-    def test_three_actions_documented(self, assembler_text):
-        """DAG Assembler documents all 3 actions."""
+    def test_two_actions_documented(self, assembler_text):
+        """DAG Assembler documents its 2 actions (parse-report moved to State Analyst)."""
         assert "assemble-and-prepare" in assembler_text
-        assert "parse-report" in assembler_text
         assert "freeze-pass" in assembler_text
 
     def test_artifact_path_convention_covers_catalog(self, assembler_text, catalog):
@@ -174,47 +173,48 @@ class TestDAGAssemblerCatalogConsistency:
                 f"Key node '{node_id}' not in DAG Assembler special cases"
             )
 
-    def test_report_parsing_patterns_exist(self, assembler_text, catalog):
-        """Report parsing patterns exist for nodes that produce reports."""
+    def test_report_parsing_patterns_in_state_analyst(self, catalog):
+        """Report parsing patterns exist in State Analyst for nodes that produce reports."""
+        analyst_text = STATE_ANALYST.read_text()
         # Nodes with agents produce reports
         agent_nodes = [n for n in catalog["nodes"] if n.get("agent")]
         for node in agent_nodes:
             # Check that at least one produced artifact is in parsing patterns
             for artifact in node["contract"]["produces"]:
                 if artifact.endswith(".md"):
-                    assert artifact in assembler_text, (
+                    assert artifact in analyst_text, (
                         f"No report parsing pattern for '{artifact}' "
-                        f"produced by '{node['id']}'"
+                        f"produced by '{node['id']}' in State Analyst"
                     )
 
 
-class TestStateBrieferCatalogConsistency:
-    """State Briefer output fields constructible from catalog schema."""
+class TestStateAnalystCatalogConsistency:
+    """State Analyst output fields constructible from catalog schema."""
 
     @pytest.fixture
     def catalog(self) -> dict:
         return _load_catalog(CATALOG_PATHS[0])
 
     @pytest.fixture
-    def briefer_text(self) -> str:
-        return STATE_BRIEFER.read_text()
+    def analyst_text(self) -> str:
+        return STATE_ANALYST.read_text()
 
-    def test_briefer_exists(self):
-        assert STATE_BRIEFER.exists()
+    def test_analyst_exists(self):
+        assert STATE_ANALYST.exists()
 
-    def test_viable_nodes_fields_from_catalog(self, briefer_text, catalog):
-        """State Briefer viable_nodes output includes contract info that exists in catalog."""
+    def test_viable_nodes_fields_from_catalog(self, analyst_text, catalog):
+        """State Analyst viable_nodes output includes contract info that exists in catalog."""
         # The viable_nodes example shows: id, type, agent, contract, reason
         # All these fields must exist in catalog node definitions
         for field in ["id", "type", "agent", "contract"]:
-            assert field in briefer_text
+            assert field in analyst_text
 
-    def test_gap_classification_types(self, briefer_text):
-        """State Briefer documents all gap types used in routing."""
+    def test_gap_classification_types(self, analyst_text):
+        """State Analyst documents all gap types used in routing."""
         for gap_type in ["knowledge", "preference", "scope"]:
-            assert gap_type in briefer_text
+            assert gap_type in analyst_text
 
-    def test_output_fields_documented(self, briefer_text):
+    def test_output_fields_documented(self, analyst_text):
         """All required output fields are documented."""
         required_fields = [
             "state_summary",
@@ -225,14 +225,22 @@ class TestStateBrieferCatalogConsistency:
             "pass_context",
         ]
         for field in required_fields:
-            assert field in briefer_text, (
-                f"Required output field '{field}' not documented in State Briefer"
+            assert field in analyst_text, (
+                f"Required output field '{field}' not documented in State Analyst"
             )
 
-    def test_strategy_skills_referenced(self, briefer_text):
-        """State Briefer references both strategy skills."""
-        assert "strategy-core" in briefer_text
-        assert "strategy-specification" in briefer_text
+    def test_strategy_skills_referenced(self, analyst_text):
+        """State Analyst references both strategy skills."""
+        assert "strategy-core" in analyst_text
+        assert "strategy-specification" in analyst_text
+
+    def test_parse_report_action_documented(self, analyst_text):
+        """State Analyst documents parse-report action."""
+        assert "parse-report" in analyst_text
+
+    def test_hil_dag_record_referenced(self, analyst_text):
+        """State Analyst references hil-dag record for atomic writes."""
+        assert "dag-record" in analyst_text or "hil-dag record" in analyst_text
 
 
 class TestCatalogTemplateConsistency:
@@ -259,9 +267,9 @@ class TestCatalogTemplateConsistency:
         assert (TEMPLATE_DIR / "context-template.md").exists()
 
     def test_analyst_template_has_expected_sections(self):
-        """Analyst report template has sections referenced in DAG Assembler parsing patterns."""
+        """Analyst report template has sections referenced in State Analyst parsing patterns."""
         template = (TEMPLATE_DIR / "analyst-report-template.md").read_text()
-        # DAG Assembler parse-report expects: "What I Created", "Summary"
+        # State Analyst parse-report expects: "What I Created", "Summary"
         assert "What I Created" in template or "Created" in template
         assert "Summary" in template or "summary" in template.lower()
 

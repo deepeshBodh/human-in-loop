@@ -1,11 +1,11 @@
 ---
 name: strategy-specification
-description: Specification-workflow patterns (input assessment, produce-then-validate, gap-informed revision) consumed by the State Briefer alongside strategy-core for targeted Supervisor briefings.
+description: Specification-workflow patterns (input assessment, produce-then-validate, gap-informed revision) consumed by the State Analyst alongside strategy-core for targeted Supervisor briefings.
 ---
 
 # Strategy: Specification
 
-Workflow-specific patterns for the specification workflow. Consumed by the State Briefer alongside `strategy-core` to produce targeted Supervisor briefings.
+Workflow-specific patterns for the specification workflow. Consumed by the State Analyst alongside `strategy-core` to produce targeted Supervisor briefings.
 
 ## Goal
 
