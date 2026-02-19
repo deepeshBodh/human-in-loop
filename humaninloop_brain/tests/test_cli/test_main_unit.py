@@ -736,3 +736,212 @@ class TestCatalogValidateCommand:
         bad.write_text('{"not": "a catalog"}')
         code = main(["catalog-validate", str(bad)])
         assert code == 1
+
+
+class TestMilestonePrerequisiteVerification:
+    """Milestone nodes reject 'achieved' when prerequisite nodes are incomplete.
+
+    Covers main.py:292-310 — the milestone prerequisite verification block
+    in cmd_status that checks depends_on/validates edges before allowing
+    a milestone to be marked 'achieved'.
+    """
+
+    def _build_dag_with_milestone(self, tmp_path, capsys):
+        """Build a DAG with constitution-gate, analyst, advocate, spec-complete."""
+        return _bootstrap_graph(
+            tmp_path, capsys,
+            nodes=[
+                "constitution-gate", "analyst-review",
+                "advocate-review", "spec-complete",
+            ],
+        )
+
+    def test_milestone_rejected_with_incomplete_prerequisites(self, tmp_path, capsys):
+        """spec-complete depends on advocate-review; rejecting when advocate is pending."""
+        dag_path = self._build_dag_with_milestone(tmp_path, capsys)
+
+        # Try to achieve milestone without completing prerequisites
+        code = main([
+            "status", dag_path,
+            "--node", "spec-complete",
+            "--status", "achieved",
+        ])
+        assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert out["status"] == "invalid"
+        assert out["reason"] == "prerequisite nodes incomplete"
+        assert len(out["incomplete"]) > 0
+
+    def test_milestone_succeeds_with_complete_prerequisites(self, tmp_path, capsys):
+        """spec-complete succeeds when all prerequisite nodes have terminal status."""
+        dag_path = self._build_dag_with_milestone(tmp_path, capsys)
+
+        # Complete all prerequisites
+        main(["status", dag_path, "--node", "constitution-gate", "--status", "passed"])
+        main(["status", dag_path, "--node", "analyst-review", "--status", "completed"])
+        main([
+            "status", dag_path,
+            "--node", "advocate-review",
+            "--status", "completed",
+            "--verdict", "ready",
+        ])
+        capsys.readouterr()
+
+        # Now achieve milestone
+        code = main([
+            "status", dag_path,
+            "--node", "spec-complete",
+            "--status", "achieved",
+        ])
+        assert code == 0
+        out = json.loads(capsys.readouterr().out)
+        assert out["new_status"] == "achieved"
+
+    def test_milestone_rejects_when_prereq_not_terminal(self, tmp_path, capsys):
+        """Milestone fails when its depends_on prerequisite is still in-progress."""
+        dag_path = self._build_dag_with_milestone(tmp_path, capsys)
+
+        # Set advocate-review to in-progress (not terminal)
+        main([
+            "status", dag_path,
+            "--node", "advocate-review",
+            "--status", "in-progress",
+        ])
+        capsys.readouterr()
+
+        # spec-complete depends_on advocate-review, which is in-progress → rejected
+        code = main([
+            "status", dag_path,
+            "--node", "spec-complete",
+            "--status", "achieved",
+        ])
+        assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert out["status"] == "invalid"
+        assert "incomplete" in out
+
+    def test_milestone_persists_achieved_in_graph(self, tmp_path, capsys):
+        """Verify achieved status persists in the DAG file."""
+        dag_path = self._build_dag_with_milestone(tmp_path, capsys)
+
+        # Complete all prerequisites
+        main(["status", dag_path, "--node", "constitution-gate", "--status", "passed"])
+        main(["status", dag_path, "--node", "analyst-review", "--status", "completed"])
+        main([
+            "status", dag_path,
+            "--node", "advocate-review",
+            "--status", "completed",
+            "--verdict", "ready",
+        ])
+        capsys.readouterr()
+
+        main(["status", dag_path, "--node", "spec-complete", "--status", "achieved"])
+        capsys.readouterr()
+
+        data = json.loads(Path(dag_path).read_text())
+        milestone = next(n for n in data["nodes"] if n["id"] == "spec-complete")
+        assert milestone["status"] == "achieved"
+        assert milestone["history"][0]["status"] == "achieved"
+
+
+class TestSemanticFallbackAmbiguousFailure:
+    """When ambiguous tags + intent also fails to disambiguate.
+
+    Covers main.py:155-164 — the branch where multiple capability
+    matches exist AND resolve_by_description with those candidates
+    returns != 1 match (semantic_fallback_failed).
+    """
+
+    def test_ambiguous_tags_intent_fails_to_disambiguate(self, tmp_path, capsys):
+        """Two capability matches + equally-matching intent → semantic_fallback_failed."""
+        dag_path = _bootstrap_graph(
+            tmp_path, capsys,
+            nodes=["constitution-gate", "analyst-review", "advocate-review"],
+        )
+        # "gap-detection" + "research" matches advocate-review AND targeted-research.
+        # "gap validation" has equal word overlap with both candidates:
+        #   advocate-review tokens: {gap, validation, ...}  → overlap 2
+        #   targeted-research tokens: {gap, validation, ...} → overlap 2
+        # Equal scores → 2 results → ambiguous, semantic_fallback_failed.
+        code = main([
+            "assemble", dag_path,
+            "--catalog", CATALOG,
+            "--capability-tags", "gap-detection", "research",
+            "--intent", "gap validation",
+        ])
+        assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert out["status"] == "resolution_failed"
+        assert out["reason"] == "ambiguous"
+        assert out["resolution"] == "semantic_fallback_failed"
+        assert len(out["candidates"]) == 2
+        # Candidates include full details for debugging
+        for candidate in out["candidates"]:
+            assert "node_id" in candidate
+            assert "capabilities" in candidate
+            assert "description" in candidate
+
+
+class TestFreezeValidationEdgeCases:
+    """Freeze edge cases that flow through lifecycle exceptions.
+
+    Covers main.py:440-441 (exception handler) and lifecycle.py:290,296,305
+    (trigger_source validation, triggered_nodes validation).
+    """
+
+    def test_freeze_nonexistent_trigger_source(self, tmp_path, capsys):
+        """trigger_source that doesn't exist in graph raises ValueError."""
+        dag_path = _bootstrap_graph(
+            tmp_path, capsys,
+            nodes=["constitution-gate", "analyst-review"],
+        )
+        code = main([
+            "freeze", dag_path,
+            "--outcome", "completed",
+            "--detail", "needs-revision",
+            "--triggered-nodes", "analyst-review",
+            "--trigger-source", "nonexistent-gate",
+            "--reason", "test",
+        ])
+        assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert out["status"] == "error"
+        assert "nonexistent-gate" in out["message"]
+
+    def test_freeze_non_gate_trigger_source(self, tmp_path, capsys):
+        """trigger_source pointing to a task node (not gate) raises ValueError."""
+        dag_path = _bootstrap_graph(
+            tmp_path, capsys,
+            nodes=["constitution-gate", "analyst-review"],
+        )
+        code = main([
+            "freeze", dag_path,
+            "--outcome", "completed",
+            "--detail", "needs-revision",
+            "--triggered-nodes", "analyst-review",
+            "--trigger-source", "analyst-review",  # task, not gate
+            "--reason", "test",
+        ])
+        assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert out["status"] == "error"
+        assert "must be a gate node" in out["message"]
+
+    def test_freeze_nonexistent_triggered_nodes(self, tmp_path, capsys):
+        """triggered_nodes referencing nonexistent nodes raises ValueError."""
+        dag_path = _bootstrap_graph(
+            tmp_path, capsys,
+            nodes=["constitution-gate", "analyst-review", "advocate-review"],
+        )
+        code = main([
+            "freeze", dag_path,
+            "--outcome", "completed",
+            "--detail", "needs-revision",
+            "--triggered-nodes", "nonexistent-node",
+            "--trigger-source", "advocate-review",
+            "--reason", "test",
+        ])
+        assert code == 1
+        out = json.loads(capsys.readouterr().out)
+        assert out["status"] == "error"
+        assert "nonexistent" in out["message"]

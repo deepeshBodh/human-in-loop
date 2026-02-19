@@ -1,7 +1,9 @@
 """Tests for pass lifecycle manager."""
 
 import json
+import os
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -10,6 +12,7 @@ from humaninloop_brain.entities.enums import EdgeType, NodeType
 from humaninloop_brain.entities.nodes import EvidenceAttachment, NodeHistoryEntry
 from humaninloop_brain.passes.lifecycle import (
     FrozenEntryError,
+    _recompute_derived,
     add_or_reopen_node,
     create_strategy_graph,
     freeze_current_pass,
@@ -391,3 +394,160 @@ class TestSaveLoadGraph:
         node = loaded.nodes[0]
         assert len(node.history) == 2
         assert node.history[0].frozen is True
+
+
+class TestVerdictValidation:
+    """Verdict is only valid on gate nodes and must be a valid GateVerdict value.
+
+    Covers lifecycle.py:194 (verdict on non-gate) and lifecycle.py:200 (invalid verdict).
+    """
+
+    def test_verdict_on_non_gate_raises(self, graph, catalog):
+        """Setting verdict on a task node raises ValueError."""
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        with pytest.raises(ValueError, match="only valid for gate nodes"):
+            update_node_history(graph, "analyst-review", 1, "completed", verdict="ready")
+
+    def test_invalid_verdict_value_raises(self, graph, catalog):
+        """Setting invalid verdict string on a gate raises ValueError."""
+        graph, _ = add_or_reopen_node(graph, "advocate-review", catalog, 1)
+        with pytest.raises(ValueError, match="not valid"):
+            update_node_history(
+                graph, "advocate-review", 1, "completed", verdict="invalid-verdict"
+            )
+
+    def test_valid_verdicts_accepted(self, graph, catalog):
+        """All three GateVerdict values are accepted on gate nodes."""
+        for verdict in ("ready", "needs-revision", "critical-gaps"):
+            g, _ = add_or_reopen_node(graph, "advocate-review", catalog, 1)
+            g = update_node_history(g, "advocate-review", 1, "completed", verdict=verdict)
+            node = next(n for n in g.nodes if n.id == "advocate-review")
+            assert node.verdict == verdict
+
+
+class TestFreezeValidation:
+    """Freeze validation for trigger_source and triggered_nodes.
+
+    Covers lifecycle.py:290 (trigger_source not in graph),
+    lifecycle.py:296 (trigger_source not a gate),
+    lifecycle.py:305 (triggered_nodes reference nonexistent nodes).
+    """
+
+    def test_trigger_source_not_in_graph(self, graph, catalog):
+        """trigger_source referencing a nonexistent node raises ValueError."""
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        with pytest.raises(ValueError, match="does not exist in graph"):
+            freeze_current_pass(
+                graph, "completed", "done",
+                triggered_nodes=["analyst-review"],
+                trigger_source="nonexistent",
+                reason="test",
+            )
+
+    def test_trigger_source_not_gate(self, graph, catalog):
+        """trigger_source pointing to a task node raises ValueError."""
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        with pytest.raises(ValueError, match="must be a gate node"):
+            freeze_current_pass(
+                graph, "completed", "done",
+                triggered_nodes=["analyst-review"],
+                trigger_source="analyst-review",
+                reason="test",
+            )
+
+    def test_triggered_nodes_nonexistent(self, graph, catalog):
+        """triggered_nodes referencing nonexistent nodes raises ValueError."""
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph, _ = add_or_reopen_node(graph, "advocate-review", catalog, 1)
+        with pytest.raises(ValueError, match="nonexistent nodes"):
+            freeze_current_pass(
+                graph, "completed", "done",
+                triggered_nodes=["nonexistent-node"],
+                trigger_source="advocate-review",
+                reason="test",
+            )
+
+
+class TestRecomputeDerived:
+    """_recompute_derived handles edge cases.
+
+    Covers lifecycle.py:40-43 (empty history returns node unchanged).
+    """
+
+    def test_empty_history_returns_node_unchanged(self):
+        """Node with no history entries is returned unchanged."""
+        from humaninloop_brain.entities.nodes import GraphNode
+
+        node = GraphNode(
+            id="test",
+            type=NodeType.task,
+            name="Test",
+            description="Test node",
+            status="pending",
+            history=[],
+            last_active_pass=None,
+        )
+        result = _recompute_derived(node)
+        assert result.id == "test"
+        assert result.status == "pending"
+        assert result.history == []
+
+
+class TestSaveGraphEdgeCases:
+    """save_graph atomic write error paths.
+
+    Covers lifecycle.py:425-426 (backup OSError) and
+    lifecycle.py:442-448 (temp file cleanup on validation failure).
+    """
+
+    def test_save_creates_backup_file(self, graph, catalog, tmp_path):
+        """save_graph creates a .bak file when overwriting existing file."""
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        path = tmp_path / "test-graph.json"
+
+        # First save — no backup
+        save_graph(graph, path)
+        assert not path.with_suffix(".json.bak").exists()
+
+        # Second save — backup should be created
+        graph = update_node_history(graph, "analyst-review", 1, "completed")
+        save_graph(graph, path)
+        assert path.with_suffix(".json.bak").exists()
+
+    def test_save_validation_failure_cleans_temp(self, graph, catalog, tmp_path):
+        """When re-validation of written file fails, temp file is cleaned up."""
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        path = tmp_path / "test-graph.json"
+
+        # Patch model_validate_json to raise on the re-validation step
+        with patch.object(
+            type(graph), "model_validate_json",
+            side_effect=ValueError("Corrupted JSON"),
+        ):
+            with pytest.raises(ValueError, match="Corrupted JSON"):
+                save_graph(graph, path)
+
+        # Original file should NOT exist (first write, no prior file)
+        # Temp file should be cleaned up
+        tmp_files = list(tmp_path.glob("*.tmp"))
+        assert len(tmp_files) == 0, f"Temp file not cleaned up: {tmp_files}"
+
+    def test_save_backup_oserror_ignored(self, graph, catalog, tmp_path):
+        """OSError during backup is silently ignored (best-effort)."""
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        path = tmp_path / "test-graph.json"
+
+        # First save to create the file
+        save_graph(graph, path)
+
+        # Make the backup path a directory so write_text fails with OSError
+        backup_path = path.with_suffix(".json.bak")
+        backup_path.mkdir()
+
+        # Second save should succeed despite backup failure
+        graph = update_node_history(graph, "analyst-review", 1, "completed")
+        save_graph(graph, path)
+
+        # Graph was saved successfully
+        loaded = load_graph_file(path)
+        assert loaded.nodes[0].status == "completed"
