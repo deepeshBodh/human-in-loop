@@ -5,10 +5,10 @@ description: |
 
   <example>
   Context: Supervisor wants to add a node to the current DAG pass
-  user: '{"action": "assemble-and-prepare", "next_node": "analyst-review", "dag_path": "...", "catalog_path": "...", "feature_dir": "...", "parameters": {"focus_gaps": ["G1"]}}'
-  assistant: "I'll add the analyst-review node to the DAG, infer edges from the contract, validate invariants, and construct the natural language prompt for the requirements-analyst agent."
+  user: '{"action": "assemble-and-prepare", "recommendation": {"intent": "Write specification with user stories", "capability_tags": ["requirements-analysis", "specification-writing"], "node_type": "task"}, "dag_path": "...", "catalog_path": "...", "feature_dir": "...", "parameters": {"focus_gaps": ["G1"]}}'
+  assistant: "I'll resolve the capability tags to a catalog node, add it to the DAG, infer edges from the contract, validate invariants, and construct the natural language prompt for the domain agent."
   <commentary>
-  Assemble-and-prepare action: add node, infer edges, validate, construct NL prompt.
+  Assemble-and-prepare action: resolve intent via capability tags, add node, infer edges, validate, construct NL prompt.
   </commentary>
   </example>
 model: sonnet
@@ -86,7 +86,7 @@ Fields `status`, `node_added`, `edges_inferred`, and `validation` come from the 
 | task (skill-based, agent: null) | Skill invocation | `skill_to_invoke` + `skill_args` instead of agent_prompt |
 | gate (with plugin agent) | Plugin agent (e.g., devils-advocate) | `agent_prompt` + `agent_type` as `humaninloop:<name>` |
 | gate (no agent, e.g. constitution-gate) | Assembler evaluates condition in update-status | `gate_type: "deterministic"` + `check_type: "file-check"` + `check_path` + `check_description` |
-| decision | User interaction | `decision_type: "user-clarification"` + `questions` extracted from advocate report |
+| decision | User interaction | `decision_type: "user-clarification"` + `unresolved_items` from the recommendation's parameters (provided by Supervisor, sourced from State Analyst's `unresolved` field) |
 | milestone | None | `milestone_type: "completion"` + `required_artifacts` to verify |
 
 **`agent_type` naming convention**: Plugin agents use `humaninloop:<agent-name>` (e.g., `humaninloop:requirements-analyst`). Built-in Claude Code agents use their bare Task subagent type (e.g., `Explore`).
