@@ -6,6 +6,60 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [3.0.0] - 2026-02-19
+
+**BREAKING CHANGE**: Complete v3 architecture redesign. Single-DAG iteration model replaces per-pass DAGPass. StrategyGraph is the new top-level entity. Constitution v3.0.0.
+
+### humaninloop 3.0.0
+
+#### Breaking Changes
+
+- **StrategyGraph replaces DAGPass** — Single persistent DAG with multi-pass iteration replaces the v2 per-pass model. All CLI commands operate on `StrategyGraph` JSON
+- **Constitution v3.0.0** — 12 governance principles (added XI: Layer Dependency Discipline, XII: Catalog-Driven Assembly). Two-tier deterministic infrastructure. Single governed codebase (`humaninloop_brain` only)
+- **v3 entity model throughout** — `PassEntry` replaces `DAGPass`, `GateLifecycleStatus` replaces `GateStatus`, `NodeHistoryEntry` and `ExecutionTraceEntry` are new. 11 enums, 14 models, 7 entity modules
+- **Specify workflow rewritten** — DAG-based execution with goal-oriented Supervisor, DAG Assembler for graph mechanics, and State Analyst for briefings/report parsing
+
+#### New Infrastructure
+
+- **StrategyGraph model** — Single-DAG entity with `passes`, `nodes`, `edges`, and lifecycle status tracking
+- **triggered_by edge type** — Edges that fire when prerequisite nodes complete, enabling reactive node assembly
+- **Gate verdict/lifecycle enums** — `GateVerdict` (pass/fail/conditional/halted) and `GateLifecycleStatus` (pending/active/passed/failed) for gate node semantics
+- **Capability tag resolution** — `hil-dag assemble` now resolves catalog capabilities to infer edges automatically
+- **v3 lifecycle functions** — `bootstrap_graph()`, `add_evidence()`, `record_analysis()` for StrategyGraph management
+
+#### Changed: humaninloop_brain
+
+- **Entities** — Extended with v3 fields: `history` on nodes, `verdict`/`lifecycle` on gates, `capabilities` on catalog entries. `NodeHistoryEntry` tracks all state transitions
+- **Graph operations** — Generalized for StrategyGraph: loader, views, sort, guard, and inference all operate on the new schema
+- **Validators** — Updated for v3 semantics: structural validator, contract checker, and invariant enforcer all validate StrategyGraph
+- **CLI** — All 7 `hil-dag` subcommands migrated to StrategyGraph schema with backwards-incompatible JSON output
+- **Passes** — Lifecycle functions rewritten for single-DAG iteration model
+
+#### Changed: Agents
+
+- **dag-assembler** — Rewritten for v3: single-DAG bootstrap, auto-resolution via capability tags, `triggered_by` edge support, 3 actions (assemble-and-prepare, freeze-pass, bootstrap)
+- **state-analyst** — Rewritten for v3: parse-and-recommend action with ranked recommendations, Opus model for deeper analysis
+- **specify.md** — Rewritten as v3 goal-oriented supervisor with DAG-based execution, State Analyst briefings, and structured responsibility boundaries
+
+#### Architecture Documentation
+
+- **v3 architecture design documents** — Complete redesign docs in `docs/architecture/v3/`
+- **Milestone prerequisite edges** — Clarified edge types and pass 1 carry-forward behavior
+
+#### Fixed
+
+- 28 v3 architecture violations resolved across multiple severity levels (critical, high, medium, low)
+- Capability tag vocabulary and semantic fallback alignment
+- Constitution-gate verdict vocabulary consistency
+- DAG Assembler action count assertions
+- Agent and brain infrastructure alignment with v3 contracts
+
+#### Tests
+
+- 381 tests pass, 97.41% coverage (18 new tests covering v3-specific feature gaps)
+
+---
+
 ## [2.2.0] - 2026-02-18
 
 State Analyst redesign: cleaner responsibility split between graph mechanics and content analysis.
@@ -1219,6 +1273,7 @@ Initial marketplace scaffold.
 
 ---
 
+[3.0.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v3.0.0
 [2.2.0]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.2.0
 [2.1.2]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.1.2
 [2.1.1]: https://github.com/deepeshBodh/human-in-loop/releases/tag/v2.1.1

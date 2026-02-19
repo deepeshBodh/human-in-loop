@@ -43,15 +43,15 @@ def _load_catalog(path: Path) -> dict:
 
 
 def _catalog_node_ids(catalog: dict) -> set[str]:
-    return {n["id"] for n in catalog["nodes"]}
+    return {n["node_id"] for n in catalog["nodes"]}
 
 
 def _catalog_node_types(catalog: dict) -> dict[str, str]:
-    return {n["id"]: n["type"] for n in catalog["nodes"]}
+    return {n["node_id"]: n["type"] for n in catalog["nodes"]}
 
 
 def _catalog_node_agents(catalog: dict) -> dict[str, str | None]:
-    return {n["id"]: n.get("agent") for n in catalog["nodes"]}
+    return {n["node_id"]: n.get("agent") for n in catalog["nodes"]}
 
 
 def _catalog_artifacts_produced(catalog: dict) -> set[str]:
@@ -119,14 +119,16 @@ class TestSpecifyCatalogConsistency:
                 f"Node type '{node_type}' from catalog not found in specify.md routing"
             )
 
-    def test_strategy_skills_referenced(self, specify_text):
-        """specify.md references strategy-core and strategy-specification."""
-        assert "strategy-core" in specify_text
-        assert "strategy-specification" in specify_text
+    def test_strategy_skills_delegated_to_analyst(self, specify_text):
+        """specify.md delegates strategy skill resolution to the Analyst via workflow identifier."""
+        # V3: Supervisor does not name strategy skills directly — the Analyst
+        # resolves them from the workflow identifier
+        assert "workflow" in specify_text
+        assert "Analyst" in specify_text or "analyst" in specify_text
 
     def test_advocate_verdicts_covered(self, specify_text, catalog):
         """All advocate verdict values from catalog are handled in specify.md."""
-        advocate = next(n for n in catalog["nodes"] if n["id"] == "advocate-review")
+        advocate = next(n for n in catalog["nodes"] if n["node_id"] == "advocate-review")
         for verdict in advocate.get("verdict_values", []):
             assert verdict in specify_text, (
                 f"Advocate verdict '{verdict}' not handled in specify.md"
@@ -147,10 +149,11 @@ class TestDAGAssemblerCatalogConsistency:
     def test_assembler_exists(self):
         assert DAG_ASSEMBLER.exists()
 
-    def test_two_actions_documented(self, assembler_text):
-        """DAG Assembler documents its 2 actions (parse-report moved to State Analyst)."""
+    def test_three_actions_documented(self, assembler_text):
+        """DAG Assembler documents its 3 actions (V3 design doc L200-244)."""
         assert "assemble-and-prepare" in assembler_text
         assert "freeze-pass" in assembler_text
+        assert "update-status" in assembler_text
 
     def test_artifact_path_convention_covers_catalog(self, assembler_text, catalog):
         """Artifact path convention table covers all catalog artifacts."""
@@ -215,14 +218,15 @@ class TestStateAnalystCatalogConsistency:
             assert gap_type in analyst_text
 
     def test_output_fields_documented(self, analyst_text):
-        """All required output fields are documented."""
+        """All required V3 output fields are documented."""
+        # V3 briefing output fields (gap_details and relevant_anti_patterns removed)
         required_fields = [
             "state_summary",
-            "gap_details",
-            "viable_nodes",
+            "recommendations",
             "relevant_patterns",
-            "relevant_anti_patterns",
             "pass_context",
+            "outcome_trajectory",
+            "alternatives",
         ]
         for field in required_fields:
             assert field in analyst_text, (
@@ -234,9 +238,9 @@ class TestStateAnalystCatalogConsistency:
         assert "strategy-core" in analyst_text
         assert "strategy-specification" in analyst_text
 
-    def test_parse_report_action_documented(self, analyst_text):
-        """State Analyst documents parse-report action."""
-        assert "parse-report" in analyst_text
+    def test_parse_and_recommend_action_documented(self, analyst_text):
+        """State Analyst documents parse-and-recommend action."""
+        assert "parse-and-recommend" in analyst_text
 
     def test_hil_dag_record_referenced(self, analyst_text):
         """State Analyst references hil-dag record for atomic writes."""
@@ -299,16 +303,16 @@ class TestCrossAgentRoutingCoverage:
         agent_nodes = [n for n in catalog["nodes"] if n.get("agent")]
         for node in agent_nodes:
             # The assembler should mention the node ID in its prompt construction
-            assert node["id"] in assembler_text, (
-                f"Node '{node['id']}' (agent: {node['agent']}) has no "
+            assert node["node_id"] in assembler_text, (
+                f"Node '{node['node_id']}' (agent: {node['agent']}) has no "
                 f"NL prompt pattern in DAG Assembler"
             )
 
-    def test_all_node_types_in_routing_table(self, catalog, specify_text):
-        """All 4 node types appear in specify.md Step 4 routing table."""
-        for node_type in ["task", "gate", "decision", "milestone"]:
-            assert f"**{node_type}**" in specify_text, (
-                f"Node type '{node_type}' not in specify.md routing table"
+    def test_dispatch_modes_in_routing_table(self, catalog, specify_text):
+        """V3 dispatch_mode routing covers all 4 modes in specify.md."""
+        for mode in ["agent", "skill", "supervisor-owned", "auto-resolved"]:
+            assert mode in specify_text, (
+                f"dispatch_mode '{mode}' not in specify.md routing table"
             )
 
     def test_skill_based_nodes_have_skill_reference(self, catalog, assembler_text):
@@ -325,7 +329,7 @@ class TestCrossAgentRoutingCoverage:
 
     def test_constitution_gate_is_file_check(self, catalog, assembler_text):
         """constitution-gate (no agent) is handled as file-check in assembler."""
-        const_gate = next(n for n in catalog["nodes"] if n["id"] == "constitution-gate")
+        const_gate = next(n for n in catalog["nodes"] if n["node_id"] == "constitution-gate")
         assert const_gate.get("agent") is None
         assert "file-check" in assembler_text
         assert "constitution-gate" in assembler_text

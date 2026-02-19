@@ -1,12 +1,13 @@
 {
-  "catalog_version": "1.0.0",
+  "catalog_version": "2.0.0",
   "workflow": "specify",
   "nodes": [
     {
-      "id": "input-enrichment",
+      "node_id": "input-enrichment",
       "type": "task",
       "name": "Input Enrichment",
       "description": "Transform sparse feature input into structured Who/Problem/Value format",
+      "agent_type": "humaninloop:analysis-iterative",
       "agent": null,
       "skill": "analysis-iterative",
       "contract": {
@@ -15,13 +16,15 @@
         ],
         "produces": ["enriched-input"]
       },
-      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"]
+      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"],
+      "capabilities": ["input-enrichment", "who-problem-value"]
     },
     {
-      "id": "analyst-review",
+      "node_id": "analyst-review",
       "type": "task",
       "name": "Requirements Analysis",
       "description": "Write specification with user stories, functional requirements, and edge cases",
+      "agent_type": "humaninloop:requirements-analyst",
       "agent": "requirements-analyst",
       "skill": null,
       "contract": {
@@ -35,13 +38,15 @@
         ],
         "produces": ["spec.md", "analyst-report.md"]
       },
-      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"]
+      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"],
+      "capabilities": ["requirements-analysis", "specification-writing"]
     },
     {
-      "id": "advocate-review",
+      "node_id": "advocate-review",
       "type": "gate",
       "name": "Specification Validation",
       "description": "Adversarial review of specification completeness and quality",
+      "agent_type": "humaninloop:devils-advocate",
       "agent": "devils-advocate",
       "skill": null,
       "contract": {
@@ -51,15 +56,19 @@
         ],
         "produces": ["advocate-report.md"]
       },
-      "valid_statuses": ["pending", "in-progress", "passed", "needs-revision", "failed"],
+      "valid_statuses": ["pending", "in-progress", "completed"],
       "verdict_field": "verdict",
-      "verdict_values": ["ready", "needs-revision", "critical-gaps"]
+      "verdict_values": ["ready", "needs-revision", "critical-gaps"],
+      "capabilities": ["specification-validation", "gap-detection"],
+      "carry_forward": false,
+      "gate_type": "adversarial-review"
     },
     {
-      "id": "human-clarification",
+      "node_id": "human-clarification",
       "type": "decision",
       "name": "User Clarification",
       "description": "Collect user input for gaps that cannot be resolved by research",
+      "agent_type": null,
       "agent": null,
       "skill": null,
       "contract": {
@@ -68,13 +77,15 @@
         ],
         "produces": ["clarification-answers"]
       },
-      "valid_statuses": ["pending", "decided"]
+      "valid_statuses": ["pending", "decided"],
+      "capabilities": ["user-clarification", "preference-resolution"]
     },
     {
-      "id": "targeted-research",
+      "node_id": "targeted-research",
       "type": "task",
       "name": "Targeted Research",
       "description": "Investigate specific knowledge gaps identified by validation",
+      "agent_type": "Explore",
       "agent": "Explore",
       "skill": null,
       "contract": {
@@ -83,30 +94,36 @@
         ],
         "produces": ["research-findings"]
       },
-      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"]
+      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"],
+      "capabilities": ["research", "knowledge-gap-resolution"]
     },
     {
-      "id": "constitution-gate",
+      "node_id": "constitution-gate",
       "type": "gate",
       "name": "Constitution Check",
       "description": "Verify project constitution exists and is current",
+      "agent_type": null,
       "agent": null,
       "skill": null,
       "contract": {
         "consumes": [
           {"artifact": "constitution.md", "required": true}
         ],
-        "produces": []
+        "produces": ["constitution.md"]
       },
       "valid_statuses": ["pending", "passed", "failed"],
       "verdict_field": "verdict",
-      "verdict_values": ["pass", "fail"]
+      "verdict_values": ["ready", "critical-gaps"],
+      "capabilities": ["constitution-verification"],
+      "carry_forward": true,
+      "gate_type": "deterministic"
     },
     {
-      "id": "spec-complete",
+      "node_id": "spec-complete",
       "type": "milestone",
       "name": "Specification Complete",
       "description": "Marks the specification as validated and complete",
+      "agent_type": null,
       "agent": null,
       "skill": null,
       "contract": {
@@ -116,11 +133,12 @@
         "produces": []
       },
       "valid_statuses": ["pending", "achieved"],
-      "note": "Consumes only advocate-report.md (not spec.md) to ensure edge inference routes through the advocate gate, satisfying INV-001"
+      "note": "Consumes only advocate-report.md (not spec.md) to ensure edge inference routes through the advocate gate, satisfying INV-001",
+      "capabilities": ["milestone-tracking"]
     }
   ],
   "edge_constraints": {
-    "depends-on": {
+    "depends_on": {
       "valid_sources": ["task", "gate", "decision", "milestone"],
       "valid_targets": ["task", "gate", "decision", "milestone"],
       "note": "General execution ordering — must form a DAG"
@@ -135,15 +153,20 @@
       "valid_targets": ["task"],
       "note": "Review relationship — gate evaluates task output"
     },
-    "constrained-by": {
+    "constrained_by": {
       "valid_sources": ["task", "gate", "decision"],
       "valid_targets": ["gate"],
       "note": "Boundary enforcement — work must satisfy gate constraint"
     },
-    "informed-by": {
+    "informed_by": {
       "valid_sources": ["task", "gate", "decision"],
       "valid_targets": ["task", "gate", "decision"],
       "note": "Context flow — not a hard dependency, may cross pass boundaries"
+    },
+    "triggered_by": {
+      "valid_sources": ["task", "gate", "decision", "milestone"],
+      "valid_targets": ["task", "gate", "decision", "milestone"],
+      "note": "Cross-pass trigger — links a node in a new pass to the gate verdict that triggered revision"
     }
   },
   "invariants": [
@@ -169,7 +192,7 @@
       "id": "INV-004",
       "rule": "Maximum 5 DAG passes per workflow invocation before mandatory human checkpoint",
       "enforcement": "runtime",
-      "severity": "warning"
+      "severity": "error"
     },
     {
       "id": "INV-005",

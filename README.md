@@ -62,7 +62,7 @@ Each command produces artifacts you review before the next step. You stay in con
 ### Command Details
 
 <details open>
-<summary><strong>Specify</strong> - Create feature specification</summary>
+<summary><strong>Specify</strong> - Create feature specification (DAG-based)</summary>
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -72,31 +72,39 @@ Each command produces artifacts you review before the next step. You stay in con
 │  ┌──────────────┐                                                   │
 │  │  SUPERVISOR  │ ◄─── You invoke the command                       │
 │  └──────┬───────┘                                                   │
+│         │  ┌──────────────────┐     ┌──────────────────┐            │
+│         ├─▶│  State Analyst   │────▶│  briefing +      │            │
+│         │  └──────────────────┘     │  recommendations │            │
+│         │                           └────────┬─────────┘            │
+│         │                                    │                      │
+│         │  ┌──────────────────┐              │                      │
+│         ├─▶│  DAG Assembler   │◄─────────────┘                      │
+│         │  └──────┬───────────┘  (assembly decisions)               │
+│         │         │                                                 │
+│         │         ▼                                                 │
+│         │  ┌──────────────────┐     ┌───────────────────┐           │
+│         │  │   Requirements   │────▶│   Devil's         │           │
+│         │  │   Analyst        │     │   Advocate        │           │
+│         │  └────────┬─────────┘     └─────────┬─────────┘           │
+│         │           │                         │                     │
+│         │           ▼                         ▼                     │
+│         │      ┌─────────┐         ┌────────────────────┐           │
+│         │      │ spec.md │         │ gaps? → new pass   │           │
+│         │      └─────────┘         └────────────────────┘           │
 │         │                                                           │
-│         ▼                                                           │
-│  ┌──────────────────┐     ┌───────────────────┐                     │
-│  │   Requirements   │────▶│   Devil's         │                     │
-│  │   Analyst        │     │   Advocate        │                     │
-│  └────────┬─────────┘     └─────────┬─────────┘                     │
-│           │                         │                               │
-│           ▼                         ▼                               │
-│      ┌─────────┐              ┌──────────┐                          │
-│      │ spec.md │              │  gaps?   │──── yes ──┐              │
-│      └─────────┘              └──────────┘           │              │
-│                                    │                 ▼              │
-│                                   no          ┌────────────┐        │
-│                                    │          │ clarify w/ │        │
-│                                    ▼          │    user    │        │
-│                              ┌──────────┐     └─────┬──────┘        │
-│                              │   done   │           │               │
-│                              └──────────┘     ◄─────┘ (loop)        │
+│         ▼  Deterministic DAG tracks all nodes, edges, and status    │
+│  ┌──────────────────────────────────────────────────────────┐       │
+│  │  StrategyGraph JSON  (single DAG, multi-pass iteration)  │       │
+│  └──────────────────────────────────────────────────────────┘       │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**Output**: `specs/{feature}/spec.md`
+**Output**: `specs/{feature}/spec.md` + StrategyGraph JSON
 
 **Agents**:
+- **DAG Assembler** — Pure graph mechanics; translates Supervisor decisions into validated DAG mutations
+- **State Analyst** — Reads DAG state and parses domain agent reports into structured briefings
 - **Requirements Analyst** — Transforms feature requests into structured specs; no implementation details
 - **Devil's Advocate** — Reviews for gaps and ambiguity; asks clarifying questions
 
@@ -377,11 +385,11 @@ Each command produces artifacts you review before the next step. You stay in con
 ### 7 Commands
 The full specify → techspec → plan → tasks → implement lifecycle.
 
-### 21 Skills
-Claude automatically invokes these when relevant—authoring requirements, technical specifications, analyzing codebases, designing APIs, running verification tests, managing GitHub issues, and more.
+### 27 Skills
+Claude automatically invokes these when relevant—authoring requirements, technical specifications, analyzing codebases, designing APIs, running verification tests, managing GitHub issues, DAG operations, workflow strategy, and more.
 
-### 8 Specialized Agents
-Focused responsibilities: requirements analyst, technical analyst, devil's advocate, plan architect, principal architect, task architect, testing agent, UI designer.
+### 10 Specialized Agents
+Focused responsibilities: requirements analyst, technical analyst, devil's advocate, plan architect, principal architect, task architect, testing agent, UI designer, DAG assembler, state analyst.
 
 See the [plugin documentation](./plugins/humaninloop/README.md) for full details.
 
@@ -435,15 +443,25 @@ This repository serves as a reference implementation for Claude Code plugins. If
 
 ```
 human-in-loop/
+├── humaninloop_brain/                # Deterministic DAG infrastructure (Python)
+│   ├── src/humaninloop_brain/        # Package source
+│   │   ├── entities/                 # Pydantic models (11 enums, 14 models)
+│   │   ├── graph/                    # NetworkX graph operations
+│   │   ├── validators/               # Structural + contract validators
+│   │   ├── passes/                   # Pass lifecycle management
+│   │   └── cli/                      # hil-dag CLI (7 subcommands)
+│   └── tests/                        # 381 tests, 97% coverage
 ├── plugins/humaninloop/
-│   ├── .claude-plugin/plugin.json   # Plugin manifest
+│   ├── .claude-plugin/plugin.json    # Plugin manifest
 │   ├── commands/                     # Slash command definitions
-│   ├── agents/                       # Specialized agent definitions
-│   ├── skills/                       # Model-invoked skills
+│   ├── agents/                       # 10 specialized agent definitions
+│   ├── skills/                       # 27 model-invoked skills
+│   ├── catalogs/                     # Node catalogs for DAG workflows
 │   ├── templates/                    # Workflow templates
 │   └── scripts/                      # Shell utilities
 ├── docs/
-│   ├── decisions/                    # Architecture Decision Records
+│   ├── decisions/                    # Architecture Decision Records (7 ADRs)
+│   ├── architecture/                 # DAG-first + v3 architecture docs
 │   ├── claude-plugin-documentation.md
 │   └── agent-skills-documentation.md
 └── specs/                            # Feature specifications (dogfooding)

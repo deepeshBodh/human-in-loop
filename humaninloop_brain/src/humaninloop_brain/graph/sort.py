@@ -1,13 +1,14 @@
 """Topological sort on depends-on edges for deterministic execution order."""
 
-from humaninloop_brain.entities.dag_pass import DAGPass
-from humaninloop_brain.graph.loader import load_graph
-from humaninloop_brain.graph.views import depends_on_view
+from __future__ import annotations
 
 import networkx as nx
 
+from humaninloop_brain.graph.loader import HasNodesAndEdges, load_graph
+from humaninloop_brain.graph.views import depends_on_view
 
-def execution_order(dag: DAGPass) -> list[str]:
+
+def execution_order(dag: HasNodesAndEdges) -> list[str]:
     """Return lexicographic topological sort on depends-on edges.
 
     Only depends-on edges are considered for ordering.

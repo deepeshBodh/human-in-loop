@@ -13,13 +13,14 @@ class NodeType(str, Enum):
 
 
 class EdgeType(str, Enum):
-    """The five edge types with distinct cascade semantics."""
+    """The six edge types with distinct cascade semantics."""
 
-    depends_on = "depends-on"
+    depends_on = "depends_on"
     produces = "produces"
     validates = "validates"
-    constrained_by = "constrained-by"
-    informed_by = "informed-by"
+    constrained_by = "constrained_by"
+    informed_by = "informed_by"
+    triggered_by = "triggered_by"
 
 
 class PassOutcome(str, Enum):
@@ -39,14 +40,18 @@ class TaskStatus(str, Enum):
     halted = "halted"
 
 
-class GateStatus(str, Enum):
-    """Valid statuses for gate nodes."""
+class GateLifecycleStatus(str, Enum):
+    """Lifecycle statuses for gate nodes.
+
+    Agent-backed gates use: pending → in-progress → completed (verdict separate).
+    Deterministic gates may use: pending → passed / failed (status IS verdict).
+    """
 
     pending = "pending"
     in_progress = "in-progress"
+    completed = "completed"
     passed = "passed"
     failed = "failed"
-    needs_revision = "needs-revision"
 
 
 class DecisionStatus(str, Enum):
@@ -77,9 +82,17 @@ class InvariantSeverity(str, Enum):
     warning = "warning"
 
 
+class GateVerdict(str, Enum):
+    """Verdict outcomes for gate nodes."""
+
+    ready = "ready"
+    needs_revision = "needs-revision"
+    critical_gaps = "critical-gaps"
+
+
 TYPE_STATUS_MAP: dict[NodeType, type[Enum]] = {
     NodeType.task: TaskStatus,
-    NodeType.gate: GateStatus,
+    NodeType.gate: GateLifecycleStatus,
     NodeType.decision: DecisionStatus,
     NodeType.milestone: MilestoneStatus,
 }

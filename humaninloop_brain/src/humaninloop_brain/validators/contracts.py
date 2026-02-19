@@ -1,14 +1,16 @@
 """Contract checker — verifies artifact chains are satisfiable."""
 
+from __future__ import annotations
+
 from humaninloop_brain.entities.catalog import NodeCatalog
-from humaninloop_brain.entities.dag_pass import DAGPass
 from humaninloop_brain.entities.validation import ValidationResult, ValidationViolation
+from humaninloop_brain.graph.loader import HasNodesAndEdges
 
 # System-level artifacts that are always available (not produced by any node)
 SYSTEM_ARTIFACTS = frozenset({"raw-input", "constitution.md"})
 
 
-def check_contracts(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
+def check_contracts(dag: HasNodesAndEdges, catalog: NodeCatalog) -> ValidationResult:
     """Check that required consumed artifacts are produced by upstream nodes.
 
     - Required artifacts must be produced by some node in the DAG or be

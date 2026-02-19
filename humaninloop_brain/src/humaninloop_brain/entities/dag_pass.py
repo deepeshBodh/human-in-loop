@@ -1,12 +1,8 @@
-"""DAG pass entity — the mutable container assembled per execution pass."""
+"""Pass-level entities for the DAG execution architecture."""
 
 from __future__ import annotations
 
-from pydantic import BaseModel
-
-from humaninloop_brain.entities.enums import PassOutcome
-from humaninloop_brain.entities.nodes import GraphNode
-from humaninloop_brain.entities.edges import Edge
+from pydantic import BaseModel, Field
 
 
 class ExecutionTraceEntry(BaseModel):
@@ -22,42 +18,20 @@ class ExecutionTraceEntry(BaseModel):
     artifacts_produced: list[str] = []
 
 
-class HistoryPass(BaseModel):
-    """Summary of a previous pass for progressive context."""
+class PassEntry(BaseModel):
+    """A pass entry in a StrategyGraph — tracks pass-level metadata.
 
-    model_config = {"frozen": True}
-
-    pass_number: int
-    outcome: str
-    outcome_detail: str | None = None
-    summary: str
-
-
-class HistoryContext(BaseModel):
-    """Progressive summary of previous passes."""
-
-    model_config = {"frozen": True}
-
-    previous_passes: list[HistoryPass] = []
-
-
-class DAGPass(BaseModel):
-    """A single DAG pass — mutable during assembly, frozen after completion.
-
-    Individual GraphNode and Edge values remain frozen (immutable Pydantic models).
-    Status updates create new GraphNode instances and replace in the list.
+    The ``pass_number`` field serializes as ``"pass"`` in JSON to match the
+    V3 design doc schema.  Python code uses ``pass_number`` (since ``pass``
+    is a keyword).  ``populate_by_name=True`` allows construction with either
+    name, and ``alias="pass"`` allows deserialization from JSON ``"pass"`` keys.
     """
 
-    id: str
-    workflow_id: str
-    schema_version: str = "1.0.0"
-    pass_number: int
-    outcome: PassOutcome | None = None
-    outcome_detail: str | None = None
-    assembly_rationale: str | None = None
+    model_config = {"frozen": True, "populate_by_name": True}
+
+    pass_number: int = Field(alias="pass", serialization_alias="pass")
+    outcome: str | None = None
+    detail: str | None = None
     created_at: str | None = None
     completed_at: str | None = None
-    nodes: list[GraphNode] = []
-    edges: list[Edge] = []
-    execution_trace: list[ExecutionTraceEntry] = []
-    history_context: HistoryContext = HistoryContext()
+    frozen: bool = False

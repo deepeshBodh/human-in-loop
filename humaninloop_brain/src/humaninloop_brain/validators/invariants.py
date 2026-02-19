@@ -1,23 +1,23 @@
 """Invariant checker — assembly-time system invariant verification."""
 
+from __future__ import annotations
+
 from humaninloop_brain.entities.catalog import NodeCatalog
-from humaninloop_brain.entities.dag_pass import DAGPass
 from humaninloop_brain.entities.enums import EdgeType, NodeType
 from humaninloop_brain.entities.validation import ValidationResult, ValidationViolation
 from humaninloop_brain.graph.guard import check_acyclicity
-from humaninloop_brain.graph.loader import load_graph
+from humaninloop_brain.graph.loader import HasNodesAndEdges, load_graph
 from humaninloop_brain.graph.views import depends_on_view
 
 
-def check_invariants(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
-    """Check assembly-time invariants.
+def check_invariants(dag: HasNodesAndEdges, catalog: NodeCatalog) -> ValidationResult:
+    """Check system invariants.
 
     INV-001: Task output must pass through gate before milestone.
     INV-002: Constitution gate exists before spec task nodes.
     INV-003: validates edges originate from gate nodes.
+    INV-004: Maximum 5 passes (structural invariant, not advisory).
     INV-005: depends-on acyclicity (delegates to guard).
-
-    Runtime invariant INV-004 is NOT checked here.
     """
     violations: list[ValidationViolation] = []
 
@@ -59,13 +59,15 @@ def check_invariants(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
                         break  # One violation per task-milestone pair
 
     # INV-002: Constitution gate must exist before spec task nodes
+    # For v3 with carry_forward, check if any prior pass has a completed/passed gate
     constitution_gates = [
-        n.id for n in dag.nodes
+        n for n in dag.nodes
         if n.type == NodeType.gate
         and any(
             c.artifact == "constitution.md" for c in n.contract.consumes
         )
     ]
+    constitution_gate_ids = [n.id for n in constitution_gates]
     spec_tasks = [
         n.id for n in dag.nodes
         if n.type == NodeType.task
@@ -74,7 +76,22 @@ def check_invariants(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
         )
     ]
 
-    if spec_tasks and not constitution_gates:
+    # Gate must exist AND have a terminal status (completed/passed) to satisfy INV-002
+    gate_satisfied = False
+    for cg in constitution_gates:
+        if cg.status in ("completed", "passed"):
+            gate_satisfied = True
+            break
+        # Also check history entries for carry_forward resolution
+        for entry in getattr(cg, "history", []):
+            if entry.status in ("completed", "passed"):
+                gate_satisfied = True
+                break
+        if gate_satisfied:
+            break
+
+    if spec_tasks and not gate_satisfied:
+        has_gate = bool(constitution_gate_ids)
         for task_id in spec_tasks:
             violations.append(
                 ValidationViolation(
@@ -82,7 +99,7 @@ def check_invariants(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
                     severity="error",
                     message=(
                         f"Task '{task_id}' consumes constitution.md but "
-                        f"no constitution gate exists in the DAG"
+                        f"{'constitution gate exists but has not passed' if has_gate else 'no constitution gate exists in the DAG'}"
                     ),
                     node_id=task_id,
                 )
@@ -105,6 +122,20 @@ def check_invariants(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
                         edge_id=edge.id,
                     )
                 )
+
+    # INV-004: Maximum 5 passes (structural invariant — not advisory)
+    current_pass = getattr(dag, "current_pass", None)
+    if current_pass is not None and current_pass > 5:
+        violations.append(
+            ValidationViolation(
+                code="INV-004",
+                severity="error",
+                message=(
+                    f"Current pass ({current_pass}) exceeds maximum of 5 — "
+                    f"mandatory human checkpoint required"
+                ),
+            )
+        )
 
     # INV-005: depends-on acyclicity
     acyclicity = check_acyclicity(dag)

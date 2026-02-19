@@ -1,9 +1,11 @@
 {
   "id": "specify-pass-001",
   "workflow_id": "specify-feature-auth",
-  "schema_version": "1.0.0",
-  "pass_number": 1,
-  "outcome": null,
+  "schema_version": "3.0.0",
+  "current_pass": 1,
+  "status": "in-progress",
+  "created_at": "2026-02-18T10:00:00Z",
+  "passes": [{"pass": 1, "created_at": "2026-02-18T10:00:00Z"}],
   "nodes": [
     {
       "id": "input-enrichment",
@@ -15,7 +17,11 @@
         "consumes": [{"artifact": "raw-input", "required": true}],
         "produces": ["enriched-input"]
       },
-      "agent": null
+      "agent": null,
+      "last_active_pass": 1,
+      "history": [
+        {"pass": 1, "status": "pending", "frozen": false}
+      ]
     },
     {
       "id": "analyst-review",
@@ -29,7 +35,11 @@
         ],
         "produces": ["spec.md", "analyst-report.md"]
       },
-      "agent": "requirements-analyst"
+      "agent": "requirements-analyst",
+      "last_active_pass": 1,
+      "history": [
+        {"pass": 1, "status": "pending", "frozen": false}
+      ]
     },
     {
       "id": "advocate-review",
@@ -37,6 +47,7 @@
       "name": "Specification Validation",
       "description": "Adversarial review of specification completeness",
       "status": "pending",
+      "verdict": null,
       "contract": {
         "consumes": [
           {"artifact": "spec.md", "required": true},
@@ -44,7 +55,11 @@
         ],
         "produces": ["advocate-report.md"]
       },
-      "agent": "devils-advocate"
+      "agent": "devils-advocate",
+      "last_active_pass": 1,
+      "history": [
+        {"pass": 1, "status": "pending", "verdict": null, "frozen": false}
+      ]
     }
   ],
   "edges": [
@@ -52,13 +67,13 @@
       "id": "edge-dep-enrich-analyst",
       "source": "input-enrichment",
       "target": "analyst-review",
-      "type": "depends-on"
+      "type": "depends_on"
     },
     {
       "id": "edge-dep-analyst-advocate",
       "source": "analyst-review",
       "target": "advocate-review",
-      "type": "depends-on"
+      "type": "depends_on"
     },
     {
       "id": "edge-prod-enrich-analyst",
@@ -78,9 +93,5 @@
       "target": "analyst-review",
       "type": "validates"
     }
-  ],
-  "execution_trace": [],
-  "history_context": {
-    "previous_passes": []
-  }
+  ]
 }

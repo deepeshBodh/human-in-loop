@@ -29,7 +29,7 @@ The package provides five layers:
 ```bash
 cd humaninloop_brain
 uv sync
-uv run pytest          # 262 tests, ~98% coverage
+uv run pytest          # 381 tests, ~97% coverage
 uv run hil-dag --help
 ```
 
@@ -37,22 +37,12 @@ uv run hil-dag --help
 
 All commands output JSON to stdout and use exit codes: `0` = success, `1` = validation failure, `2` = unexpected error.
 
-### Create a new DAG pass
-
-```bash
-hil-dag create <workflow-id> --pass <N> --output <path>
-```
-
-```json
-{"status": "success", "dag_path": "...", "pass_number": 1}
-```
-
 ### Assemble a node from catalog
 
-Adds a node, infers edges from artifact contracts, validates the result.
+Adds a node, infers edges from artifact contracts, validates the result. Auto-bootstraps a new StrategyGraph if the file doesn't exist.
 
 ```bash
-hil-dag assemble <dag.json> --catalog <catalog.json> --node <node-id>
+hil-dag assemble <dag.json> --catalog <catalog.json> --node <node-id> [--workflow <workflow-id>]
 ```
 
 ```json
@@ -93,6 +83,18 @@ hil-dag status <dag.json> --node <node-id> --status <new-status>
 {"status": "success", "node_id": "analyst-review", "old_status": "pending", "new_status": "completed"}
 ```
 
+### Record analysis results
+
+Atomic status + evidence + trace update for a node (used by State Analyst).
+
+```bash
+hil-dag record <dag.json> --node <node-id> --status <status> --evidence '<json-array>' --trace '<json-object>' [--pass <N>] [--verdict <verdict>]
+```
+
+```json
+{"status": "success", "node_id": "analyst-review", "new_status": "completed", "evidence_count": 2, "trace_added": true}
+```
+
 ### Freeze a completed pass
 
 Marks the pass as immutable with outcome metadata.
@@ -131,14 +133,15 @@ hil-dag catalog-validate <catalog.json>
 | `validates` | Review relationship (gate evaluates task output) |
 | `constrained-by` | Boundary enforcement |
 | `informed-by` | Context flow (not a hard dependency) |
+| `triggered-by` | Reactive edge (fires when prerequisite completes) |
 
 ### Node Catalog
 
 A single JSON file per workflow defining available nodes, edge constraints, and system invariants. See `catalogs/specify-catalog.json` for the `/specify` workflow catalog with 7 nodes.
 
-### DAG-Per-Pass
+### Single-DAG Iteration
 
-Each workflow iteration produces a new immutable DAG pass. Previous passes are preserved as history with progressive summarization. The Supervisor can assemble genuinely different graphs each pass (e.g., skip enrichment, add research, add clarification).
+Each workflow uses a single `StrategyGraph` with multiple passes. Each pass iteration assembles nodes, executes them, and freezes the pass. Previous passes are preserved as history. The Supervisor can assemble different node sets each pass (e.g., skip enrichment, add research, add clarification).
 
 ### System Invariants
 
@@ -177,24 +180,24 @@ The package ships with test fixtures demonstrating three assembly variations for
 ## Python API
 
 ```python
-from humaninloop_brain.entities import NodeCatalog, DAGPass
-from humaninloop_brain.passes.lifecycle import create_pass, add_node, freeze_pass
+from humaninloop_brain.entities import NodeCatalog, StrategyGraph
+from humaninloop_brain.passes.lifecycle import create_strategy_graph, add_or_reopen_node, freeze_current_pass
 from humaninloop_brain.validators.structural import validate_structure
 from humaninloop_brain.graph.sort import execution_order
 
 # Load catalog
 catalog = NodeCatalog.model_validate_json(Path("catalogs/specify-catalog.json").read_text())
 
-# Create and assemble
-dag = create_pass("specify-feature-auth", pass_number=1)
-dag, edges = add_node(dag, "constitution-gate", catalog)
-dag, edges = add_node(dag, "analyst-review", catalog)
-dag, edges = add_node(dag, "advocate-review", catalog)
+# Create graph and assemble nodes
+graph = create_strategy_graph("specify-feature-auth")
+graph, edges = add_or_reopen_node(graph, "constitution-gate", catalog)
+graph, edges = add_or_reopen_node(graph, "analyst-review", catalog)
+graph, edges = add_or_reopen_node(graph, "advocate-review", catalog)
 
 # Validate and sort
-result = validate_structure(dag, catalog)
+result = validate_structure(graph, catalog)
 assert result.valid
-order = execution_order(dag)  # ["analyst-review", "advocate-review", "constitution-gate"]
+order = execution_order(graph)  # ["constitution-gate", "analyst-review", "advocate-review"]
 ```
 
 ## Project Structure
@@ -209,7 +212,8 @@ humaninloop_brain/
 │   │   ├── enums.py       # NodeType, EdgeType, status enums
 │   │   ├── nodes.py       # GraphNode, NodeContract, ArtifactConsumption
 │   │   ├── edges.py       # Edge
-│   │   ├── dag_pass.py    # DAGPass, ExecutionTraceEntry, HistoryContext
+│   │   ├── dag_pass.py    # PassEntry, ExecutionTraceEntry
+│   │   ├── strategy_graph.py # StrategyGraph (top-level v3 entity)
 │   │   ├── catalog.py     # NodeCatalog, CatalogNodeDefinition, SystemInvariant
 │   │   └── validation.py  # ValidationResult, ValidationViolation
 │   ├── graph/             # NetworkX operations
@@ -228,11 +232,11 @@ humaninloop_brain/
 │       └── main.py        # hil-dag CLI entry point
 └── tests/
     ├── fixtures/          # 8 JSON test fixtures
-    ├── test_entities/     # 81 tests
-    ├── test_graph/        # 32 tests
-    ├── test_validators/   # 30 tests
-    ├── test_passes/       # 17 tests
-    └── test_cli/          # 102 tests (unit + subprocess + E2E)
+    ├── test_entities/     # 108 tests
+    ├── test_graph/        # 41 tests
+    ├── test_validators/   # 38 tests
+    ├── test_passes/       # 44 tests
+    └── test_cli/          # 150 tests (unit + subprocess + E2E)
 ```
 
 ## Related

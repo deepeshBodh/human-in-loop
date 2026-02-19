@@ -1,27 +1,30 @@
-"""Structural validator — 9-step validation collecting all violations."""
+"""Structural validator — 10-step validation collecting all violations."""
+
+from __future__ import annotations
 
 from humaninloop_brain.entities.catalog import NodeCatalog
-from humaninloop_brain.entities.dag_pass import DAGPass
-from humaninloop_brain.entities.enums import TYPE_STATUS_MAP
+from humaninloop_brain.entities.enums import EdgeType, TYPE_STATUS_MAP
 from humaninloop_brain.entities.validation import ValidationResult, ValidationViolation
 from humaninloop_brain.graph.guard import check_acyclicity
+from humaninloop_brain.graph.loader import HasNodesAndEdges
 from humaninloop_brain.validators.contracts import check_contracts
 from humaninloop_brain.validators.invariants import check_invariants
 
 
-def validate_structure(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
-    """Run 9-step structural validation, collecting all violations.
+def validate_structure(dag: HasNodesAndEdges, catalog: NodeCatalog) -> ValidationResult:
+    """Run 10-step structural validation, collecting all violations.
 
     Steps:
     1. Unique node IDs
     2. Edge references exist
     3. Type-status validity (defense in depth)
-    4. No self-loops
-    5. No duplicate edges (same source+target+type)
+    4. No self-loops (triggered-by self-loops are valid cross-pass links)
+    5. No duplicate edges (same source+target+type; triggered-by includes pass info)
     6. Edge endpoint constraints match catalog
     7. Acyclicity (delegates to guard)
     8. Contract satisfiability (delegates to contracts.py)
     9. Invariant compliance (delegates to invariants.py)
+    10. Entry-level immutability (frozen history entries)
     """
     violations: list[ValidationViolation] = []
 
@@ -85,9 +88,9 @@ def validate_structure(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
                 )
             )
 
-    # Step 4: No self-loops
+    # Step 4: No self-loops (triggered-by self-loops are valid cross-pass links)
     for edge in dag.edges:
-        if edge.source == edge.target:
+        if edge.source == edge.target and edge.type != EdgeType.triggered_by:
             violations.append(
                 ValidationViolation(
                     code="SELF_LOOP",
@@ -97,10 +100,13 @@ def validate_structure(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
                 )
             )
 
-    # Step 5: No duplicate edges (same source+target+type)
-    seen_edges: set[tuple[str, str, str]] = set()
+    # Step 5: No duplicate edges (same source+target+type; triggered-by includes pass info)
+    seen_edges: set[tuple] = set()
     for edge in dag.edges:
-        key = (edge.source, edge.target, edge.type.value)
+        if edge.type == EdgeType.triggered_by:
+            key = (edge.source, edge.target, edge.type.value, edge.source_pass, edge.target_pass)
+        else:
+            key = (edge.source, edge.target, edge.type.value)
         if key in seen_edges:
             violations.append(
                 ValidationViolation(
@@ -165,6 +171,38 @@ def validate_structure(dag: DAGPass, catalog: NodeCatalog) -> ValidationResult:
     for v in invariants.violations:
         if v.code != "INV-005":
             violations.append(v)
+
+    # Step 10: Entry-level immutability
+    for node in dag.nodes:
+        seen_passes: set[int] = set()
+        for entry in getattr(node, "history", []):
+            # 10a: Frozen entries must have a non-empty status
+            if entry.frozen and entry.status == "":
+                violations.append(
+                    ValidationViolation(
+                        code="FROZEN_ENTRY_EMPTY",
+                        severity="error",
+                        message=(
+                            f"Node '{node.id}' pass {entry.pass_number} "
+                            f"has a frozen entry with empty status"
+                        ),
+                        node_id=node.id,
+                    )
+                )
+            # 10b: Duplicate pass entries within a node indicate frozen bypass
+            if entry.pass_number in seen_passes:
+                violations.append(
+                    ValidationViolation(
+                        code="DUPLICATE_PASS_ENTRY",
+                        severity="error",
+                        message=(
+                            f"Node '{node.id}' has multiple history entries "
+                            f"for pass {entry.pass_number}"
+                        ),
+                        node_id=node.id,
+                    )
+                )
+            seen_passes.add(entry.pass_number)
 
     return ValidationResult(
         valid=len([v for v in violations if v.severity == "error"]) == 0,

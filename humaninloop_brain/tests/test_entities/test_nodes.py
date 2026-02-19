@@ -8,6 +8,7 @@ from humaninloop_brain.entities.nodes import (
     EvidenceAttachment,
     GraphNode,
     NodeContract,
+    NodeHistoryEntry,
 )
 from humaninloop_brain.entities.enums import NodeType
 
@@ -71,6 +72,43 @@ class TestEvidenceAttachment:
             ev.id = "ev-02"
 
 
+class TestNodeHistoryEntry:
+    def test_construct(self):
+        entry = NodeHistoryEntry(pass_number=1, status="pending")
+        assert entry.pass_number == 1
+        assert entry.status == "pending"
+        assert entry.verdict is None
+        assert entry.frozen is False
+        assert entry.evidence == []
+        assert entry.trace is None
+
+    def test_with_all_fields(self):
+        ev = EvidenceAttachment(id="ev-01", type="file", description="d", reference="r")
+        entry = NodeHistoryEntry(
+            pass_number=2,
+            status="completed",
+            verdict="ready",
+            frozen=True,
+            evidence=[ev],
+            trace={"node_id": "n", "started_at": "2026-01-15T10:00:00Z"},
+        )
+        assert entry.verdict == "ready"
+        assert entry.frozen is True
+        assert len(entry.evidence) == 1
+        assert entry.trace["node_id"] == "n"
+
+    def test_frozen(self):
+        entry = NodeHistoryEntry(pass_number=1, status="pending")
+        with pytest.raises(ValidationError):
+            entry.status = "completed"
+
+    def test_serialization_roundtrip(self):
+        entry = NodeHistoryEntry(pass_number=1, status="in-progress", verdict="needs-revision")
+        data = entry.model_dump()
+        restored = NodeHistoryEntry.model_validate(data)
+        assert restored == entry
+
+
 class TestGraphNode:
     def test_valid_task_pending(self):
         node = GraphNode(
@@ -92,7 +130,7 @@ class TestGraphNode:
             assert node.status == status
 
     def test_valid_gate_all_statuses(self):
-        for status in ["pending", "in-progress", "passed", "failed", "needs-revision"]:
+        for status in ["pending", "in-progress", "completed"]:
             node = GraphNode(
                 id="g", type=NodeType.gate, name="n", description="d", status=status
             )
@@ -137,7 +175,7 @@ class TestGraphNode:
                 type=NodeType.gate,
                 name="n",
                 description="d",
-                status="completed",
+                status="decided",
             )
 
     def test_invalid_decision_status(self):
@@ -192,11 +230,6 @@ class TestGraphNode:
                 produces=["output"],
             ),
             agent="test-agent",
-            evidence=[
-                EvidenceAttachment(
-                    id="ev-01", type="file", description="d", reference="r"
-                )
-            ],
         )
         data = node.model_dump()
         restored = GraphNode.model_validate(data)
@@ -213,3 +246,79 @@ class TestGraphNode:
         json_str = node.model_dump_json()
         restored = GraphNode.model_validate_json(json_str)
         assert restored == node
+
+    def test_with_history(self):
+        entry = NodeHistoryEntry(pass_number=1, status="pending")
+        node = GraphNode(
+            id="t",
+            type=NodeType.task,
+            name="n",
+            description="d",
+            status="pending",
+            history=[entry],
+            verdict=None,
+            last_active_pass=1,
+        )
+        assert len(node.history) == 1
+        assert node.history[0].pass_number == 1
+        assert node.last_active_pass == 1
+
+    def test_backward_compatible(self):
+        """V2 data (no history/verdict/last_active_pass) still deserializes."""
+        data = {
+            "id": "t",
+            "type": "task",
+            "name": "n",
+            "description": "d",
+            "status": "pending",
+        }
+        node = GraphNode.model_validate(data)
+        assert node.history == []
+        assert node.verdict is None
+        assert node.last_active_pass is None
+
+    def test_derived_status_mismatch_rejected(self):
+        """Derived field 'status' must match latest history entry."""
+        entry = NodeHistoryEntry(pass_number=1, status="completed")
+        with pytest.raises(ValidationError, match="Derived field 'status'"):
+            GraphNode(
+                id="t", type=NodeType.task, name="n", description="d",
+                status="pending",  # Mismatch: history says "completed"
+                history=[entry], last_active_pass=1,
+            )
+
+    def test_derived_verdict_mismatch_rejected(self):
+        """Derived field 'verdict' must match latest history entry."""
+        entry = NodeHistoryEntry(pass_number=1, status="completed", verdict="ready")
+        with pytest.raises(ValidationError, match="Derived field 'verdict'"):
+            GraphNode(
+                id="g", type=NodeType.gate, name="n", description="d",
+                status="completed",
+                history=[entry], verdict="needs-revision",  # Mismatch
+                last_active_pass=1,
+            )
+
+    def test_derived_last_active_pass_mismatch_rejected(self):
+        """Derived field 'last_active_pass' must match latest history entry."""
+        entry = NodeHistoryEntry(pass_number=2, status="pending")
+        with pytest.raises(ValidationError, match="Derived field 'last_active_pass'"):
+            GraphNode(
+                id="t", type=NodeType.task, name="n", description="d",
+                status="pending",
+                history=[entry], last_active_pass=1,  # Mismatch: history says pass 2
+            )
+
+    def test_derived_fields_valid_when_consistent(self):
+        """No error when derived fields match latest history entry."""
+        entries = [
+            NodeHistoryEntry(pass_number=1, status="pending"),
+            NodeHistoryEntry(pass_number=2, status="completed", verdict="ready"),
+        ]
+        node = GraphNode(
+            id="g", type=NodeType.gate, name="n", description="d",
+            status="completed", verdict="ready", last_active_pass=2,
+            history=entries,
+        )
+        assert node.status == "completed"
+        assert node.verdict == "ready"
+        assert node.last_active_pass == 2

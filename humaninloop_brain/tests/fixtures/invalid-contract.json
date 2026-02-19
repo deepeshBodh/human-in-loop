@@ -1,9 +1,10 @@
 {
   "id": "specify-pass-invalid-contract",
   "workflow_id": "specify-feature-auth",
-  "schema_version": "1.0.0",
-  "pass_number": 1,
-  "outcome": null,
+  "schema_version": "3.0.0",
+  "current_pass": 1,
+  "status": "in-progress",
+  "passes": [{"pass": 1}],
   "nodes": [
     {
       "id": "analyst-review",
@@ -17,7 +18,11 @@
         ],
         "produces": ["spec.md"]
       },
-      "agent": "requirements-analyst"
+      "agent": "requirements-analyst",
+      "last_active_pass": 1,
+      "history": [
+        {"pass": 1, "status": "pending", "frozen": false}
+      ]
     },
     {
       "id": "advocate-review",
@@ -25,11 +30,16 @@
       "name": "Specification Validation",
       "description": "Review specification",
       "status": "pending",
+      "verdict": null,
       "contract": {
         "consumes": [{"artifact": "spec.md", "required": true}],
         "produces": ["advocate-report.md"]
       },
-      "agent": "devils-advocate"
+      "agent": "devils-advocate",
+      "last_active_pass": 1,
+      "history": [
+        {"pass": 1, "status": "pending", "verdict": null, "frozen": false}
+      ]
     }
   ],
   "edges": [
@@ -37,7 +47,7 @@
       "id": "edge-dep-analyst-advocate",
       "source": "analyst-review",
       "target": "advocate-review",
-      "type": "depends-on"
+      "type": "depends_on"
     },
     {
       "id": "edge-prod-analyst-advocate",
@@ -45,7 +55,5 @@
       "target": "advocate-review",
       "type": "produces"
     }
-  ],
-  "execution_trace": [],
-  "history_context": {"previous_passes": []}
+  ]
 }

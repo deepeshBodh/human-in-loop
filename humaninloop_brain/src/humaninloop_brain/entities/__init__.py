@@ -3,7 +3,8 @@
 from humaninloop_brain.entities.enums import (
     DecisionStatus,
     EdgeType,
-    GateStatus,
+    GateLifecycleStatus,
+    GateVerdict,
     InvariantEnforcement,
     InvariantSeverity,
     MilestoneStatus,
@@ -17,13 +18,12 @@ from humaninloop_brain.entities.nodes import (
     EvidenceAttachment,
     GraphNode,
     NodeContract,
+    NodeHistoryEntry,
 )
 from humaninloop_brain.entities.edges import Edge
 from humaninloop_brain.entities.dag_pass import (
-    DAGPass,
     ExecutionTraceEntry,
-    HistoryContext,
-    HistoryPass,
+    PassEntry,
 )
 from humaninloop_brain.entities.catalog import (
     CatalogNodeDefinition,
@@ -31,6 +31,7 @@ from humaninloop_brain.entities.catalog import (
     NodeCatalog,
     SystemInvariant,
 )
+from humaninloop_brain.entities.strategy_graph import StrategyGraph
 from humaninloop_brain.entities.validation import (
     ValidationResult,
     ValidationViolation,
@@ -42,7 +43,8 @@ __all__ = [
     "EdgeType",
     "PassOutcome",
     "TaskStatus",
-    "GateStatus",
+    "GateLifecycleStatus",
+    "GateVerdict",
     "DecisionStatus",
     "MilestoneStatus",
     "InvariantEnforcement",
@@ -53,13 +55,14 @@ __all__ = [
     "NodeContract",
     "EvidenceAttachment",
     "GraphNode",
+    "NodeHistoryEntry",
     # Edges
     "Edge",
-    # DAG Pass
-    "DAGPass",
+    # Pass entries
     "ExecutionTraceEntry",
-    "HistoryContext",
-    "HistoryPass",
+    "PassEntry",
+    # StrategyGraph
+    "StrategyGraph",
     # Catalog
     "CatalogNodeDefinition",
     "EdgeConstraint",

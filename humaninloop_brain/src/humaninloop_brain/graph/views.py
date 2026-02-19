@@ -37,3 +37,8 @@ def constrained_by_view(g: nx.MultiDiGraph) -> nx.MultiDiGraph:
 def informed_by_view(g: nx.MultiDiGraph) -> nx.MultiDiGraph:
     """View with only informed-by edges."""
     return _edge_type_view(g, EdgeType.informed_by)
+
+
+def triggered_by_view(g: nx.MultiDiGraph) -> nx.MultiDiGraph:
+    """View with only triggered-by edges (cross-pass triggers)."""
+    return _edge_type_view(g, EdgeType.triggered_by)
