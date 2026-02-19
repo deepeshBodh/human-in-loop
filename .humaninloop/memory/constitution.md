@@ -41,7 +41,6 @@ Templates requiring updates:
 
 Follow-up TODOs:
 - GAP-003: Add secret scanning to CI pipeline
-- Update .coverage-baseline from 98 to align with 90% floor (or remove ratchet from CI)
 
 Previous reports:
 - 2.0.0 (2026-02-18): Full rewrite reflecting DAG infrastructure, humaninloop_brain package, deprecation of legacy validators, CI mandate, 10 principles
