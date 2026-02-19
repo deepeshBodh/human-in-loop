@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e
 # Freeze a completed pass in the StrategyGraph
-# Supports triggered_by edges via --triggered-nodes and --reason
-# Usage: dag-freeze.sh <dag-path> <outcome> <detail> [--triggered-nodes <node>...] [--reason <reason>]
+# Supports triggered_by edges via --triggered-nodes, --trigger-source, and --reason
+# Usage: dag-freeze.sh <dag-path> <outcome> <detail> [--triggered-nodes <node>...] [--trigger-source <gate-node>] [--reason <reason>]
 
 command -v hil-dag >/dev/null 2>&1 || { echo '{"status":"error","message":"hil-dag not found. Install: cd humaninloop_brain && uv sync"}' >&2; exit 1; }
 

@@ -104,13 +104,14 @@ Freeze the current pass, add triggered_by edges, and optionally create the next 
   "outcome": "completed",
   "detail": "advocate-verdict-needs-revision",
   "rationale": "Advocate found 3 gaps. Freezing pass 1 for new assembly.",
+  "trigger_source": "advocate-review",
   "triggered_nodes": ["analyst-review", "advocate-review"],
   "reason": "needs-revision, 3 gaps found"
 }
 ```
 
 **Process**:
-1. Freeze DAG pass: `hil-dag freeze <dag_path> --outcome <outcome> --detail <detail> [--triggered-nodes <node_id>...] [--reason <reason>]` _(CLI — atomically freezes all current-pass history entries, updates pass metadata, creates triggered_by edges, creates next pass entry if triggered_nodes provided)_
+1. Freeze DAG pass: `hil-dag freeze <dag_path> --outcome <outcome> --detail <detail> [--triggered-nodes <node_id>...] [--trigger-source <gate_node_id>] [--reason <reason>]` _(CLI — atomically freezes all current-pass history entries, updates pass metadata, creates triggered_by edges from trigger_source gate to each triggered node, creates next pass entry if triggered_nodes provided)_
 2. Return confirmation
 
 **Output** (to Supervisor):

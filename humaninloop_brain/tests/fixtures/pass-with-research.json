@@ -5,8 +5,8 @@
   "current_pass": 2,
   "status": "in-progress",
   "passes": [
-    {"pass_number": 1, "outcome": "completed", "detail": "advocate-verdict-needs-revision", "frozen": true},
-    {"pass_number": 2}
+    {"pass": 1, "outcome": "completed", "detail": "advocate-verdict-needs-revision", "frozen": true},
+    {"pass": 2}
   ],
   "nodes": [
     {

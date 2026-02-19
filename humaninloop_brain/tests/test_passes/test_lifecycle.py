@@ -82,6 +82,17 @@ class TestAddOrReopenNode:
         assert graph.nodes[0].last_active_pass == 2
         assert edges == []  # No new edges on reopen
 
+    def test_reopen_resets_to_initial_status(self, graph, catalog):
+        """Reopened node must reset to initial catalog status (pending), not copy stale status."""
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph = update_node_history(graph, "analyst-review", 1, "completed")
+        assert graph.nodes[0].status == "completed"
+
+        # Reopen for pass 2 — should be "pending", not "completed"
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 2)
+        assert graph.nodes[0].status == "pending"
+        assert graph.nodes[0].history[-1].status == "pending"
+
     def test_node_not_in_catalog(self, graph, catalog):
         with pytest.raises(ValueError, match="not found in catalog"):
             add_or_reopen_node(graph, "nonexistent", catalog, 1)
@@ -189,17 +200,22 @@ class TestFreezeCurrentPass:
     def test_freeze_with_triggered_nodes(self, graph, catalog):
         graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
         graph = update_node_history(graph, "analyst-review", 1, "completed")
+        graph, _ = add_or_reopen_node(graph, "advocate-review", catalog, 1)
+        graph = update_node_history(graph, "advocate-review", 1, "completed")
         graph = freeze_current_pass(
             graph,
             "completed",
             "advocate-verdict-needs-revision",
             triggered_nodes=["analyst-review"],
+            trigger_source="advocate-review",
             reason="advocate verdict needs-revision",
         )
 
-        # Should have a triggered_by edge
+        # Should have a triggered_by edge from gate to triggered node
         trig_edges = [e for e in graph.edges if e.type == EdgeType.triggered_by]
         assert len(trig_edges) == 1
+        assert trig_edges[0].source == "advocate-review"
+        assert trig_edges[0].target == "analyst-review"
         assert trig_edges[0].source_pass == 1
         assert trig_edges[0].target_pass == 2
         assert trig_edges[0].reason == "advocate verdict needs-revision"
@@ -211,6 +227,45 @@ class TestFreezeCurrentPass:
 
         # Graph NOT marked completed (has next pass)
         assert graph.status == "in-progress"
+
+    def test_freeze_requires_trigger_source_with_triggered_nodes(self, graph, catalog):
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        with pytest.raises(ValueError, match="trigger_source is required"):
+            freeze_current_pass(
+                graph, "completed", "done",
+                triggered_nodes=["analyst-review"],
+            )
+
+    def test_freeze_refuses_pass_beyond_max(self, graph, catalog):
+        """INV-004: freeze must refuse to create pass 6."""
+        graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
+        graph, _ = add_or_reopen_node(graph, "advocate-review", catalog, 1)
+
+        # Advance to pass 5 by freezing 4 times
+        for _ in range(4):
+            graph = update_node_history(graph, "analyst-review", graph.current_pass, "completed")
+            graph = update_node_history(graph, "advocate-review", graph.current_pass, "completed")
+            graph = freeze_current_pass(
+                graph, "completed", "needs-revision",
+                triggered_nodes=["analyst-review"],
+                trigger_source="advocate-review",
+                reason="test",
+            )
+            graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, graph.current_pass)
+            graph, _ = add_or_reopen_node(graph, "advocate-review", catalog, graph.current_pass)
+
+        assert graph.current_pass == 5
+
+        # Pass 5 freeze with triggered_nodes should refuse
+        graph = update_node_history(graph, "analyst-review", 5, "completed")
+        graph = update_node_history(graph, "advocate-review", 5, "completed")
+        with pytest.raises(ValueError, match="INV-004"):
+            freeze_current_pass(
+                graph, "completed", "needs-revision",
+                triggered_nodes=["analyst-review"],
+                trigger_source="advocate-review",
+                reason="test",
+            )
 
     def test_freeze_halted(self, graph, catalog):
         graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
@@ -224,7 +279,7 @@ class TestMultiPassScenario:
     def test_two_pass_workflow(self, graph, catalog):
         # Pass 1: add analyst + advocate, advocate says needs-revision
         graph, _ = add_or_reopen_node(graph, "constitution-gate", catalog, 1)
-        graph = update_node_history(graph, "constitution-gate", 1, "completed")
+        graph = update_node_history(graph, "constitution-gate", 1, "passed")
         graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
         graph = update_node_history(graph, "analyst-review", 1, "completed")
         graph, _ = add_or_reopen_node(graph, "advocate-review", catalog, 1)
@@ -238,6 +293,7 @@ class TestMultiPassScenario:
             "completed",
             "advocate-verdict-needs-revision",
             triggered_nodes=["analyst-review"],
+            trigger_source="advocate-review",
             reason="needs-revision",
         )
         assert graph.current_pass == 2
@@ -287,9 +343,13 @@ class TestSaveLoadGraph:
     def test_roundtrip_preserves_structure(self, graph, catalog, tmp_path):
         graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 1)
         graph = update_node_history(graph, "analyst-review", 1, "completed")
+        graph, _ = add_or_reopen_node(graph, "advocate-review", catalog, 1)
+        graph = update_node_history(graph, "advocate-review", 1, "completed")
         graph = freeze_current_pass(
             graph, "completed", "done",
-            triggered_nodes=["analyst-review"], reason="test",
+            triggered_nodes=["analyst-review"],
+            trigger_source="advocate-review",
+            reason="test",
         )
         graph, _ = add_or_reopen_node(graph, "analyst-review", catalog, 2)
 

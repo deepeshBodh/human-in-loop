@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 from humaninloop_brain.entities.enums import NodeType, TYPE_STATUS_MAP
 
@@ -38,11 +38,15 @@ class EvidenceAttachment(BaseModel):
 
 
 class NodeHistoryEntry(BaseModel):
-    """A single pass's history entry for a node in a StrategyGraph."""
+    """A single pass's history entry for a node in a StrategyGraph.
 
-    model_config = {"frozen": True}
+    The ``pass_number`` field serializes as ``"pass"`` in JSON to match the
+    V3 design doc schema.
+    """
 
-    pass_number: int
+    model_config = {"frozen": True, "populate_by_name": True}
+
+    pass_number: int = Field(alias="pass", serialization_alias="pass")
     status: str
     verdict: str | None = None
     frozen: bool = False

@@ -40,43 +40,47 @@ class TestCheckContracts:
     def test_system_artifacts_satisfy_contracts(self, load_fixture):
         """Nodes consuming system artifacts don't need producers."""
         catalog = NodeCatalog.model_validate(load_fixture("specify-catalog.json"))
-        dag = StrategyGraph(id="sg", workflow_id="w")
-        dag.nodes.append(
-            GraphNode(
-                id="test",
-                type=NodeType.task,
-                name="t",
-                description="d",
-                status="pending",
-                contract=NodeContract(
-                    consumes=[
-                        ArtifactConsumption(artifact="raw-input", required=True),
-                        ArtifactConsumption(artifact="constitution.md", required=True),
-                    ],
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="test",
+                    type=NodeType.task,
+                    name="t",
+                    description="d",
+                    status="pending",
+                    contract=NodeContract(
+                        consumes=[
+                            ArtifactConsumption(artifact="raw-input", required=True),
+                            ArtifactConsumption(artifact="constitution.md", required=True),
+                        ],
+                    ),
                 ),
-            )
+            ],
         )
         result = check_contracts(dag, catalog)
         assert result.valid is True
 
     def test_optional_artifacts_no_violation(self, load_fixture):
         catalog = NodeCatalog.model_validate(load_fixture("specify-catalog.json"))
-        dag = StrategyGraph(id="sg", workflow_id="w")
-        dag.nodes.append(
-            GraphNode(
-                id="test",
-                type=NodeType.task,
-                name="t",
-                description="d",
-                status="pending",
-                contract=NodeContract(
-                    consumes=[
-                        ArtifactConsumption(
-                            artifact="nonexistent", required=False
-                        ),
-                    ],
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="test",
+                    type=NodeType.task,
+                    name="t",
+                    description="d",
+                    status="pending",
+                    contract=NodeContract(
+                        consumes=[
+                            ArtifactConsumption(
+                                artifact="nonexistent", required=False
+                            ),
+                        ],
+                    ),
                 ),
-            )
+            ],
         )
         result = check_contracts(dag, catalog)
         assert result.valid is True

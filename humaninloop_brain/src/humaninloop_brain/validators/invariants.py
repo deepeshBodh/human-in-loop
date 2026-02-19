@@ -78,19 +78,22 @@ def check_invariants(dag: HasNodesAndEdges, catalog: NodeCatalog) -> ValidationR
         )
     ]
 
-    gate_satisfied = bool(constitution_gate_ids)
-    if is_v3 and not gate_satisfied:
-        # Check carry_forward: if catalog says carry_forward=true, check prior pass history
-        for cg in constitution_gates:
-            cat_def = catalog.get_node(cg.id)
-            if cat_def and cat_def.carry_forward:
-                # Check if any history entry shows completed/passed
-                for entry in getattr(cg, "history", []):
-                    if entry.status in ("completed", "passed"):
-                        gate_satisfied = True
-                        break
+    # Gate must exist AND have a terminal status (completed/passed) to satisfy INV-002
+    gate_satisfied = False
+    for cg in constitution_gates:
+        if cg.status in ("completed", "passed"):
+            gate_satisfied = True
+            break
+        # Also check history entries for carry_forward resolution
+        for entry in getattr(cg, "history", []):
+            if entry.status in ("completed", "passed"):
+                gate_satisfied = True
+                break
+        if gate_satisfied:
+            break
 
     if spec_tasks and not gate_satisfied:
+        has_gate = bool(constitution_gate_ids)
         for task_id in spec_tasks:
             violations.append(
                 ValidationViolation(
@@ -98,7 +101,7 @@ def check_invariants(dag: HasNodesAndEdges, catalog: NodeCatalog) -> ValidationR
                     severity="error",
                     message=(
                         f"Task '{task_id}' consumes constitution.md but "
-                        f"no constitution gate exists in the DAG"
+                        f"{'constitution gate exists but has not passed' if has_gate else 'no constitution gate exists in the DAG'}"
                     ),
                     node_id=task_id,
                 )

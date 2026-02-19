@@ -60,8 +60,8 @@ Scripts are invoked by the DAG Assembler agent during workflow execution. The ag
 # Record analysis results (optional --pass and --verdict for gate nodes)
 ./scripts/dag-record.sh <dag-path> <node-id> <status> '<evidence-json-array>' '<trace-json-object>' [--pass <pass-number>] [--verdict <verdict>]
 
-# Freeze (optional triggered nodes and reason for triggered_by edges)
-./scripts/dag-freeze.sh <dag-path> <outcome> <detail> [<triggered-node-1> <triggered-node-2> ...] [--reason <reason>]
+# Freeze (optional triggered nodes, trigger source gate, and reason for triggered_by edges)
+./scripts/dag-freeze.sh <dag-path> <outcome> <detail> [--triggered-nodes <node>...] [--trigger-source <gate-node>] [--reason <reason>]
 
 # Validate catalog
 ./scripts/dag-catalog-validate.sh <catalog-path>

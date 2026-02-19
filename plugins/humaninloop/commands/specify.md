@@ -64,7 +64,7 @@ The Supervisor communicates through exactly three verbs:
 | **Tell the Assembler** | `humaninloop:dag-assembler` | `assemble-and-prepare`, `freeze-pass` |
 | **Dispatch the agent** | Domain agent / Skill | Execute with NL prompt from Assembler |
 
-The Supervisor uses `hil-dag status` directly **only** for supervisor-owned nodes (milestone, decision) — nodes without a domain agent. All other status updates go through the State Analyst's `parse-and-recommend`.
+The Supervisor has **zero direct CLI usage**. All `hil-dag` operations are delegated: agent node status goes through the State Analyst's `parse-and-recommend`, and supervisor-owned node status (milestone, decision, gate-check) goes through the DAG Assembler's `update-status` action.
 
 ---
 
@@ -82,9 +82,9 @@ Then retry: /humaninloop:specify
 ```
 STOP execution if missing.
 
-### 2. hil-dag CLI Check
+### 2. hil-dag CLI Check (for subagent environment)
 
-Verify the `hil-dag` CLI is available and resolve its PATH:
+Verify the `hil-dag` CLI is available for subagents (State Analyst, DAG Assembler) and resolve its PATH:
 
 ```bash
 if hil-dag --help > /dev/null 2>&1; then
@@ -167,9 +167,9 @@ If `invalid`, pick differently. On first call, the Assembler auto-creates the St
 | **task** (with `agent_type`) | `Task(subagent_type: agent_type, prompt: agent_prompt)` |
 | **task** (with `skill_to_invoke`) | `Skill(skill: skill_to_invoke, args: skill_args)` |
 | **gate** (with `agent_type`) | `Task(subagent_type: agent_type, prompt: agent_prompt)` |
-| **gate** (with `gate_type`) | Supervisor checks directly (e.g., file exists), then `hil-dag status` |
-| **decision** | `AskUserQuestion(...)` with questions from Assembler, write answers to `{feature_dir}/.workflow/clarification-answers.md`, then `hil-dag status --node <id> --status decided <dag_path>` |
-| **milestone** | Verify required artifacts exist, then `hil-dag status --node <id> --status achieved <dag_path>` |
+| **gate** (with `gate_type`) | Supervisor checks directly (e.g., file exists), then tells Assembler: `{action: "update-status", node_id, status: "passed"/"failed", dag_path}` |
+| **decision** | `AskUserQuestion(...)` with questions from Assembler, write answers to `{feature_dir}/.workflow/clarification-answers.md`, then tell Assembler: `{action: "update-status", node_id, status: "decided", dag_path}` |
+| **milestone** | Verify required artifacts exist, then tell Assembler: `{action: "update-status", node_id, status: "achieved", dag_path}` |
 
 **Parse** (MANDATORY for every agent node): Ask the Analyst to parse the report and recommend next steps.
 ```
@@ -192,11 +192,12 @@ Base ALL decisions on the structured summary from `parse-and-recommend`.
 
 These rules govern pass transitions and workflow completion. They use DAG vocabulary — no domain knowledge.
 
-**Rule 1 — Gate verdict `needs-revision`**: Tell the Assembler to freeze the current pass with triggered_nodes. Return to Start of Every Pass for the new pass.
+**Rule 1 — Gate verdict `needs-revision`**: Tell the Assembler to freeze the current pass with trigger_source (the gate node) and triggered_nodes. Return to Start of Every Pass for the new pass.
 ```
 Task(subagent_type: "humaninloop:dag-assembler",
   prompt: {action: "freeze-pass", dag_path, catalog_path, feature_dir,
            outcome: "completed", detail: "advocate-verdict-needs-revision",
+           trigger_source: <gate_node_id from parse-and-recommend>,
            triggered_nodes: [nodes to re-execute], reason: <from summary>},
   description: "Freeze pass")
 ```
@@ -204,13 +205,13 @@ Task(subagent_type: "humaninloop:dag-assembler",
 **Rule 2 — Gate verdict `ready`** (Completion Procedure):
 1. Tell the Assembler to assemble the milestone node
 2. Verify required artifacts exist
-3. Mark milestone achieved: `hil-dag status --node <milestone_id> --status achieved <dag_path>`
+3. Tell the Assembler to mark milestone achieved: `{action: "update-status", node_id: <milestone_id>, status: "achieved", dag_path}`
 4. Tell the Assembler to freeze the pass with outcome `completed`, detail `ready`
 5. Go to Completion
 
 **Rule 3 — Gate verdict `critical-gaps`**: Present to user with options (continue / accept current / stop).
 
-**Rule 4 — `parse-and-recommend` has `unresolved` items**: Tell the Assembler to assemble a decision node. Collect user input via `AskUserQuestion`. Mark decided: `hil-dag status --node <decision_id> --status decided <dag_path>`. Write answers to `{feature_dir}/.workflow/clarification-answers.md`. Continue with Analyst's recommendation.
+**Rule 4 — `parse-and-recommend` has `unresolved` items**: Tell the Assembler to assemble a decision node. Collect user input via `AskUserQuestion`. Write answers to `{feature_dir}/.workflow/clarification-answers.md`. Tell the Assembler to mark decided: `{action: "update-status", node_id: <decision_id>, status: "decided", dag_path}`. Continue with Analyst's recommendation.
 
 **Rule 5 — Convergence stall** (same gap count 2+ passes, from `outcome_trajectory`): Surface to user — do not silently continue.
 
@@ -249,8 +250,7 @@ Update context status to `completed`. Output:
 ## Context Protection (CRITICAL)
 
 - **NEVER read domain agent reports directly**. All report content enters via State Analyst's `parse-and-recommend`.
-- **NEVER use `hil-dag status` for agent-backed nodes**. Status updates happen inside `parse-and-recommend` via `hil-dag record`.
-- **NEVER use `hil-dag freeze` directly**. Pass freezing goes through DAG Assembler's `freeze-pass`.
+- **NEVER call `hil-dag` directly** — zero CLI usage. Agent node status goes through `parse-and-recommend` (via `hil-dag record`). Supervisor-owned node status goes through DAG Assembler's `update-status`. Pass freezing goes through DAG Assembler's `freeze-pass`.
 - **ALWAYS call `parse-and-recommend` after every agent execution** — no exceptions.
 - **ALWAYS request a briefing at the start of every pass** — not just pass 1.
 
@@ -260,8 +260,8 @@ Update context status to `completed`. Output:
 |-----------|-------|-----------|
 | Assembly decisions | Supervisor | Based on Analyst recommendations |
 | Dispatch domain agents | Supervisor | Task tool with prompt from Assembler |
-| Mark milestone achieved | Supervisor | `hil-dag status` (supervisor-owned node) |
-| Mark decision decided | Supervisor | `hil-dag status` (supervisor-owned node) |
+| Mark milestone achieved | DAG Assembler | `update-status` action (supervisor-owned node) |
+| Mark decision decided | DAG Assembler | `update-status` action (supervisor-owned node) |
 | Collect human input | Supervisor | `AskUserQuestion` |
 | Watch convergence | Supervisor | `outcome_trajectory` from Analyst |
 | Assemble nodes | DAG Assembler | `assemble-and-prepare` |
@@ -276,4 +276,4 @@ Update context status to `completed`. Output:
 - Do NOT modify git config or push to remote
 - Always use Task tool to invoke agents — never inline agent behavior
 - Domain agents have NO workflow knowledge — all context via files on disk
-- `<dag_path>` is always a **positional** argument to `hil-dag` (no flag)
+- Supervisor has zero direct `hil-dag` CLI usage — all graph operations delegated to Assembler or Analyst

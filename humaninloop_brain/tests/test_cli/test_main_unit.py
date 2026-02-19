@@ -192,6 +192,35 @@ class TestAssembleCommand:
         out = json.loads(capsys.readouterr().out)
         assert out["status"] == "valid"
 
+    def test_carry_forward_gate_persists_across_passes(self, tmp_path, capsys):
+        """carry_forward gate from pass 1 satisfies INV-002 in pass 2 (node persists in DAG)."""
+        dag_path = _bootstrap_graph(
+            tmp_path, capsys,
+            nodes=["constitution-gate", "analyst-review", "advocate-review"],
+        )
+        # Complete all and freeze pass 1
+        main(["status", dag_path, "--node", "constitution-gate", "--status", "passed"])
+        main(["status", dag_path, "--node", "analyst-review", "--status", "completed"])
+        main(["status", dag_path, "--node", "advocate-review", "--status", "completed"])
+        capsys.readouterr()
+        main([
+            "freeze", dag_path, "--outcome", "completed", "--detail", "needs-revision",
+            "--triggered-nodes", "analyst-review",
+            "--trigger-source", "advocate-review",
+            "--reason", "test",
+        ])
+        capsys.readouterr()
+
+        # Pass 2: assemble analyst-review — INV-002 satisfied because
+        # constitution-gate node persists in the single DAG from pass 1
+        code = main([
+            "assemble", dag_path, "--catalog", CATALOG,
+            "--node", "analyst-review",
+        ])
+        assert code == 0
+        out = json.loads(capsys.readouterr().out)
+        assert out["status"] == "valid"
+
         # constitution-gate should have been auto-added
         graph_data = json.loads(Path(dag_path).read_text())
         node_ids = {n["id"] for n in graph_data["nodes"]}
@@ -223,19 +252,18 @@ class TestStatusCommand:
         code = main(["status", dag_path, "--node", "input-enrichment", "--status", "passed"])
         assert code == 1
 
-    def test_gate_uses_completed_not_passed(self, tmp_path, capsys):
-        """V3 gates use GateLifecycleStatus: completed, not passed."""
-        dag_path = _bootstrap_graph(tmp_path, capsys)
-        # "completed" is valid for gate in v3
-        code = main(["status", dag_path, "--node", "constitution-gate", "--status", "completed"])
-        assert code == 0
-        out = json.loads(capsys.readouterr().out)
-        assert out["new_status"] == "completed"
-
-    def test_gate_rejects_passed(self, tmp_path, capsys):
-        """Gates reject 'passed' status (not a valid GateLifecycleStatus)."""
+    def test_gate_accepts_passed(self, tmp_path, capsys):
+        """Deterministic gates accept 'passed' status."""
         dag_path = _bootstrap_graph(tmp_path, capsys)
         code = main(["status", dag_path, "--node", "constitution-gate", "--status", "passed"])
+        assert code == 0
+        out = json.loads(capsys.readouterr().out)
+        assert out["new_status"] == "passed"
+
+    def test_gate_rejects_decided(self, tmp_path, capsys):
+        """Gates reject 'decided' status (only valid for decision nodes)."""
+        dag_path = _bootstrap_graph(tmp_path, capsys)
+        code = main(["status", dag_path, "--node", "constitution-gate", "--status", "decided"])
         assert code == 1
 
 
@@ -354,11 +382,11 @@ class TestRecordCommand:
         node = next(n for n in data["nodes"] if n["id"] == "input-enrichment")
         assert node["status"] == "completed"
         # Check history entry
-        entry = next(e for e in node["history"] if e["pass_number"] == 1)
+        entry = next(e for e in node["history"] if e["pass"] == 1)
         assert entry["status"] == "completed"
         assert entry["trace"] is not None
         assert len(entry["evidence"]) == 1
-        assert entry["evidence"][0]["id"] == "E1"
+        assert entry["evidence"][0]["id"] == "EV-input-enrichment-001-1"
 
     def test_record_evidence_schema(self, tmp_path, capsys):
         dag_path = self._setup_dag(tmp_path, capsys)
@@ -410,7 +438,7 @@ class TestRecordCommand:
         data = json.loads(Path(dag_path).read_text())
         node = next(n for n in data["nodes"] if n["id"] == "advocate-review")
         assert node["verdict"] == "needs-revision"
-        entry = next(e for e in node["history"] if e["pass_number"] == 1)
+        entry = next(e for e in node["history"] if e["pass"] == 1)
         assert entry["verdict"] == "needs-revision"
 
     def test_record_without_verdict_omits_field(self, tmp_path, capsys):
@@ -426,6 +454,31 @@ class TestRecordCommand:
         assert code == 0
         out = json.loads(capsys.readouterr().out)
         assert "verdict_recorded" not in out
+
+    def test_record_auto_generates_evidence_ids(self, tmp_path, capsys):
+        """Evidence IDs are auto-generated as EV-{node}-{pass}-{seq}."""
+        dag_path = self._setup_dag(tmp_path, capsys)
+        evidence = json.dumps([
+            {"id": "ignored", "type": "report", "description": "First", "reference": "a.md"},
+            {"id": "also-ignored", "type": "report", "description": "Second", "reference": "b.md"},
+        ])
+        code = main([
+            "record", dag_path,
+            "--node", "input-enrichment",
+            "--status", "completed",
+            "--evidence", evidence,
+            "--trace", self.TRACE,
+        ])
+        assert code == 0
+        out = json.loads(capsys.readouterr().out)
+        assert out["evidence_ids"] == ["EV-input-enrichment-001-1", "EV-input-enrichment-001-2"]
+
+        # Verify on disk
+        data = json.loads(Path(dag_path).read_text())
+        node = next(n for n in data["nodes"] if n["id"] == "input-enrichment")
+        entry = next(e for e in node["history"] if e["pass"] == 1)
+        assert entry["evidence"][0]["id"] == "EV-input-enrichment-001-1"
+        assert entry["evidence"][1]["id"] == "EV-input-enrichment-001-2"
 
 
 class TestFreezeCommand:
@@ -449,6 +502,7 @@ class TestFreezeCommand:
             "--outcome", "completed",
             "--detail", "needs-revision",
             "--triggered-nodes", "analyst-review", "advocate-review",
+            "--trigger-source", "advocate-review",
             "--reason", "Gaps found",
         ])
         assert code == 0
@@ -460,6 +514,10 @@ class TestFreezeCommand:
         assert data["current_pass"] == 2
         triggered_edges = [e for e in data["edges"] if e["type"] == "triggered-by"]
         assert len(triggered_edges) == 2
+        # Verify edges go from gate to triggered nodes, not self-loops
+        for edge in triggered_edges:
+            assert edge["source"] == "advocate-review"
+            assert edge["target"] in ("analyst-review", "advocate-review")
 
     def test_invalid_outcome(self, tmp_path, capsys):
         dag_path = _bootstrap_graph(tmp_path, capsys)

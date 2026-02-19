@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ExecutionTraceEntry(BaseModel):
@@ -19,11 +19,17 @@ class ExecutionTraceEntry(BaseModel):
 
 
 class PassEntry(BaseModel):
-    """A pass entry in a StrategyGraph — tracks pass-level metadata."""
+    """A pass entry in a StrategyGraph — tracks pass-level metadata.
 
-    model_config = {"frozen": True}
+    The ``pass_number`` field serializes as ``"pass"`` in JSON to match the
+    V3 design doc schema.  Python code uses ``pass_number`` (since ``pass``
+    is a keyword).  ``populate_by_name=True`` allows construction with either
+    name, and ``alias="pass"`` allows deserialization from JSON ``"pass"`` keys.
+    """
 
-    pass_number: int
+    model_config = {"frozen": True, "populate_by_name": True}
+
+    pass_number: int = Field(alias="pass", serialization_alias="pass")
     outcome: str | None = None
     detail: str | None = None
     created_at: str | None = None

@@ -70,13 +70,15 @@ class TestTaskStatus:
 
 class TestGateLifecycleStatus:
     def test_all_values(self):
-        expected = {"pending", "in-progress", "completed"}
+        expected = {"pending", "in-progress", "completed", "passed", "failed"}
         assert {s.value for s in GateLifecycleStatus} == expected
 
     def test_str_base(self):
         assert GateLifecycleStatus.pending == "pending"
         assert GateLifecycleStatus.in_progress == "in-progress"
         assert GateLifecycleStatus.completed == "completed"
+        assert GateLifecycleStatus.passed == "passed"
+        assert GateLifecycleStatus.failed == "failed"
 
 
 class TestDecisionStatus:

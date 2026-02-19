@@ -23,11 +23,13 @@ def _make_catalog(load_fixture):
 class TestStep1UniqueNodeIds:
     def test_duplicate_node_id(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-        dag.nodes = [
-            GraphNode(id="dup", type=NodeType.task, name="n", description="d", status="pending"),
-            GraphNode(id="dup", type=NodeType.task, name="n2", description="d", status="pending"),
-        ]
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(id="dup", type=NodeType.task, name="n", description="d", status="pending"),
+                GraphNode(id="dup", type=NodeType.task, name="n2", description="d", status="pending"),
+            ],
+        )
         result = validate_structure(dag, catalog)
         assert any(v.code == "DUPLICATE_NODE_ID" for v in result.violations)
 
@@ -35,25 +37,29 @@ class TestStep1UniqueNodeIds:
 class TestStep2EdgeReferences:
     def test_dangling_source(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-        dag.nodes = [
-            GraphNode(id="a", type=NodeType.task, name="n", description="d", status="pending"),
-        ]
-        dag.edges = [
-            Edge(id="e", source="nonexistent", target="a", type=EdgeType.depends_on),
-        ]
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(id="a", type=NodeType.task, name="n", description="d", status="pending"),
+            ],
+            edges=[
+                Edge(id="e", source="nonexistent", target="a", type=EdgeType.depends_on),
+            ],
+        )
         result = validate_structure(dag, catalog)
         assert any(v.code == "DANGLING_EDGE_SOURCE" for v in result.violations)
 
     def test_dangling_target(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-        dag.nodes = [
-            GraphNode(id="a", type=NodeType.task, name="n", description="d", status="pending"),
-        ]
-        dag.edges = [
-            Edge(id="e", source="a", target="nonexistent", type=EdgeType.depends_on),
-        ]
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(id="a", type=NodeType.task, name="n", description="d", status="pending"),
+            ],
+            edges=[
+                Edge(id="e", source="a", target="nonexistent", type=EdgeType.depends_on),
+            ],
+        )
         result = validate_structure(dag, catalog)
         assert any(v.code == "DANGLING_EDGE_TARGET" for v in result.violations)
 
@@ -61,13 +67,15 @@ class TestStep2EdgeReferences:
 class TestStep4SelfLoops:
     def test_self_loop(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-        dag.nodes = [
-            GraphNode(id="a", type=NodeType.task, name="n", description="d", status="pending"),
-        ]
-        dag.edges = [
-            Edge(id="e", source="a", target="a", type=EdgeType.depends_on),
-        ]
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(id="a", type=NodeType.task, name="n", description="d", status="pending"),
+            ],
+            edges=[
+                Edge(id="e", source="a", target="a", type=EdgeType.depends_on),
+            ],
+        )
         result = validate_structure(dag, catalog)
         assert any(v.code == "SELF_LOOP" for v in result.violations)
 
@@ -75,15 +83,17 @@ class TestStep4SelfLoops:
 class TestStep5DuplicateEdges:
     def test_duplicate_edge(self, load_fixture):
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-        dag.nodes = [
-            GraphNode(id="a", type=NodeType.task, name="n", description="d", status="pending"),
-            GraphNode(id="b", type=NodeType.task, name="n", description="d", status="pending"),
-        ]
-        dag.edges = [
-            Edge(id="e1", source="a", target="b", type=EdgeType.depends_on),
-            Edge(id="e2", source="a", target="b", type=EdgeType.depends_on),
-        ]
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(id="a", type=NodeType.task, name="n", description="d", status="pending"),
+                GraphNode(id="b", type=NodeType.task, name="n", description="d", status="pending"),
+            ],
+            edges=[
+                Edge(id="e1", source="a", target="b", type=EdgeType.depends_on),
+                Edge(id="e2", source="a", target="b", type=EdgeType.depends_on),
+            ],
+        )
         result = validate_structure(dag, catalog)
         assert any(v.code == "DUPLICATE_EDGE" for v in result.violations)
 
@@ -216,15 +226,17 @@ class TestCollectsAllViolations:
     def test_multiple_violations(self, load_fixture):
         """Structural validator collects ALL violations, not just first."""
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-        dag.nodes = [
-            GraphNode(id="a", type=NodeType.task, name="n", description="d", status="pending"),
-            GraphNode(id="a", type=NodeType.task, name="n2", description="d", status="pending"),
-        ]
-        dag.edges = [
-            Edge(id="e", source="a", target="a", type=EdgeType.depends_on),
-            Edge(id="e2", source="x", target="a", type=EdgeType.depends_on),
-        ]
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(id="a", type=NodeType.task, name="n", description="d", status="pending"),
+                GraphNode(id="a", type=NodeType.task, name="n2", description="d", status="pending"),
+            ],
+            edges=[
+                Edge(id="e", source="a", target="a", type=EdgeType.depends_on),
+                Edge(id="e2", source="x", target="a", type=EdgeType.depends_on),
+            ],
+        )
         result = validate_structure(dag, catalog)
         codes = {v.code for v in result.violations}
         assert "DUPLICATE_NODE_ID" in codes

@@ -162,19 +162,41 @@ def cmd_assemble(args: argparse.Namespace) -> int:
 
     result = validate_structure(graph, catalog)
 
-    # Invariant auto-resolution: carry_forward gate
+    # Invariant auto-resolution: carry_forward gates
     if not result.valid:
         inv002 = [v for v in result.violations if v.code == "INV-002"]
         if inv002:
-            const_gate_def = catalog.get_node("constitution-gate")
-            if const_gate_def and const_gate_def.carry_forward:
-                graph, _ = add_or_reopen_node(
-                    graph, "constitution-gate", catalog, pass_number,
-                )
-                graph = update_node_history(
-                    graph, "constitution-gate", pass_number, "completed",
-                )
-                result = validate_structure(graph, catalog)
+            # Find all carry_forward gates in the catalog
+            for cat_node in catalog.nodes:
+                if not cat_node.carry_forward:
+                    continue
+                # Check if this gate completed in any prior pass
+                existing = next((n for n in graph.nodes if n.id == cat_node.id), None)
+                gate_previously_passed = False
+                prior_status = None
+                if existing:
+                    for entry in existing.history:
+                        if entry.status in ("completed", "passed") and entry.frozen:
+                            gate_previously_passed = True
+                            prior_status = entry.status
+                            break
+                # Auto-resolve only if gate passed in a prior pass OR this is pass 1
+                # (on pass 1, the Supervisor has already verified the prerequisite)
+                if gate_previously_passed or pass_number == 1:
+                    # Use the prior pass's resolved status, or find a positive
+                    # terminal status from the catalog's valid_statuses
+                    _POSITIVE_TERMINAL = {"completed", "passed"}
+                    resolve_status = prior_status or next(
+                        (s for s in cat_node.valid_statuses if s in _POSITIVE_TERMINAL),
+                        "completed",
+                    )
+                    graph, _ = add_or_reopen_node(
+                        graph, cat_node.id, catalog, pass_number,
+                    )
+                    graph = update_node_history(
+                        graph, cat_node.id, pass_number, resolve_status,
+                    )
+            result = validate_structure(graph, catalog)
 
     if result.valid:
         save_graph(graph, str(path))
@@ -237,7 +259,7 @@ def cmd_record(args: argparse.Namespace) -> int:
     except json.JSONDecodeError as e:
         return _output({"status": "error", "message": f"Invalid evidence JSON: {e}"}, 1)
     try:
-        evidence = [EvidenceAttachment.model_validate(e) for e in evidence_raw]
+        evidence_parsed = [EvidenceAttachment.model_validate(e) for e in evidence_raw]
     except Exception as e:
         return _output({"status": "error", "message": f"Invalid evidence schema: {e}"}, 1)
 
@@ -248,6 +270,27 @@ def cmd_record(args: argparse.Namespace) -> int:
         return _output({"status": "error", "message": f"Invalid trace JSON: {e}"}, 1)
 
     pass_number = args.pass_number or graph.current_pass
+
+    # Auto-generate evidence IDs: EV-{node_id}-{pass}-{sequence}
+    # Count existing evidence for this node+pass to determine starting sequence
+    existing_count = 0
+    target_node = next((n for n in graph.nodes if n.id == args.node), None)
+    if target_node:
+        for entry in target_node.history:
+            if entry.pass_number == pass_number:
+                existing_count = len(entry.evidence)
+                break
+    evidence = []
+    for i, ev in enumerate(evidence_parsed, start=existing_count + 1):
+        evidence.append(
+            EvidenceAttachment(
+                id=f"EV-{args.node}-{pass_number:03d}-{i}",
+                type=ev.type,
+                description=ev.description,
+                reference=ev.reference,
+            )
+        )
+
     try:
         graph = update_node_history(
             graph, args.node, pass_number, args.status,
@@ -264,6 +307,7 @@ def cmd_record(args: argparse.Namespace) -> int:
         "old_status": old_status,
         "new_status": args.status,
         "evidence_added": len(evidence),
+        "evidence_ids": [ev.id for ev in evidence],
         "trace_recorded": True,
     }
     if args.verdict is not None:
@@ -299,9 +343,10 @@ def cmd_freeze(args: argparse.Namespace) -> int:
         graph = freeze_current_pass(
             graph, args.outcome, args.detail,
             triggered_nodes=triggered,
+            trigger_source=args.trigger_source,
             reason=args.reason,
         )
-    except FrozenEntryError as e:
+    except (FrozenEntryError, ValueError) as e:
         return _output({"status": "error", "message": str(e)}, 1)
 
     save_graph(graph, args.dag)
@@ -437,6 +482,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_frz.add_argument(
         "--triggered-nodes", nargs="*", default=None,
         help="Node IDs to trigger in next pass",
+    )
+    p_frz.add_argument(
+        "--trigger-source", default=None,
+        help="Gate node whose verdict triggered the new pass (required with --triggered-nodes)",
     )
     p_frz.add_argument("--reason", default=None, help="Reason for triggered-by edges")
     p_frz.set_defaults(func=cmd_freeze)

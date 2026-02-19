@@ -146,10 +146,10 @@ class TestScenario2NormalPassWithEnrichment:
         out = json.loads(capsys.readouterr().out)
         assert out["edges_inferred"] == 0
 
-        # analyst-review: 2 edges (depends-on + produces from enrichment)
+        # analyst-review: 3 edges (informed-by + produces from enrichment, constrained-by to gate)
         main(["assemble", dag_path, "--catalog", CATALOG, "--node", "analyst-review"])
         out = json.loads(capsys.readouterr().out)
-        assert out["edges_inferred"] == 2
+        assert out["edges_inferred"] == 3
 
         # advocate-review: 3 edges (depends-on + produces + validates)
         main(["assemble", dag_path, "--catalog", CATALOG, "--node", "advocate-review"])
@@ -164,16 +164,17 @@ class TestScenario2NormalPassWithEnrichment:
         assert code == 0
         out = json.loads(capsys.readouterr().out)
         order = out["order"]
-        assert order.index("input-enrichment") < order.index("analyst-review")
+        # enriched-input is optional (informed_by), so no topological constraint
+        # between enrichment and analyst. Only hard dependency: analyst < advocate.
         assert order.index("analyst-review") < order.index("advocate-review")
 
     def test_total_edges_in_dag(self, tmp_path, capsys):
-        """Total edges in full 4-node enrichment pass should be 5 (0+0+2+3)."""
+        """Total edges in full 4-node enrichment pass should be 6 (0+0+3+3)."""
         nodes = ["constitution-gate", "input-enrichment", "analyst-review", "advocate-review"]
         dag_path, _ = _bootstrap_and_assemble(tmp_path, capsys, "specify-feat", nodes)
 
         data = json.loads(Path(dag_path).read_text())
-        assert len(data["edges"]) == 5
+        assert len(data["edges"]) == 6
 
 
 class TestScenario3MultiPassRevision:
@@ -193,6 +194,7 @@ class TestScenario3MultiPassRevision:
             "freeze", dag_path, "--outcome", "completed",
             "--detail", "needs-revision",
             "--triggered-nodes", "analyst-review", "advocate-review",
+            "--trigger-source", "advocate-review",
             "--reason", "Advocate found gaps requiring research",
         ])
         assert code == 0
@@ -206,10 +208,12 @@ class TestScenario3MultiPassRevision:
         assert data["passes"][0]["frozen"] is True
         assert data["passes"][1]["frozen"] is False
 
-        # Verify triggered-by edges
+        # Verify triggered-by edges: source is the gate, target is the triggered node
         triggered_edges = [e for e in data["edges"] if e["type"] == "triggered-by"]
         assert len(triggered_edges) == 2
         for edge in triggered_edges:
+            assert edge["source"] == "advocate-review", "trigger source should be the gate node"
+            assert edge["target"] in ("analyst-review", "advocate-review")
             assert edge["source_pass"] == 1
             assert edge["target_pass"] == 2
             assert edge["reason"] == "Advocate found gaps requiring research"
@@ -224,6 +228,7 @@ class TestScenario3MultiPassRevision:
             "freeze", dag_path, "--outcome", "completed",
             "--detail", "needs-revision",
             "--triggered-nodes", "analyst-review",
+            "--trigger-source", "advocate-review",
             "--reason", "Gaps found",
         ])
         capsys.readouterr()
@@ -239,8 +244,8 @@ class TestScenario3MultiPassRevision:
         data = json.loads(Path(dag_path).read_text())
         analyst = next(n for n in data["nodes"] if n["id"] == "analyst-review")
         assert len(analyst["history"]) == 2
-        assert analyst["history"][0]["pass_number"] == 1
-        assert analyst["history"][1]["pass_number"] == 2
+        assert analyst["history"][0]["pass"] == 1
+        assert analyst["history"][1]["pass"] == 2
 
     def test_pass1_entries_frozen(self, tmp_path, capsys):
         """Frozen pass 1 history entries reject modifications."""
@@ -251,6 +256,7 @@ class TestScenario3MultiPassRevision:
             "freeze", dag_path, "--outcome", "completed",
             "--detail", "needs-revision",
             "--triggered-nodes", "analyst-review",
+            "--trigger-source", "constitution-gate",
             "--reason", "Gaps",
         ])
         capsys.readouterr()
@@ -271,6 +277,7 @@ class TestScenario3MultiPassRevision:
             "freeze", dag_path, "--outcome", "completed",
             "--detail", "needs-revision",
             "--triggered-nodes", "analyst-review",
+            "--trigger-source", "constitution-gate",
             "--reason", "Gaps",
         ])
         capsys.readouterr()
@@ -373,7 +380,7 @@ class TestScenario5HaltedOutcome:
         main(["freeze", dag_path, "--outcome", "halted", "--detail", "halt"])
         capsys.readouterr()
 
-        code = main(["status", dag_path, "--node", "constitution-gate", "--status", "completed"])
+        code = main(["status", dag_path, "--node", "constitution-gate", "--status", "passed"])
         assert code == 1
 
     def test_halted_blocks_refreeze(self, tmp_path, capsys):
@@ -392,22 +399,24 @@ class TestScenario5HaltedOutcome:
 class TestScenario6V3GateLifecycle:
     """Scenario 6: V3 gate lifecycle with completed status and separate verdict."""
 
-    def test_gate_completed_status(self, tmp_path, capsys):
-        """V3 gates use 'completed' status (not 'passed')."""
+    def test_gate_lifecycle_statuses(self, tmp_path, capsys):
+        """V3 gates support both 'completed' (agent-backed) and 'passed' (deterministic)."""
         dag_path, _ = _bootstrap_and_assemble(
             tmp_path, capsys, "specify-status",
             ["constitution-gate", "input-enrichment", "analyst-review", "advocate-review"],
         )
 
-        # Gate uses "completed"
-        code = main(["status", dag_path, "--node", "constitution-gate", "--status", "completed"])
+        # Deterministic gate uses "passed"
+        code = main(["status", dag_path, "--node", "constitution-gate", "--status", "passed"])
+        assert code == 0
+        out = json.loads(capsys.readouterr().out)
+        assert out["new_status"] == "passed"
+
+        # Agent-backed gate uses "completed"
+        code = main(["status", dag_path, "--node", "advocate-review", "--status", "completed"])
         assert code == 0
         out = json.loads(capsys.readouterr().out)
         assert out["new_status"] == "completed"
-
-        # Gate rejects "passed" (v2-only)
-        code = main(["status", dag_path, "--node", "advocate-review", "--status", "passed"])
-        assert code == 1
 
     def test_task_in_progress_then_completed(self, tmp_path, capsys):
         dag_path, _ = _bootstrap_and_assemble(
@@ -477,8 +486,8 @@ class TestScenario7StatusLifecycle:
     @pytest.mark.parametrize("node_id,status", [
         ("input-enrichment", "passed"),       # task can't have gate status
         ("input-enrichment", "decided"),       # task can't have decision status
-        ("advocate-review", "passed"),         # v3 gate can't have v2 gate status
-        ("advocate-review", "needs-revision"), # v3 gate can't have v2 gate status
+        ("advocate-review", "decided"),        # gate can't have decision status
+        ("advocate-review", "needs-revision"), # gate can't have verdict as status
         ("human-clarification", "completed"),  # decision can't have task status
     ])
     def test_invalid_status_rejections(self, tmp_path, capsys, node_id, status):
@@ -534,14 +543,15 @@ class TestScenario8EdgeInference:
         out = json.loads(capsys.readouterr().out)
         assert out["edges_inferred"] == 1
 
-    def test_no_informed_by_or_constrained_by_ever_inferred(self, tmp_path, capsys):
+    def test_informed_by_and_constrained_by_inferred(self, tmp_path, capsys):
+        """Optional artifacts get informed-by edges; shared gate artifacts get constrained-by."""
         nodes = ["constitution-gate", "input-enrichment", "analyst-review", "advocate-review"]
         dag_path, _ = _bootstrap_and_assemble(tmp_path, capsys, "w", nodes)
 
         data = json.loads(Path(dag_path).read_text())
         edge_types = {e["type"] for e in data["edges"]}
-        assert "informed-by" not in edge_types
-        assert "constrained-by" not in edge_types
+        assert "informed-by" in edge_types  # enriched-input is optional for analyst
+        assert "constrained-by" in edge_types  # analyst constrained by constitution-gate
 
     def test_edge_id_pattern(self, tmp_path, capsys):
         nodes = ["constitution-gate", "analyst-review", "advocate-review"]
@@ -601,6 +611,7 @@ class TestScenario10NodeReopen:
             "freeze", dag_path, "--outcome", "completed",
             "--detail", "needs-revision",
             "--triggered-nodes", "analyst-review",
+            "--trigger-source", "constitution-gate",
             "--reason", "Needs rework",
         ])
         capsys.readouterr()
@@ -615,9 +626,9 @@ class TestScenario10NodeReopen:
         data = json.loads(Path(dag_path).read_text())
         analyst = next(n for n in data["nodes"] if n["id"] == "analyst-review")
         assert len(analyst["history"]) == 2
-        assert analyst["history"][0]["pass_number"] == 1
+        assert analyst["history"][0]["pass"] == 1
         assert analyst["history"][0]["frozen"] is True
-        assert analyst["history"][1]["pass_number"] == 2
+        assert analyst["history"][1]["pass"] == 2
         assert analyst["history"][1]["frozen"] is False
 
     def test_reopen_preserves_original_edges(self, tmp_path, capsys):
@@ -631,7 +642,9 @@ class TestScenario10NodeReopen:
         # Freeze and reopen
         main([
             "freeze", dag_path, "--outcome", "completed",
-            "--detail", "revision", "--triggered-nodes", "analyst-review",
+            "--detail", "revision",
+            "--triggered-nodes", "analyst-review",
+            "--trigger-source", "advocate-review",
             "--reason", "Gaps",
         ])
         capsys.readouterr()
@@ -657,6 +670,7 @@ class TestScenario10NodeReopen:
             "freeze", dag_path, "--outcome", "completed",
             "--detail", "needs-revision",
             "--triggered-nodes", "analyst-review", "advocate-review",
+            "--trigger-source", "advocate-review",
             "--reason", "Gaps found",
         ])
         capsys.readouterr()

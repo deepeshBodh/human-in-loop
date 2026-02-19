@@ -16,46 +16,47 @@ class TestInferEdges:
     def test_analyst_after_enrichment(self, load_fixture):
         """Adding analyst-review when enrichment exists should infer edges."""
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-
-        # Add enrichment node
-        dag.nodes.append(
-            GraphNode(
-                id="input-enrichment",
-                type=NodeType.task,
-                name="Enrichment",
-                description="d",
-                status="pending",
-                contract=NodeContract(
-                    consumes=[ArtifactConsumption(artifact="raw-input")],
-                    produces=["enriched-input"],
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="input-enrichment",
+                    type=NodeType.task,
+                    name="Enrichment",
+                    description="d",
+                    status="pending",
+                    contract=NodeContract(
+                        consumes=[ArtifactConsumption(artifact="raw-input")],
+                        produces=["enriched-input"],
+                    ),
                 ),
-            )
+            ],
         )
 
         edges = infer_edges("analyst-review", dag, catalog)
         edge_types = {e.type for e in edges}
 
-        # analyst consumes enriched-input (optional), so depends-on + produces
-        assert EdgeType.depends_on in edge_types
+        # analyst consumes enriched-input (optional → informed_by) + produces
+        assert EdgeType.informed_by in edge_types
         assert EdgeType.produces in edge_types
 
     def test_advocate_after_analyst(self, load_fixture):
         """Adding advocate-review (gate) after analyst (task) infers validates."""
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-
-        dag.nodes.append(
-            GraphNode(
-                id="analyst-review",
-                type=NodeType.task,
-                name="Analyst",
-                description="d",
-                status="pending",
-                contract=NodeContract(
-                    produces=["spec.md", "analyst-report.md"],
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="analyst-review",
+                    type=NodeType.task,
+                    name="Analyst",
+                    description="d",
+                    status="pending",
+                    contract=NodeContract(
+                        produces=["spec.md", "analyst-report.md"],
+                    ),
                 ),
-            )
+            ],
         )
 
         edges = infer_edges("advocate-review", dag, catalog)
@@ -81,27 +82,26 @@ class TestInferEdges:
     def test_no_duplicate_edges(self, load_fixture):
         """Inferred edges should not duplicate existing edges."""
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-
-        dag.nodes.append(
-            GraphNode(
-                id="analyst-review",
-                type=NodeType.task,
-                name="Analyst",
-                description="d",
-                status="pending",
-                contract=NodeContract(produces=["spec.md", "analyst-report.md"]),
-            )
-        )
-
-        # Pre-add a depends-on edge
-        dag.edges.append(
-            Edge(
-                id="existing",
-                source="analyst-review",
-                target="advocate-review",
-                type=EdgeType.depends_on,
-            )
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="analyst-review",
+                    type=NodeType.task,
+                    name="Analyst",
+                    description="d",
+                    status="pending",
+                    contract=NodeContract(produces=["spec.md", "analyst-report.md"]),
+                ),
+            ],
+            edges=[
+                Edge(
+                    id="existing",
+                    source="analyst-review",
+                    target="advocate-review",
+                    type=EdgeType.depends_on,
+                ),
+            ],
         )
 
         edges = infer_edges("advocate-review", dag, catalog)
@@ -111,20 +111,21 @@ class TestInferEdges:
     def test_edge_id_format(self, load_fixture):
         """Inferred edge IDs follow the naming convention."""
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-
-        dag.nodes.append(
-            GraphNode(
-                id="input-enrichment",
-                type=NodeType.task,
-                name="Enrichment",
-                description="d",
-                status="pending",
-                contract=NodeContract(
-                    consumes=[ArtifactConsumption(artifact="raw-input")],
-                    produces=["enriched-input"],
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="input-enrichment",
+                    type=NodeType.task,
+                    name="Enrichment",
+                    description="d",
+                    status="pending",
+                    contract=NodeContract(
+                        consumes=[ArtifactConsumption(artifact="raw-input")],
+                        produces=["enriched-input"],
+                    ),
                 ),
-            )
+            ],
         )
 
         edges = infer_edges("analyst-review", dag, catalog)
@@ -132,46 +133,49 @@ class TestInferEdges:
             assert edge.id.startswith("inferred-")
 
     def test_scenario_skip_enrichment(self, load_fixture):
-        """Scenario 1: When no enrichment exists, analyst has no upstream."""
+        """Scenario 1: When no enrichment exists, analyst gets constrained_by gate."""
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-
-        # Add constitution gate (produces nothing useful for analyst)
-        dag.nodes.append(
-            GraphNode(
-                id="constitution-gate",
-                type=NodeType.gate,
-                name="Gate",
-                description="d",
-                status="pending",
-                contract=NodeContract(
-                    consumes=[ArtifactConsumption(artifact="constitution.md")],
-                    produces=[],
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="constitution-gate",
+                    type=NodeType.gate,
+                    name="Gate",
+                    description="d",
+                    status="pending",
+                    contract=NodeContract(
+                        consumes=[ArtifactConsumption(artifact="constitution.md")],
+                        produces=[],
+                    ),
                 ),
-            )
+            ],
         )
 
         edges = infer_edges("analyst-review", dag, catalog)
-        # No artifacts match, so no edges
-        assert edges == []
+        # No artifact-flow edges, but constrained_by from shared constitution.md
+        edge_types = {e.type for e in edges}
+        assert EdgeType.constrained_by in edge_types
+        assert len(edges) == 1
 
     def test_scenario_research_before_analyst(self, load_fixture):
         """Scenario 2: Research produces findings consumed by analyst."""
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-
-        dag.nodes.append(
-            GraphNode(
-                id="targeted-research",
-                type=NodeType.task,
-                name="Research",
-                description="d",
-                status="pending",
-                contract=NodeContract(
-                    consumes=[ArtifactConsumption(artifact="advocate-report.md")],
-                    produces=["research-findings"],
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="targeted-research",
+                    type=NodeType.task,
+                    name="Research",
+                    description="d",
+                    status="pending",
+                    contract=NodeContract(
+                        consumes=[ArtifactConsumption(artifact="advocate-report.md")],
+                        produces=["research-findings"],
+                    ),
                 ),
-            )
+            ],
         )
 
         edges = infer_edges("analyst-review", dag, catalog)
@@ -181,56 +185,108 @@ class TestInferEdges:
     def test_skip_reopened_node(self, load_fixture):
         """skip_reopened=True returns empty list immediately."""
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-        dag.nodes.append(
-            GraphNode(
-                id="input-enrichment",
-                type=NodeType.task,
-                name="Enrichment",
-                description="d",
-                status="pending",
-                contract=NodeContract(
-                    consumes=[ArtifactConsumption(artifact="raw-input")],
-                    produces=["enriched-input"],
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="input-enrichment",
+                    type=NodeType.task,
+                    name="Enrichment",
+                    description="d",
+                    status="pending",
+                    contract=NodeContract(
+                        consumes=[ArtifactConsumption(artifact="raw-input")],
+                        produces=["enriched-input"],
+                    ),
                 ),
-            )
+            ],
         )
         edges = infer_edges("analyst-review", dag, catalog, skip_reopened=True)
         assert edges == []
 
+    def test_optional_artifact_infers_informed_by(self, load_fixture):
+        """Optional artifact consumption infers informed_by instead of depends_on."""
+        catalog = _make_catalog(load_fixture)
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="targeted-research",
+                    type=NodeType.task,
+                    name="Research",
+                    description="d",
+                    status="pending",
+                    contract=NodeContract(
+                        consumes=[ArtifactConsumption(artifact="advocate-report.md")],
+                        produces=["research-findings"],
+                    ),
+                ),
+            ],
+        )
+
+        edges = infer_edges("analyst-review", dag, catalog)
+        # research-findings is optional for analyst → informed_by, not depends_on
+        informed = [e for e in edges if e.type == EdgeType.informed_by]
+        depends = [e for e in edges if e.type == EdgeType.depends_on]
+        assert len(informed) == 1
+        assert informed[0].source == "targeted-research"
+        assert len(depends) == 0  # No required artifacts match
+
+    def test_constrained_by_shared_consumed_artifact(self, load_fixture):
+        """Nodes sharing a consumed artifact with a gate get constrained_by edge."""
+        catalog = _make_catalog(load_fixture)
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="constitution-gate",
+                    type=NodeType.gate,
+                    name="Gate",
+                    description="d",
+                    status="passed",
+                    contract=NodeContract(
+                        consumes=[ArtifactConsumption(artifact="constitution.md")],
+                        produces=[],
+                    ),
+                ),
+            ],
+        )
+
+        edges = infer_edges("analyst-review", dag, catalog)
+        constrained = [e for e in edges if e.type == EdgeType.constrained_by]
+        assert len(constrained) == 1
+        assert constrained[0].source == "analyst-review"
+        assert constrained[0].target == "constitution-gate"
+
     def test_gate_does_not_get_produces_from_gate(self, load_fixture):
         """Produces edges only come from task sources."""
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-
-        # constitution-gate is a gate, not a task
-        dag.nodes.append(
-            GraphNode(
-                id="constitution-gate",
-                type=NodeType.gate,
-                name="Gate",
-                description="d",
-                status="pending",
-                contract=NodeContract(
-                    consumes=[ArtifactConsumption(artifact="constitution.md")],
-                    produces=["gate-output"],
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="constitution-gate",
+                    type=NodeType.gate,
+                    name="Gate",
+                    description="d",
+                    status="pending",
+                    contract=NodeContract(
+                        consumes=[ArtifactConsumption(artifact="constitution.md")],
+                        produces=["gate-output"],
+                    ),
                 ),
-            )
-        )
-
-        # A task that consumes gate-output
-        dag.nodes.append(
-            GraphNode(
-                id="test-task",
-                type=NodeType.task,
-                name="Test",
-                description="d",
-                status="pending",
-                contract=NodeContract(
-                    consumes=[ArtifactConsumption(artifact="gate-output")],
-                    produces=[],
+                GraphNode(
+                    id="test-task",
+                    type=NodeType.task,
+                    name="Test",
+                    description="d",
+                    status="pending",
+                    contract=NodeContract(
+                        consumes=[ArtifactConsumption(artifact="gate-output")],
+                        produces=[],
+                    ),
                 ),
-            )
+            ],
         )
 
         # Infer for test-task — gate output should create depends-on but not produces

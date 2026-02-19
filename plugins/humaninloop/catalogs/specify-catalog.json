@@ -103,7 +103,7 @@
         ],
         "produces": []
       },
-      "valid_statuses": ["pending", "in-progress", "completed"],
+      "valid_statuses": ["pending", "passed", "failed"],
       "verdict_field": "verdict",
       "verdict_values": ["pass", "fail"],
       "capabilities": ["constitution-verification"],

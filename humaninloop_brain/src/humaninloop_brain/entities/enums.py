@@ -41,11 +41,17 @@ class TaskStatus(str, Enum):
 
 
 class GateLifecycleStatus(str, Enum):
-    """Lifecycle statuses for gate nodes."""
+    """Lifecycle statuses for gate nodes.
+
+    Agent-backed gates use: pending → in-progress → completed (verdict separate).
+    Deterministic gates may use: pending → passed / failed (status IS verdict).
+    """
 
     pending = "pending"
     in_progress = "in-progress"
     completed = "completed"
+    passed = "passed"
+    failed = "failed"
 
 
 class DecisionStatus(str, Enum):

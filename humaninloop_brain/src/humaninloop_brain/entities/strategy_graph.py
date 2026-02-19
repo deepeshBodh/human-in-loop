@@ -14,6 +14,8 @@ class StrategyGraph(BaseModel):
     history entries tracking per-pass status evolution.
     """
 
+    model_config = {"frozen": True}
+
     id: str
     workflow_id: str
     schema_version: str = "3.0.0"

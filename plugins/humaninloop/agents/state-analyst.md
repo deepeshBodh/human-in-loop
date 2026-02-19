@@ -271,12 +271,12 @@ Read a domain agent's report from disk, extract structured summary, record analy
 
 ## Evidence Construction
 
-When calling `hil-dag record`, construct the evidence JSON array from the report content:
+When calling `hil-dag record`, construct the evidence JSON array from the report content. The `id` field is a placeholder — the CLI auto-generates canonical IDs as `EV-{node_id}-{pass}-{sequence}`.
 
 ```json
 [
   {
-    "id": "EV-{node_id}-{pass_number}",
+    "id": "placeholder",
     "type": "{report-type}",
     "description": "{one-line summary of what the evidence shows}",
     "reference": "{physical path to the report file}"
@@ -286,7 +286,7 @@ When calling `hil-dag record`, construct the evidence JSON array from the report
 
 | Field | Source |
 |-------|--------|
-| `id` | Combine node ID and pass number for uniqueness |
+| `id` | Placeholder — the `hil-dag record` CLI auto-generates as `EV-{node_id}-{pass}-{sequence}` |
 | `type` | One of: `analyst-report`, `advocate-report`, `research-findings`, `enriched-input`, `clarification-answers` |
 | `description` | Extract from report summary section — keep to one sentence |
 | `reference` | Physical path to the artifact on disk (see Artifact Path Convention) |

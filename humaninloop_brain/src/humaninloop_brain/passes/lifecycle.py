@@ -79,28 +79,35 @@ def add_or_reopen_node(
             break
 
     if existing_idx is not None:
-        # Reopen: add new history entry
+        # Reopen: add new history entry with initial status from catalog
         node = graph.nodes[existing_idx]
+        cat_node = catalog.get_node(node_id)
+        initial_status = (
+            cat_node.valid_statuses[0] if cat_node and cat_node.valid_statuses
+            else "pending"
+        )
         new_entry = NodeHistoryEntry(
             pass_number=pass_number,
-            status=node.history[0].status if node.history else "pending",
+            status=initial_status,
         )
+        new_history = list(node.history) + [new_entry]
         new_node = GraphNode(
             id=node.id,
             type=node.type,
             name=node.name,
             description=node.description,
-            status=new_entry.status,
+            status=initial_status,
             contract=node.contract,
             agent=node.agent,
             evidence=node.evidence,
-            history=list(node.history) + [new_entry],
+            history=new_history,
             verdict=None,
             last_active_pass=pass_number,
             schema_version=_V3,
         )
-        graph.nodes[existing_idx] = new_node
-        return graph, []
+        new_nodes = list(graph.nodes)
+        new_nodes[existing_idx] = new_node
+        return graph.model_copy(update={"nodes": new_nodes}), []
 
     # New node
     cat_node = catalog.get_node(node_id)
@@ -126,13 +133,14 @@ def add_or_reopen_node(
         last_active_pass=pass_number,
         schema_version=_V3,
     )
-    graph.nodes.append(graph_node)
+    new_nodes = list(graph.nodes) + [graph_node]
+    graph = graph.model_copy(update={"nodes": new_nodes})
 
     # Infer edges for new node
     inferred = infer_edges(node_id, graph, catalog)
-    graph.edges.extend(inferred)
+    new_edges = list(graph.edges) + inferred
 
-    return graph, inferred
+    return graph.model_copy(update={"edges": new_edges}), inferred
 
 
 def update_node_history(
@@ -213,8 +221,9 @@ def update_node_history(
             last_active_pass=node.last_active_pass,
             schema_version=_V3,
         )
-        graph.nodes[i] = _recompute_derived(updated)
-        return graph
+        new_nodes = list(graph.nodes)
+        new_nodes[i] = _recompute_derived(updated)
+        return graph.model_copy(update={"nodes": new_nodes})
 
     raise ValueError(f"Node '{node_id}' not found in graph")
 
@@ -224,16 +233,35 @@ def freeze_current_pass(
     outcome: str,
     detail: str | None = None,
     triggered_nodes: list[str] | None = None,
+    trigger_source: str | None = None,
     reason: str | None = None,
 ) -> StrategyGraph:
     """Freeze all current-pass history entries and update pass metadata.
 
     Optionally creates triggered_by edges and a next pass entry.
+
+    Args:
+        trigger_source: The gate node whose verdict triggered the new pass.
+            Required when triggered_nodes is provided. Each triggered_by edge
+            runs from this source to each triggered node.
     """
+    if triggered_nodes and not trigger_source:
+        raise ValueError(
+            "trigger_source is required when triggered_nodes is provided"
+        )
+
+    # INV-004: Refuse to create pass beyond maximum (structural invariant)
+    _MAX_PASSES = 5
     current = graph.current_pass
+    if triggered_nodes and current >= _MAX_PASSES:
+        raise ValueError(
+            f"INV-004: Cannot create pass {current + 1}. "
+            f"Maximum {_MAX_PASSES} passes reached — mandatory human checkpoint required."
+        )
 
     # Freeze all history entries for the current pass
-    for i, node in enumerate(graph.nodes):
+    new_nodes = list(graph.nodes)
+    for i, node in enumerate(new_nodes):
         new_history = list(node.history)
         changed = False
         for j, entry in enumerate(new_history):
@@ -248,7 +276,7 @@ def freeze_current_pass(
                 )
                 changed = True
         if changed:
-            graph.nodes[i] = GraphNode(
+            new_nodes[i] = GraphNode(
                 id=node.id,
                 type=node.type,
                 name=node.name,
@@ -277,17 +305,23 @@ def freeze_current_pass(
                 frozen=True,
             )
             break
-    graph.passes = new_passes
 
-    # Create triggered_by edges
+    # Create triggered_by edges (source=gate that triggered, target=node to re-execute)
+    new_edges = list(graph.edges)
+    updates: dict = {
+        "nodes": new_nodes,
+        "passes": new_passes,
+        "edges": new_edges,
+    }
+
     if triggered_nodes:
         next_pass = current + 1
         for target_node_id in triggered_nodes:
-            edge_id = f"triggered-by-{target_node_id}-pass{current}-to-pass{next_pass}"
-            graph.edges.append(
+            edge_id = f"triggered-by-{trigger_source}-{target_node_id}-pass{current}-to-pass{next_pass}"
+            new_edges.append(
                 Edge(
                     id=edge_id,
-                    source=target_node_id,
+                    source=trigger_source,
                     target=target_node_id,
                     type=EdgeType.triggered_by,
                     source_pass=current,
@@ -297,22 +331,26 @@ def freeze_current_pass(
             )
 
         # Create next pass entry
-        graph.passes.append(PassEntry(pass_number=next_pass, created_at=now))
-        graph.current_pass = next_pass
+        new_passes.append(PassEntry(pass_number=next_pass, created_at=now))
+        updates["current_pass"] = next_pass
 
     # If no next pass created, mark graph as done
     if not triggered_nodes:
-        graph.status = "completed"
-        graph.completed_at = now
+        updates["status"] = "completed"
+        updates["completed_at"] = now
 
-    return graph
+    return graph.model_copy(update=updates)
 
 
 def save_graph(graph: StrategyGraph, path: str | Path) -> None:
-    """Save StrategyGraph to a JSON file."""
+    """Save StrategyGraph to a JSON file.
+
+    Uses ``by_alias=True`` so ``pass_number`` serializes as ``"pass"`` in
+    JSON, matching the V3 design doc schema.
+    """
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(graph.model_dump_json(indent=2))
+    path.write_text(graph.model_dump_json(indent=2, by_alias=True))
 
 
 def load_graph_file(path: str | Path) -> StrategyGraph:

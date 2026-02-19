@@ -22,26 +22,28 @@ class TestINV001:
     def test_valid_with_gate_before_milestone(self, load_fixture):
         """Task -> Gate -> Milestone is valid."""
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-        dag.nodes = [
-            GraphNode(
-                id="task-1", type=NodeType.task, name="t", description="d",
-                status="pending", contract=NodeContract(produces=["out"]),
-            ),
-            GraphNode(
-                id="gate-1", type=NodeType.gate, name="g", description="d",
-                status="pending",
-                contract=NodeContract(consumes=[ArtifactConsumption(artifact="out")]),
-            ),
-            GraphNode(
-                id="mile-1", type=NodeType.milestone, name="m", description="d",
-                status="pending",
-            ),
-        ]
-        dag.edges = [
-            Edge(id="e1", source="task-1", target="gate-1", type=EdgeType.depends_on),
-            Edge(id="e2", source="gate-1", target="mile-1", type=EdgeType.depends_on),
-        ]
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="task-1", type=NodeType.task, name="t", description="d",
+                    status="pending", contract=NodeContract(produces=["out"]),
+                ),
+                GraphNode(
+                    id="gate-1", type=NodeType.gate, name="g", description="d",
+                    status="pending",
+                    contract=NodeContract(consumes=[ArtifactConsumption(artifact="out")]),
+                ),
+                GraphNode(
+                    id="mile-1", type=NodeType.milestone, name="m", description="d",
+                    status="pending",
+                ),
+            ],
+            edges=[
+                Edge(id="e1", source="task-1", target="gate-1", type=EdgeType.depends_on),
+                Edge(id="e2", source="gate-1", target="mile-1", type=EdgeType.depends_on),
+            ],
+        )
         result = check_invariants(dag, catalog)
         inv001 = [v for v in result.violations if v.code == "INV-001"]
         assert len(inv001) == 0
@@ -49,20 +51,22 @@ class TestINV001:
     def test_invalid_task_to_milestone_no_gate(self, load_fixture):
         """Task -> Milestone without gate violates INV-001."""
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-        dag.nodes = [
-            GraphNode(
-                id="task-1", type=NodeType.task, name="t", description="d",
-                status="pending", contract=NodeContract(produces=["out"]),
-            ),
-            GraphNode(
-                id="mile-1", type=NodeType.milestone, name="m", description="d",
-                status="pending",
-            ),
-        ]
-        dag.edges = [
-            Edge(id="e1", source="task-1", target="mile-1", type=EdgeType.depends_on),
-        ]
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="task-1", type=NodeType.task, name="t", description="d",
+                    status="pending", contract=NodeContract(produces=["out"]),
+                ),
+                GraphNode(
+                    id="mile-1", type=NodeType.milestone, name="m", description="d",
+                    status="pending",
+                ),
+            ],
+            edges=[
+                Edge(id="e1", source="task-1", target="mile-1", type=EdgeType.depends_on),
+            ],
+        )
         result = check_invariants(dag, catalog)
         inv001 = [v for v in result.violations if v.code == "INV-001"]
         assert len(inv001) == 1
@@ -89,19 +93,49 @@ class TestINV002:
     def test_invalid_no_constitution_gate(self, load_fixture):
         """Task consuming constitution.md without constitution gate."""
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-        dag.nodes = [
-            GraphNode(
-                id="analyst", type=NodeType.task, name="a", description="d",
-                status="pending",
-                contract=NodeContract(
-                    consumes=[ArtifactConsumption(artifact="constitution.md")]
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="analyst", type=NodeType.task, name="a", description="d",
+                    status="pending",
+                    contract=NodeContract(
+                        consumes=[ArtifactConsumption(artifact="constitution.md")]
+                    ),
                 ),
-            ),
-        ]
+            ],
+        )
         result = check_invariants(dag, catalog)
         inv002 = [v for v in result.violations if v.code == "INV-002"]
         assert len(inv002) == 1
+
+    def test_invalid_gate_exists_but_pending(self, load_fixture):
+        """Gate exists but has not passed — INV-002 should fire."""
+        catalog = _make_catalog(load_fixture)
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="constitution-gate", type=NodeType.gate,
+                    name="Constitution Check", description="d",
+                    status="pending",
+                    contract=NodeContract(
+                        consumes=[ArtifactConsumption(artifact="constitution.md")]
+                    ),
+                ),
+                GraphNode(
+                    id="analyst", type=NodeType.task, name="a", description="d",
+                    status="pending",
+                    contract=NodeContract(
+                        consumes=[ArtifactConsumption(artifact="constitution.md")]
+                    ),
+                ),
+            ],
+        )
+        result = check_invariants(dag, catalog)
+        inv002 = [v for v in result.violations if v.code == "INV-002"]
+        assert len(inv002) == 1
+        assert "has not passed" in inv002[0].message
 
 
 class TestINV003:
@@ -117,23 +151,25 @@ class TestINV003:
     def test_invalid_validates_from_task(self, load_fixture):
         """validates edge from task node violates INV-003."""
         catalog = _make_catalog(load_fixture)
-        dag = StrategyGraph(id="sg", workflow_id="w")
-        dag.nodes = [
-            GraphNode(
-                id="task-1", type=NodeType.task, name="t", description="d",
-                status="pending",
-            ),
-            GraphNode(
-                id="task-2", type=NodeType.task, name="t2", description="d",
-                status="pending",
-            ),
-        ]
-        dag.edges = [
-            Edge(
-                id="bad-val", source="task-1", target="task-2",
-                type=EdgeType.validates,
-            ),
-        ]
+        dag = StrategyGraph(
+            id="sg", workflow_id="w",
+            nodes=[
+                GraphNode(
+                    id="task-1", type=NodeType.task, name="t", description="d",
+                    status="pending",
+                ),
+                GraphNode(
+                    id="task-2", type=NodeType.task, name="t2", description="d",
+                    status="pending",
+                ),
+            ],
+            edges=[
+                Edge(
+                    id="bad-val", source="task-1", target="task-2",
+                    type=EdgeType.validates,
+                ),
+            ],
+        )
         result = check_invariants(dag, catalog)
         inv003 = [v for v in result.violations if v.code == "INV-003"]
         assert len(inv003) == 1

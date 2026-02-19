@@ -175,7 +175,7 @@ class TestGraphNode:
                 type=NodeType.gate,
                 name="n",
                 description="d",
-                status="passed",
+                status="decided",
             )
 
     def test_invalid_decision_status(self):
