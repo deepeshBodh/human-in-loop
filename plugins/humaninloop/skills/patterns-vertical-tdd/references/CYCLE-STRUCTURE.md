@@ -81,7 +81,10 @@ src/[feature]/[component].py
 - [ ] **T1.3**: Implement TaskService.create() in src/services/task_service.py
 - [ ] **T1.4**: Create POST /api/tasks endpoint in src/api/tasks.py
 - [ ] **T1.5**: Refactor and verify tests pass
-- [ ] **T1.6**: Demo task creation, verify acceptance criteria
+- [ ] **T1.6**: **TEST:** - Task creation works via API
+  - **Action**: `curl -X POST localhost:3000/api/tasks -d '{"title":"Test task"}'`
+  - **Assert**: Response status: 201
+  - **Capture**: console
 
 **Checkpoint**: Can create a task via API and retrieve it
 ```
@@ -101,7 +104,11 @@ src/[feature]/[component].py
 - [ ] **T2.4**: Create POST /api/auth/login endpoint in src/api/auth.py
 - [ ] **T2.5**: Add JWT middleware in src/middleware/auth.py
 - [ ] **T2.6**: Refactor and verify tests pass
-- [ ] **T2.7**: Demo login flow, verify token generation
+- [ ] **T2.7**: **TEST:** - Login returns valid auth token
+  - **Action**: `curl -X POST localhost:3000/api/auth/login -d '{"email":"test@example.com","password":"test"}'`
+  - **Assert**: Response status: 200
+  - **Assert**: Console contains "token"
+  - **Capture**: console
 
 **Checkpoint**: Can log in and receive valid auth token
 ```
@@ -122,7 +129,12 @@ src/[feature]/[component].py
 - [ ] **T4.3**: Implement TaskService.complete() in src/services/task_service.py
 - [ ] **T4.4**: Create PATCH /api/tasks/{id}/complete endpoint in src/api/tasks.py
 - [ ] **T4.5**: Refactor and verify tests pass
-- [ ] **T4.6**: Demo task completion, verify acceptance criteria
+- [ ] **T4.6**: **TEST:** - Task completion updates timestamp
+  - **Setup**: Create task via POST /api/tasks
+  - **Action**: `curl -X PATCH localhost:3000/api/tasks/1/complete`
+  - **Assert**: Response status: 200
+  - **Assert**: Console contains "completed_at"
+  - **Capture**: console
 
 **Checkpoint**: Can mark a task as complete and see completion timestamp
 ```
@@ -140,20 +152,32 @@ src/[feature]/[component].py
 - [ ] **T5.2**: Implement TaskService.list() with filter params in src/services/task_service.py
 - [ ] **T5.3**: Update GET /api/tasks with query params in src/api/tasks.py
 - [ ] **T5.4**: Refactor and verify tests pass
-- [ ] **T5.5**: Demo filtering by status and priority, verify acceptance criteria
+- [ ] **T5.5**: **TEST:** - Filtering returns correct results
+  - **Setup**: Create tasks with different statuses
+  - **Action**: `curl "localhost:3000/api/tasks?status=pending"`
+  - **Assert**: Response status: 200
+  - **Assert**: Console contains only pending tasks
+  - **Capture**: console
 
 **Checkpoint**: Can filter task list by status and priority via API
 ```
 
 ## Brownfield Markers
 
-When working with existing code, apply markers:
+When working with existing code, apply markers to distinguish new files from modifications:
 
 | Marker | When to Use | Example |
 |--------|-------------|---------|
+| `[NEW]` | Creating new file | Fresh implementation in a brownfield project |
 | `[EXTEND]` | Adding to existing file | Adding a field to existing model |
-| `[MODIFY]` | Changing existing code | Updating existing service method |
-| (none) | New file | Creating new endpoint file |
+| `[MODIFY]` | Changing existing behavior | Updating existing service method |
+| `[GAP:XXX]` | Addressing roadmap gap | Task directly addresses a gap from evolution-roadmap.md |
+
+**Translation from plan artifacts:**
+- `[NEW]` in data-model.md or contracts/ → `[NEW]` in tasks
+- `[EXTENDS EXISTING]` in data-model.md → `[EXTEND]` in tasks
+- `[REUSES EXISTING]` in data-model.md → no marker needed (existing code used as-is)
+- Gaps from `evolution-roadmap.md` → `[GAP:XXX]` for traceability
 
 ### Example with Brownfield
 
@@ -169,9 +193,20 @@ When working with existing code, apply markers:
 - [ ] **T6.3**: [MODIFY] Update TaskService.create() to accept priority in src/services/task_service.py
 - [ ] **T6.4**: [MODIFY] Update POST /api/tasks to accept priority in src/api/tasks.py
 - [ ] **T6.5**: Refactor and verify tests pass
-- [ ] **T6.6**: Demo priority assignment, verify acceptance criteria
+- [ ] **T6.6**: **TEST:** - Priority assignment works
+  - **Action**: `curl -X POST localhost:3000/api/tasks -d '{"title":"Urgent","priority":"high"}'`
+  - **Assert**: Response status: 201
+  - **Assert**: Console contains "priority":"high"
+  - **Capture**: console
 
 **Checkpoint**: Can create tasks with priority and update existing task priority
+```
+
+### Example with Roadmap Gap
+
+```markdown
+- [ ] **T2.1**: [GAP:003] [NEW] Implement structured logging in src/utils/logger.ts
+- [ ] **T3.4**: [GAP:007] [MODIFY] Update error handler to include correlation IDs in src/middleware/error.ts
 ```
 
 ## Checkpoint Guidelines
