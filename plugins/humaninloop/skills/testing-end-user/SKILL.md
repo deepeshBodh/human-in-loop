@@ -22,6 +22,7 @@ Verification testing exists to catch failures before they reach production. Ever
 - Real process behavior testing (not mocks)
 - GUI/UI verification requiring human judgment
 - End-to-end validation before deployment
+- Quality gate execution (lint, build, test suite) as part of cycle verification
 
 ## When NOT to Use
 
@@ -149,6 +150,54 @@ Before presenting checkpoint, verify completion of ALL items:
 - [ ] Report generated with proper detail level
 
 No presenting partial results. No skipping evidence capture. No proceeding without human approval.
+
+## Quality Gate Execution
+
+When dispatched as part of an implementation cycle verification, execute quality gates alongside TEST: task verification. Quality gates are command-based checks that always auto-resolve.
+
+### Quality Gate Sequence
+
+1. **Identify quality gate commands** from `tasks.md` `## Quality Gates` section and/or `plan.md` build configuration
+2. **Execute each command** sequentially (lint, build, tests)
+3. **Record results** with exit code, stdout, and stderr
+4. **Classify**: exit 0 = pass, non-zero = fail
+5. **Include in verification report** under `quality_gates` frontmatter section
+
+### Quality Gate Report Format
+
+Add a `quality_gates` section to the verification-report YAML frontmatter:
+
+```yaml
+verification:
+  test_tasks:
+    total: 2
+    passed: 2
+  quality_gates:
+    lint:
+      status: pass
+      command: "pnpm lint"
+    build:
+      status: pass
+      command: "pnpm build"
+    tests:
+      status: pass
+      command: "pnpm test"
+      passed: 47
+      failed: 0
+      skipped: 2
+```
+
+Each quality gate entry includes the command run and its status. For test suites, include pass/fail/skip counts when available.
+
+### Quality Gate Auto-Resolution
+
+Quality gates always auto-resolve. No human checkpoint is needed for "did lint pass?" decisions:
+
+- **Exit 0** = pass. Record and continue.
+- **Non-zero exit** = fail. Record the failure output. Include in verification report.
+- **No human checkpoint** for quality gate results — they are deterministic.
+
+Quality gate failures are surfaced through the verification report to the cycle-checkpoint gate, which evaluates them deterministically.
 
 **No exceptions:**
 - Not for "simple tests that obviously pass"

@@ -23,6 +23,7 @@
     "./agents/devils-advocate.md",
     "./agents/principal-architect.md",
     "./agents/requirements-analyst.md",
+    "./agents/staff-engineer.md",
     "./agents/task-architect.md",
     "./agents/technical-analyst.md",
     "./agents/testing-agent.md",
