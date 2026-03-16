@@ -20,7 +20,7 @@ This is a discipline-enforcing skill. The test-first structure exists because te
 - Structuring tasks.md with proper TDD ordering
 - When implementation approach needs vertical slice organization
 - Breaking down large features into testable increments
-- When Task Architect generates implementation artifacts
+- When the task architect agent generates implementation artifacts
 
 ## When NOT to Use
 
@@ -65,6 +65,7 @@ Cycle N: [Feature]
 
 ```
 Foundation Cycles (sequential)
+├── C0: Platform infrastructure (compute, CI/CD, monitoring)
 ├── C1: Core data model + basic CRUD
 ├── C2: Authentication framework
 └── C3: API infrastructure
@@ -149,9 +150,9 @@ See [CYCLE-STRUCTURE.md](references/CYCLE-STRUCTURE.md) for detailed cycle forma
 **Characteristics**:
 - Must complete before any feature cycle
 - Sequential (C1 before C2 before C3)
-- Typically includes: data models, auth, API framework, error handling
+- Typically includes: platform infrastructure (IP-XXX items from constraints-and-decisions.md), data models, auth, API framework, error handling
 
-**Identification**: Ask "Could ANY user story start without this?" If no, it's foundation.
+**Identification**: Ask "Could ANY user story work **in production** without this?" If no, it's foundation.
 
 ### Feature Cycles
 
@@ -261,7 +262,7 @@ US-4: As a user, I can see completed count
 
 ## Red Flags - STOP and Restart Properly
 
-If you notice yourself thinking any of these, STOP immediately:
+If any of these thoughts arise, STOP immediately:
 
 - "Let me just get the code working first"
 - "This feature is straightforward, tests can come after"
@@ -270,7 +271,7 @@ If you notice yourself thinking any of these, STOP immediately:
 - "Foundation setup doesn't need the full TDD ceremony"
 - "It's faster to write all models, then all services, then all tests"
 
-**All of these mean:** You are rationalizing. Return to test-first discipline.
+**All of these mean:** Rationalization is occurring. Return to test-first discipline.
 
 **No exceptions:**
 - Not for "simple" features

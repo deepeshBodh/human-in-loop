@@ -17,6 +17,14 @@
 
 See `constraints-and-decisions.md` for full decision records.
 
+## Infrastructure Requirements
+
+| ID | Type | Source | Priority |
+|----|------|--------|----------|
+| [IP-001] | [type] | [C-XXX/NFR-XXX] | [MUST/SHOULD] |
+
+See `constraints-and-decisions.md` Part 3 for full infrastructure requirement definitions.
+
 ## Entities
 
 | Entity | Status | Attributes | Relationships | Sensitivity |

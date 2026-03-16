@@ -192,6 +192,36 @@ Each TR addresses a distinct technical concern that the single business FR impli
 [How this decision aligns with project principles, if applicable.]
 
 ---
+
+## Part 3: Infrastructure Requirements
+
+### Infrastructure Summary
+
+| ID | Type | Source Constraint | Priority |
+|----|------|-------------------|----------|
+| IP-001 | compute | C-001 | MUST |
+| IP-002 | ci-cd | C-004, NFR-002 | MUST |
+| IP-003 | monitoring | NFR-001 | SHOULD |
+
+---
+
+### IP-001: [Descriptive Title]
+
+**Type:** compute
+**Source:** C-001, NFR-003
+**Priority:** MUST
+
+**Description:**
+[What must be provisioned or configured — stated as a requirement, not implementation.]
+
+**Acceptance Criteria:**
+- [ ] [Verifiable condition 1]
+- [ ] [Verifiable condition 2]
+
+**Dependencies:**
+- IP-002 (needs CI/CD before deployment)
+
+---
 ```
 
 ### Field Definitions — Constraints
@@ -220,6 +250,31 @@ Each TR addresses a distinct technical concern that the single business FR impli
 | Rationale | Yes | Paragraph | WHY, not just WHAT |
 | Consequences | Yes | Bullet list | Trade-offs accepted, future considerations |
 | Constitution Alignment | No | Paragraph | How choice follows project principles |
+
+### Field Definitions — Infrastructure Requirements
+
+| Field | Required | Format | Rules |
+|-------|----------|--------|-------|
+| ID | Yes | IP-XXX | Sequential, three-digit padded |
+| Title | Yes | Free text | Descriptive, concise |
+| Type | Yes | compute / networking / storage / ci-cd / monitoring / security / environment-config | Exactly one |
+| Source | Yes | C-XXX / NFR-XXX refs | Constraints/NFRs that necessitate this |
+| Priority | Yes | MUST / SHOULD / MAY | RFC 2119 |
+| Description | Yes | Paragraph | WHAT to provision, not HOW |
+| Acceptance Criteria | Yes | Checkbox list | Independently verifiable |
+| Dependencies | No | IP-XXX refs | Other infra items this depends on |
+
+### Infrastructure Types
+
+| Type | Scope |
+|------|-------|
+| compute | Containers, serverless, VMs, orchestration |
+| networking | DNS, load balancers, VPN, firewall rules |
+| storage | Databases, object storage, caches (provisioning, not schema) |
+| ci-cd | Build pipelines, deployment automation, environments |
+| monitoring | APM, logging, alerting, health checks |
+| security | IAM, certificates, secrets management |
+| environment-config | Environment variables, feature flags, config management |
 
 ### Constraint Types
 
@@ -738,6 +793,6 @@ All artifact types follow the same numbering conventions:
 
 1. **Three-digit padding:** TR-001, not TR-1
 2. **Sequential, no gaps:** TR-001, TR-002, TR-003 (never TR-001, TR-003)
-3. **Prefix identifies type:** TR- / C- / D- / NFR-
+3. **Prefix identifies type:** TR- / C- / D- / NFR- / IP-
 4. **Cross-references use full ID:** "See TR-001" not "See requirement 1"
 5. **Grouping by concern:** Related items should be sequential where possible

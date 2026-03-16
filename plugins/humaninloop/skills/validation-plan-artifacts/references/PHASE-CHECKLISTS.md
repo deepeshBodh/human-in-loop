@@ -47,6 +47,8 @@ Reviews `requirements.md`, `constraints-and-decisions.md`, and `nfrs.md` togethe
 | Rationale quality | Does each decision explain WHY, not just WHAT? | Critical |
 | Constraint-decision cross-refs | Does each decision reference the constraints that shaped it? | Important |
 | Constitution alignment | Do choices follow project principles? | Important |
+| Infrastructure coverage | Does every constraint implying platform provisioning have a corresponding IP-XXX item in Part 3? | Critical |
+| IP-NFR coverage | Do NFRs requiring platform infrastructure (availability, scalability) have corresponding IP-XXX items? | Critical |
 | Brownfield consideration | Was existing stack evaluated (if brownfield)? | Important |
 | Trade-off documentation | Are downsides of chosen options acknowledged? | Important |
 
@@ -69,6 +71,8 @@ Reviews `requirements.md`, `constraints-and-decisions.md`, and `nfrs.md` togethe
 - What unknowns were NOT addressed by decisions?
 - Are any decisions made without considering alternatives?
 - Is the rationale convincing, or just restating the choice?
+- Are there constraints implying deployment/CI/CD/environment work without corresponding IP-XXX items?
+- Do NFR availability/scalability targets require platform infrastructure not captured in Part 3?
 - Can each NFR target actually be measured with available tooling?
 - Do any NFR targets conflict with each other (e.g., latency vs consistency)?
 
@@ -146,6 +150,7 @@ Reviews `data-model.md`, `contracts/api.yaml`, and `quickstart.md` together.
 | Integration-contract alignment | Do contract integration boundaries match the systems implied by requirements? | Critical |
 | Requirement traceability | Can we trace from FR to TR to entity to endpoint? | Important |
 | Constitution compliance | Do all artifacts follow project principles? | Important |
+| Infrastructure completeness | Are all IP-XXX items addressable by design artifacts or flagged for separate provisioning cycles? | Important |
 | Constraint-design alignment | Do all design artifacts respect stated constraints? | Important |
 | NFR-design feasibility | Can the design as specified meet the NFR targets? | Important |
 

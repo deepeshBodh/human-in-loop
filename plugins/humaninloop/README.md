@@ -140,7 +140,7 @@ specs/<###-feature-name>/
 - Integration boundaries documented as OpenAPI extensions with failure modes
 - Principal Architect reviews cross-artifact feasibility (one-time gate after analysis)
 - 5 agent invocations: TA → PA → DA → TA → DA
-- Four artifact ID types: TR- (requirements), C- (constraints), D- (decisions), NFR- (non-functional)
+- Five artifact ID types: TR- (requirements), C- (constraints), D- (decisions), NFR- (non-functional), IP- (infrastructure)
 
 ### `/humaninloop:tasks`
 

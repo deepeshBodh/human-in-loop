@@ -300,6 +300,14 @@ Translate the business specification into technical requirements, constraints, d
 - Read existing analysis from `.humaninloop/memory/codebase-analysis.md`
 - Do NOT invoke `analysis-codebase` skill—use the cached results from setup
 
+**Infrastructure Planning**:
+In `constraints-and-decisions.md`, after documenting constraints (Part 1) and decisions (Part 2),
+produce Part 3: Infrastructure Requirements. For each constraint or NFR that implies platform
+provisioning, deployment, CI/CD, monitoring, or environment configuration, create an IP-XXX item
+with type, source references, description, and acceptance criteria.
+
+Use the `authoring-technical-requirements` skill for the IP-XXX template structure.
+
 **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/techanalyst-report-template.md`
 ```
 
@@ -420,6 +428,7 @@ Review the analysis artifacts for completeness and gaps.
 - Sourced constraints: Is every constraint traceable to a real limitation (not a preference)?
 - Decision quality: Were 2+ alternatives considered for each decision? Does each have rationale?
 - Constraint-decision cross-refs: Does each decision reference the constraints that shaped it?
+- Constraint actionability: Does every constraint implying infrastructure provisioning have a corresponding IP-XXX in Part 3 of constraints-and-decisions.md? Do NFRs requiring platform infrastructure (availability, scalability) have corresponding IP-XXX items?
 - NFR measurability: Does every NFR have a specific, measurable target and measurement method?
 - NFR sources: Do NFR sources trace to valid TRs or business requirements?
 
@@ -567,6 +576,7 @@ Update context for advocate:
 - Requirement IDs trace correctly
 - Sensitivity-contract alignment: API responses respect data classification (no Restricted data in responses)
 - Integration-contract alignment: Contract integration boundaries match systems implied by requirements
+- Infrastructure-design alignment: Are design artifacts deployable given the infrastructure requirements in Part 3? Do design choices require infrastructure not captured as IP-XXX items?
 - NFR-design feasibility: Can the design as specified meet the NFR targets?
 
 **Time Budget**:

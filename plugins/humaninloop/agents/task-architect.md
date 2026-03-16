@@ -43,7 +43,7 @@ Based on the phase, you produce the appropriate artifact and write a report.
 **Read**:
 - `spec.md` - User stories with priorities and acceptance criteria
 - `plan.md` - Summary of planning decisions
-- `constraints-and-decisions.md` - Technical decisions and constraints
+- `constraints-and-decisions.md` - Technical decisions and constraints (pay special attention to Part 3: Infrastructure Requirements for IP-XXX items requiring foundation cycles)
 - `data-model.md` - Entities, relationships, validation rules
 - `contracts/` - API endpoints and schemas
 - Constitution - Project principles
@@ -60,6 +60,8 @@ Based on the phase, you produce the appropriate artifact and write a report.
 
 **Success Criteria**:
 - Every P1/P2 user story mapped to at least one cycle
+- Every IP-XXX item from constraints-and-decisions.md Part 3 mapped to at least one foundation cycle
+- Platform foundation cycles precede application foundation cycles
 - Cycles are true vertical slices (deliver observable value)
 - Foundation cycles identified (sequential prerequisites)
 - Feature cycles identified (parallel-eligible)
@@ -96,6 +98,8 @@ Based on the phase, you produce the appropriate artifact and write a report.
 - Every cycle from mapping has corresponding tasks
 - Each cycle follows TDD structure (test first)
 - Foundation cycles are sequential, feature cycles marked [P] where appropriate
+- Infrastructure provisioning tasks (from IP-XXX) have concrete file paths or config paths
+- Platform foundation cycles precede application foundation cycles in ordering
 - Every task has a specific file path
 - Tasks within a cycle have correct dependencies
 - Acceptance criteria from stories inform test definitions

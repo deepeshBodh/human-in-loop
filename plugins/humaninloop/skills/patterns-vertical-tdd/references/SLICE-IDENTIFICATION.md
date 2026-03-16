@@ -28,14 +28,22 @@ US-5 (P3): As a user, I can export tasks to CSV
 
 ### Step 2: Identify Foundation Needs
 
-Ask: "What must exist before ANY of these stories can work?"
+Ask: "What must exist before ANY of these stories can work **in production**?"
 
-Common foundation elements:
+**Application foundation:**
 - Data model for core entities
 - Authentication/authorization
 - API routing infrastructure
-- Database setup
+- Database schema setup
 - Error handling framework
+
+**Platform foundation** (from constraints-and-decisions.md Part 3 — IP-XXX items):
+- Compute provisioning (containers, serverless, VMs)
+- CI/CD pipeline setup
+- Monitoring and observability infrastructure
+- Environment configuration and secrets management
+- Database/storage provisioning (distinct from schema setup)
+- Networking configuration (DNS, load balancers, firewall rules)
 
 ### Step 3: Map Stories to Cycles
 
@@ -90,6 +98,7 @@ A well-sized slice:
 | Data | Cycle B needs entity from Cycle A | A is foundation for B |
 | API | Cycle B calls endpoint from Cycle A | A is foundation for B |
 | UI | Cycle B shows component from Cycle A | A is foundation for B |
+| Infrastructure | Cycle B needs platform resource from IP-XXX | Foundation cycle (platform) |
 | None | Cycles are independent | Both can be [P] |
 
 ### Minimizing Dependencies
@@ -104,6 +113,10 @@ A well-sized slice:
 
 3. **Order by priority when dependencies exist**
    - If C4 depends on C3, and C3 is P2 while C4 is P3, natural order works
+
+4. **Separate platform from application foundation**
+   - Platform provisioning (IP-XXX) goes in its own foundation cycle(s)
+   - Application foundation depends on platform foundation
 
 ## Examples by Domain
 
