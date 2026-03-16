@@ -1,14 +1,16 @@
 ---
-type: planning-request
+type: plan-request
 phase: {{phase}}
 status: {{status}}
 iteration: {{iteration}}
 feature_id: {{feature_id}}
 created: {{created}}
 updated: {{updated}}
+analysis_status: {{analysis_status}}
+design_status: {{design_status}}
 ---
 
-# Planning Request
+# Plan Request
 
 ## Feature Context
 
@@ -26,15 +28,14 @@ updated: {{updated}}
 | File | Path | Status |
 |------|------|--------|
 | Spec | {{spec_path}} | {{spec_status}} |
-| Tech Requirements | {{requirements_path}} | {{requirements_status}} |
-| Tech Constraints | {{constraints_path}} | {{constraints_status}} |
-| Tech NFRs | {{nfrs_path}} | {{nfrs_status}} |
-| Tech Integrations | {{integrations_path}} | {{integrations_status}} |
-| Tech Data Sensitivity | {{datasensitivity_path}} | {{datasensitivity_status}} |
-| Research | {{research_path}} | {{research_status}} |
+| Requirements | {{requirements_path}} | {{requirements_status}} |
+| Constraints & Decisions | {{constraints_decisions_path}} | {{constraints_decisions_status}} |
+| NFRs | {{nfrs_path}} | {{nfrs_status}} |
 | Data Model | {{datamodel_path}} | {{datamodel_status}} |
 | Contracts | {{contracts_path}} | {{contracts_status}} |
-| Planner Report | {{planner_report_path}} | - |
+| Quickstart | {{quickstart_path}} | {{quickstart_status}} |
+| Analyst Report | {{analyst_report_path}} | - |
+| Architect Report | {{architect_report_path}} | - |
 | Advocate Report | {{advocate_report_path}} | - |
 
 ## Constitution Principles

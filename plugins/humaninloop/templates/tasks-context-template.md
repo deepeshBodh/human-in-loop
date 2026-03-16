@@ -25,7 +25,9 @@ updated: {{updated}}
 |------|------|--------|
 | Spec | {{spec_path}} | {{spec_status}} |
 | Plan | {{plan_path}} | {{plan_status}} |
-| Research | {{research_path}} | {{research_status}} |
+| Requirements | {{requirements_path}} | {{requirements_status}} |
+| Constraints & Decisions | {{constraints_decisions_path}} | {{constraints_decisions_status}} |
+| NFRs | {{nfrs_path}} | {{nfrs_status}} |
 | Data Model | {{datamodel_path}} | {{datamodel_status}} |
 | Contracts | {{contracts_path}} | {{contracts_status}} |
 | Task Mapping | {{mapping_path}} | {{mapping_status}} |

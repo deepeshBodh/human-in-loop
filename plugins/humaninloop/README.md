@@ -1,6 +1,6 @@
 # HumanInLoop Plugin
 
-Specification-driven development workflow: **setup → specify → techspec → plan → tasks → implement**
+Specification-driven development workflow: **setup → specify → plan → tasks → implement**
 
 ## Overview
 
@@ -9,8 +9,7 @@ The HumanInLoop plugin provides a comprehensive multi-agent workflow for specifi
 **Core Workflows:**
 - **Setup** - Create project constitution with enforceable governance principles
 - **Specify** - Create feature specifications with integrated quality validation
-- **Techspec** - Translate business specifications into traceable technical artifacts
-- **Plan** - Generate implementation plans with research, data models, and API contracts
+- **Plan** - Translate business specifications into technical requirements, then design data models and API contracts
 - **Tasks** - Generate actionable implementation tasks with dependency tracking and brownfield markers
 
 ## Installation
@@ -107,52 +106,41 @@ Create a feature specification with integrated quality validation.
 - Branch name = spec directory name = feature ID
 - Number auto-increments based on existing branches and specs
 
-### `/humaninloop:techspec`
-
-Translate business specifications into traceable technical artifacts through a multi-agent workflow.
-
-```
-/humaninloop:techspec
-```
-
-**Requires:** `spec.md` to exist with completed specify workflow
-
-**Workflow:**
-1. **Phase T0 (Core)**: Technical Analyst produces requirements (`requirements.md`) and constraints (`constraints.md`), Principal Architect reviews feasibility, Devil's Advocate validates completeness (phase: T0)
-2. **Phase T1 (Supplementary)**: Technical Analyst produces NFRs (`nfrs.md`), integration maps (`integrations.md`), and data sensitivity classifications (`data-sensitivity.md`), Principal Architect reviews feasibility, Devil's Advocate validates completeness (phase: T1, mode: incremental)
-
-**Output:**
-```
-specs/<###-feature-name>/technical/
-├── requirements.md          # TR-XXX technical requirements traced to FRs
-├── constraints.md           # C-XXX constraints with sources
-├── nfrs.md                  # NFR-XXX with measurable targets
-├── integrations.md          # INT-XXX integration maps with failure modes
-└── data-sensitivity.md      # DS-XXX data classifications
-```
-
-**Features:**
-- Every technical requirement traces to a business functional requirement
-- Two-pass production: core artifacts first, supplementary after review
-- Incremental validation between passes
-- Five artifact types: TR- (requirements), C- (constraints), NFR- (non-functional), INT- (integrations), DS- (data sensitivity)
-
 ### `/humaninloop:plan`
 
-Generate an implementation plan from an existing specification.
+Unified planning workflow that translates business specifications into technical requirements and concrete design artifacts through a multi-agent workflow.
 
 ```
 /humaninloop:plan
 ```
 
-**Requires:** `spec.md` and completed techspec workflow (all 5 technical artifacts must exist)
+**Requires:** `spec.md` to exist with completed specify workflow
 
 **Workflow:**
-1. **Phase A0**: Codebase discovery (detects existing code conflicts)
-2. **Phase B0**: Technical research for unknowns
-3. **Phase B1**: Domain model and entity design
-4. **Phase B2**: API contracts and integration scenarios
-5. **Phase B3**: Final validation and constitution sweep
+1. **Phase P1 (Analysis)**: Technical Analyst produces requirements (`requirements.md`), constraints and decisions (`constraints-and-decisions.md`), and NFRs (`nfrs.md`). Principal Architect reviews cross-artifact feasibility. Devil's Advocate validates completeness (phase: P1)
+2. **Phase P2 (Design)**: Technical Analyst produces data model (`data-model.md` with sensitivity annotations), API contracts (`contracts/api.yaml` with integration boundaries), and integration guide (`quickstart.md`). Devil's Advocate validates completeness with incremental cross-artifact consistency check (phase: P2)
+
+**Output:**
+```
+specs/<###-feature-name>/
+├── requirements.md              # TR-XXX technical requirements traced to FRs
+├── constraints-and-decisions.md # C-XXX constraints + D-XXX technology decisions
+├── nfrs.md                      # NFR-XXX with measurable targets
+├── data-model.md                # Entity definitions with sensitivity annotations
+├── contracts/
+│   └── api.yaml                 # OpenAPI spec with x-integration boundaries
+├── quickstart.md                # Integration guide
+└── plan.md                      # Summary document
+```
+
+**Features:**
+- Every technical requirement traces to a business functional requirement
+- Constraints (facts) and decisions (choices) documented together with bidirectional cross-references
+- Data sensitivity annotations embedded per entity attribute (not standalone)
+- Integration boundaries documented as OpenAPI extensions with failure modes
+- Principal Architect reviews cross-artifact feasibility (one-time gate after analysis)
+- 5 agent invocations: TA → PA → DA → TA → DA
+- Four artifact ID types: TR- (requirements), C- (constraints), D- (decisions), NFR- (non-functional)
 
 ### `/humaninloop:tasks`
 
@@ -221,20 +209,13 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 | **Requirements Analyst** | Transforms feature requests into precise specifications with user stories, requirements, and acceptance criteria |
 | **Devil's Advocate** | Adversarial reviewer who stress-tests specs, finds gaps, challenges assumptions, and generates clarifying questions |
 
-### Techspec Workflow Agents
-
-| Agent | Purpose |
-|-------|---------|
-| **Technical Analyst** | Senior technical analyst who translates business specifications into traceable technical artifacts (requirements, constraints, NFRs, integration maps, data sensitivity). Uses skill: `authoring-technical-requirements` |
-| **Principal Architect** | Reviews feasibility of each pass; validates constraints are real limitations and NFR targets are measurable |
-| **Devil's Advocate** | Validates techspec artifacts for completeness and traceability. Uses skill: `validation-plan-artifacts` (phases: T0, T1) |
-
 ### Plan Workflow Agents
 
 | Agent | Purpose |
 |-------|---------|
-| **Plan Architect** | Senior architect who transforms specifications into implementation plans through research, domain modeling, and API contract design. Uses skills: `patterns-technical-decisions`, `patterns-entity-modeling`, `patterns-api-contracts` |
-| **Devil's Advocate** | Reviews plan artifacts for gaps and quality. Uses skill: `validation-plan-artifacts` |
+| **Technical Analyst** | Senior technical analyst who translates business specifications into traceable technical artifacts (analysis phase: requirements, constraints-and-decisions, NFRs) and concrete design artifacts (design phase: data model, API contracts, integration guide). Uses skills: `authoring-technical-requirements`, `patterns-technical-decisions`, `patterns-entity-modeling`, `patterns-api-contracts` |
+| **Principal Architect** | Reviews cross-artifact feasibility after analysis phase; identifies constraint-decision conflicts and NFR-constraint impossibilities |
+| **Devil's Advocate** | Validates plan artifacts for completeness and traceability. Uses skill: `validation-plan-artifacts` (phases: P1, P2) |
 
 ### Tasks Workflow Agents
 
@@ -257,9 +238,7 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 
 ### Validation
 
-**Techspec Workflow:** Uses `validation-plan-artifacts` skill for techspec-specific review criteria (phases T0, T1).
-
-**Plan Workflow:** Uses `validation-plan-artifacts` skill for phase-specific review criteria (phases B0, B1, B2).
+**Plan Workflow:** Uses `validation-plan-artifacts` skill for phase-specific review criteria (phases P1, P2, P3).
 
 **Tasks Workflow:** Uses `validation-task-artifacts` skill for:
 - Vertical slice validation (cycles deliver testable value)
@@ -278,34 +257,32 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 └── architect-report.md        # Principal Architect report (temporary)
 ```
 
-**Feature-Level (from specify → techspec → plan → tasks):**
+**Feature-Level (from specify → plan → tasks):**
 ```
 specs/<###-feature-name>/
-├── spec.md                    # Feature specification
-├── technical/                 # Technical specification artifacts
-│   ├── requirements.md        # TR-XXX technical requirements
-│   ├── constraints.md         # C-XXX constraints
-│   ├── nfrs.md                # NFR-XXX non-functional requirements
-│   ├── integrations.md        # INT-XXX integration maps
-│   └── data-sensitivity.md    # DS-XXX data classifications
-├── plan.md                    # Implementation plan summary
-├── research.md                # Technology decisions
-├── data-model.md              # Entity definitions
-├── quickstart.md              # Integration scenarios
-├── task-mapping.md            # Story-to-component mappings
-├── tasks.md                   # Actionable task list
-├── contracts/                 # API specifications (OpenAPI)
-├── checklists/                # Audit outputs (via /humaninloop:audit)
+├── spec.md                        # Feature specification
+├── requirements.md                # TR-XXX technical requirements
+├── constraints-and-decisions.md   # C-XXX constraints + D-XXX decisions
+├── nfrs.md                        # NFR-XXX non-functional requirements
+├── data-model.md                  # Entity definitions with sensitivity annotations
+├── contracts/                     # API specifications (OpenAPI)
+│   └── api.yaml                   # Includes x-integration boundaries
+├── quickstart.md                  # Integration guide
+├── plan.md                        # Implementation plan summary
+├── task-mapping.md                # Story-to-component mappings
+├── tasks.md                       # Actionable task list
+├── checklists/                    # Audit outputs (via /humaninloop:audit)
 └── .workflow/
-    ├── context.md             # Specify workflow context
-    ├── analyst-report.md      # Requirements Analyst output
-    ├── advocate-report.md     # Devil's Advocate output
-    ├── dags/                  # DAG pass history (specify workflow)
-    │   ├── pass-001.json      # First pass DAG
-    │   └── pass-NNN.json      # Subsequent passes
-    ├── techspec-context.md    # Techspec workflow state
-    ├── plan-context.md        # Plan workflow state
-    └── tasks-context.md       # Tasks workflow state
+    ├── context.md                 # Specify workflow context
+    ├── analyst-report.md          # Requirements Analyst output
+    ├── advocate-report.md         # Devil's Advocate output
+    ├── dags/                      # DAG pass history (specify workflow)
+    │   ├── pass-001.json          # First pass DAG
+    │   └── pass-NNN.json         # Subsequent passes
+    ├── plan-context.md            # Plan workflow state
+    ├── techanalyst-report.md      # Technical Analyst output
+    ├── architect-report.md        # Principal Architect feasibility report
+    └── tasks-context.md           # Tasks workflow state
 ```
 
 ## Specification Format

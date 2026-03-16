@@ -7,26 +7,24 @@ description: This skill MUST be invoked when the user says "review research", "r
 
 ## Overview
 
-Find gaps in planning artifacts and generate issues that need resolution before proceeding to the next phase. Focus on design completeness and quality, not implementation details. This skill provides phase-specific review criteria for the Devil's Advocate.
+Find gaps in planning artifacts and generate issues that need resolution before proceeding. Focus on design completeness and quality, not implementation details. This skill provides phase-specific review criteria for artifact reviewers.
+
+**Violating the letter of the rules is violating the spirit of the rules.**
 
 ## When to Use
 
-- Reviewing requirements.md + constraints.md after T0 (techspec core) phase completion
-- Reviewing nfrs.md + integrations.md + data-sensitivity.md after T1 (techspec supplementary) phase completion
-- Reviewing research.md after B0 phase completion
-- Reviewing data-model.md after B1 phase completion
-- Reviewing contracts/ after B2 phase completion
+- Reviewing requirements.md + constraints-and-decisions.md + nfrs.md after P1 (Analysis) phase completion
+- Reviewing data-model.md + contracts/api.yaml + quickstart.md after P2 (Design) phase completion
 - Validating cross-artifact consistency before task generation
-- When plan architect or technical analyst requests artifact review
 - Quality gate checks before phase transitions
 
 ## When NOT to Use
 
-- **Implementation code review** - Use code review tools instead
-- **Task artifact review** - Use `humaninloop:validation-task-artifacts` instead
-- **Specification review** - Use `humaninloop:analysis-specifications` instead
-- **Constitution review** - Use `humaninloop:validation-constitution` instead
-- **During active drafting** - Wait for artifact completion before review
+- **Implementation code review** — Use code review tools instead
+- **Task artifact review** — Use `humaninloop:validation-task-artifacts` instead
+- **Specification review** — Use `humaninloop:analysis-specifications` instead
+- **Constitution review** — Use `humaninloop:validation-constitution` instead
+- **During active drafting** — Wait for artifact completion before review
 
 ## Review Focus by Phase
 
@@ -35,12 +33,9 @@ Each phase has specific checks to execute. The checks identify Critical, Importa
 | Phase | Focus Area | Key Checks |
 |-------|------------|------------|
 | A0 | Codebase Discovery | Coverage, entity/endpoint detection, collision assessment |
-| T0 | Techspec Core | FR coverage, orphan TRs, testable criteria, sourced constraints |
-| T1 | Techspec Supplementary | NFR measurability, integration completeness, data classification |
-| B0 | Research | Marker resolution, alternatives, rationale quality |
-| B1 | Data Model | Entity coverage, relationships, PII identification |
-| B2 | Contracts | Endpoint coverage, schemas, error handling |
-| B3 | Cross-Artifact | Alignment, consistency, traceability |
+| P1 | Analysis | FR coverage, orphan TRs, testable criteria, sourced constraints, decision alternatives, NFR measurability |
+| P2 | Design | Entity coverage, relationships, data sensitivity, endpoint coverage, schemas, error handling, integration boundaries |
+| P3 | Cross-Artifact | Alignment, consistency, traceability |
 
 See [PHASE-CHECKLISTS.md](references/PHASE-CHECKLISTS.md) for detailed phase-specific checklists and key questions.
 
@@ -89,19 +84,19 @@ For each check in the phase-specific checklist:
 
 ## Incremental Review Mode
 
-For phases after the first artifact (data-model, contracts), use incremental review to optimize time while preserving rigor.
+For Phase P2 (Design), use incremental review to optimize time while preserving rigor.
 
-### Full Review (New Artifact Only)
+### Full Review (New Artifacts Only)
 
 - Execute ALL phase-specific checks from PHASE-CHECKLISTS.md
 - Document issues with full evidence
-- This is the primary focus—no shortcuts
+- This is the primary focus — no shortcuts
 
 ### Consistency Check (Previous Artifacts)
 
 - Use the cross-artifact checklist in [PHASE-CHECKLISTS.md](references/PHASE-CHECKLISTS.md#cross-artifact-consistency)
 - Do NOT re-read previous artifacts in full
-- Spot-check: entity names, requirement IDs, decision references
+- Spot-check: entity names, requirement IDs, decision references, constraint alignment
 - Flag only inconsistencies between artifacts
 - **Time budget**: 1-2 minutes per previous artifact
 
@@ -118,7 +113,7 @@ For phases after the first artifact (data-model, contracts), use incremental rev
 
 | Aspect | Status |
 |--------|--------|
-| **New Artifact** | {artifact} - FULL REVIEW |
+| **New Artifacts** | {artifacts} - FULL REVIEW |
 | **Previous Artifacts** | CONSISTENCY CHECK ONLY |
 
 ## New Artifact Issues
@@ -129,9 +124,11 @@ For phases after the first artifact (data-model, contracts), use incremental rev
 
 | Check | Status | Notes |
 |-------|--------|-------|
-| Entity names | Pass/Fail | {any mismatches} |
-| Requirement IDs | Pass/Fail | {any gaps} |
-| Decision alignment | Pass/Fail | {any contradictions} |
+| Entity names match TRs | Pass/Fail | {any mismatches} |
+| Schemas match data model | Pass/Fail | {any gaps} |
+| Decisions honored in design | Pass/Fail | {any contradictions} |
+| Sensitivity annotations present | Pass/Fail | {any missing} |
+| Integration boundaries documented | Pass/Fail | {any missing} |
 
 ## Verdict
 
@@ -142,11 +139,8 @@ For phases after the first artifact (data-model, contracts), use incremental rev
 
 | Phase | Full Review | Consistency Check |
 |-------|-------------|-------------------|
-| T0 (Techspec Core) | requirements.md, constraints.md | — (first techspec artifact) |
-| T1 (Techspec Supplementary) | nfrs.md, integrations.md, data-sensitivity.md | requirements.md + constraints.md (2-3 min) |
-| B0 (Research) | research.md | — (first plan artifact) |
-| B1 (Data Model) | data-model.md | research.md (1-2 min) |
-| B2 (Contracts) | contracts/, quickstart.md | research.md + data-model.md (2-3 min) |
+| P1 (Analysis) | requirements.md, constraints-and-decisions.md, nfrs.md | — (first phase) |
+| P2 (Design) | data-model.md, contracts/api.yaml, quickstart.md | requirements.md + constraints-and-decisions.md + nfrs.md (2-3 min) |
 
 ---
 
@@ -195,3 +189,27 @@ Before finalizing review, verify:
 ### Excessive Re-Reading
 ❌ Re-reading all previous artifacts in full for every review
 ✅ Use incremental review mode with targeted consistency checks
+
+## Red Flags - STOP and Restart Properly
+
+If you notice yourself thinking any of these, STOP immediately:
+
+- "This case is different because..." — It is not. Run the checklist.
+- "I'm following the spirit, not the letter" — The letter IS the spirit.
+- "The artifacts look good enough" — Good enough is not ready. Evidence or rejection.
+- "I'll skip cross-artifact checks, the previous review was thorough" — Previous reviews do not guarantee current consistency.
+- "This severity is only Minor, not Important" — If you are rationalizing severity DOWN, it is probably the higher level.
+- "The reviewer already checked this" — Unless you have evidence of a prior review in this iteration, it was not checked.
+- "I'll note it but not block on it" — If it meets Critical or Important criteria, it blocks. Period.
+
+## Common Rationalizations
+
+| Rationalization | Counter |
+|----------------|---------|
+| "The spec was vague, so the artifact can be vague" | Vagueness in spec is a gap to flag, not permission to propagate. |
+| "This is a minor feature, full review is overkill" | Scale of feature does not change the review process. Every artifact gets every applicable check. |
+| "Time pressure means we should skip cross-artifact checks" | Cross-artifact inconsistencies caught now save days of rework later. |
+| "The author is senior, they know what they're doing" | Author seniority is irrelevant. Evidence-based review only. |
+| "I already found enough issues" | Finding issues is not a quota. Run every check, document every finding. |
+| "This check doesn't apply to this type of feature" | If the check is in the phase checklist, it applies. Flag as N/A with justification if genuinely inapplicable. |
+| "The constraint is obvious, it doesn't need documentation" | Obvious constraints are the ones most often violated. Document them. |

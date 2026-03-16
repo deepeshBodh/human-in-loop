@@ -1,13 +1,13 @@
 ---
 name: authoring-technical-requirements
-description: This skill MUST be invoked when the user says "write technical requirements", "define constraints", "define NFRs", "map integrations", or "classify data sensitivity". SHOULD also invoke when user mentions "TR-", "C-", "NFR-", "INT-", "DS-", "non-functional", "system integration", or "data classification". Produces five traceable technical artifacts from business specifications.
+description: This skill MUST be invoked when the user says "write technical requirements", "define constraints", "define NFRs", "map integrations", or "classify data sensitivity". SHOULD also invoke when user mentions "TR-", "C-", "NFR-", "INT-", "DS-", "non-functional", "system integration", or "data classification". Produces three traceable analysis artifacts from business specifications.
 ---
 
 # Authoring Technical Requirements
 
 ## Overview
 
-Translate business specifications into five traceable technical artifacts: requirements, constraints, NFRs, integration maps, and data sensitivity classifications. Every artifact traces to a business source. Every target is measurable. Every integration accounts for failure.
+Translate business specifications into three traceable analysis artifacts: requirements, constraints-and-decisions, and NFRs. Every artifact traces to a business source. Every target is measurable. Every constraint accounts for its design impact.
 
 **Violating the letter of the rules is violating the spirit of the rules.**
 
@@ -27,9 +27,11 @@ Translate business specifications into five traceable technical artifacts: requi
 - **Choosing technologies** -- Constraints document real boundaries, not preferences
 - **Implementation planning** -- Use planning skills after technical requirements exist
 
-## The Five Artifacts
+## The Three Analysis Artifacts
 
-Each artifact uses a distinct ID prefix and traces to business sources. Produce in two passes: Pass 1 (requirements.md + constraints.md), Pass 2 (nfrs.md + integrations.md + data-sensitivity.md).
+Each artifact uses a distinct ID prefix and traces to business sources. These are produced during Phase 1 (Analysis) of `/humaninloop:plan`: requirements.md, constraints-and-decisions.md, and nfrs.md.
+
+> **Note:** Integration maps (INT-XXX) are now embedded as `x-integration` extensions in `contracts/api.yaml` during Phase 2 (Design). Data sensitivity classifications (DS-XXX) are now embedded per-entity in `data-model.md` during Phase 2 (Design). See `patterns-api-contracts` and `patterns-entity-modeling` skills respectively.
 
 See [ARTIFACT-TEMPLATES.md](references/ARTIFACT-TEMPLATES.md) for complete field definitions and examples.
 
@@ -47,19 +49,33 @@ Map every business FR to one or more TRs. A single FR-001 ("users can sign in") 
 
 **No orphan TRs.** Every TR maps to at least one FR. **No unmapped FRs.** Every FR has at least one TR.
 
-### 2. Technical Constraints (constraints.md) -- C-XXX
+### 2. Constraints and Decisions (constraints-and-decisions.md) -- C-XXX / D-XXX
 
-Document hard boundaries that limit implementation choices.
+Document hard boundaries (constraints) and the technology decisions shaped by them, in a single unified artifact.
+
+**Section 1: Hard Constraints (C-XXX)**
 
 | Field | Required | Purpose |
 |-------|----------|---------|
 | ID | Yes | C-XXX sequential format |
-| Type | Yes | infrastructure / compatibility / regulatory / migration |
+| Type | Yes | infrastructure / compatibility / regulatory / migration / organizational |
 | Description | Yes | The hard boundary |
 | Source | Yes | Where this constraint originates |
-| Impact | Yes | What design choices this eliminates |
+| Severity | Yes | blocking / significant / minor |
+| Impact | Yes | What design choices this eliminates; references D-XXX decisions it shapes |
 
-**Constraints are facts, not preferences.** "Must use existing PostgreSQL cluster" (real infrastructure constraint) differs from "should use the same framework" (preference -- not a constraint).
+**Section 2: Technology Decisions (D-XXX)**
+
+| Field | Required | Purpose |
+|-------|----------|---------|
+| ID | Yes | D-XXX sequential format |
+| Context | Yes | The situation requiring a decision |
+| Options | Yes | Alternatives evaluated |
+| Choice | Yes | Selected option |
+| Consequences | Yes | Trade-offs accepted |
+| Rationale | Yes | Why this choice; references C-XXX constraints that shaped it |
+
+**Constraints are facts, not preferences.** Each decision record MUST reference the constraints that shaped the choice. Each constraint impact field SHOULD reference decisions it influences.
 
 ### 3. Non-Functional Requirements (nfrs.md) -- NFR-XXX
 
@@ -76,35 +92,19 @@ Define measurable quality attributes. Every NFR has a numeric target.
 
 **"Fast" is not a requirement.** "p95 response time < 200ms under 1000 concurrent users, measured by APM" is.
 
-### 4. System Integrations (integrations.md) -- INT-XXX
+### 4. [Phase 2] System Integrations -- INT-XXX (embedded in contracts/api.yaml)
 
-Catalogue every external system boundary.
+> Integrations are now documented as `x-integration` extensions per endpoint in `contracts/api.yaml` during Phase 2 (Design). See the `patterns-api-contracts` skill for details.
 
-| Field | Required | Purpose |
-|-------|----------|---------|
-| ID | Yes | INT-XXX sequential format |
-| System | Yes | External system name and version |
-| Protocol | Yes | REST, GraphQL, gRPC, webhook, SDK, etc. |
-| Endpoints Used | Yes | Specific endpoints or operations consumed |
-| Data Exchanged | Yes | What flows in each direction |
-| Failure Modes | Yes | What can go wrong (timeout, 5xx, rate limit) |
-| Fallback Strategy | Yes | How the system behaves when this integration fails |
+Fields per integration: system name, protocol, API version, criticality, failure modes (detection, impact, fallback), authentication details.
 
 **Optimistic integration maps are incomplete.** Every external dependency fails eventually. Document what happens when it does.
 
-### 5. Data Sensitivity Classifications (data-sensitivity.md) -- DS-XXX
+### 5. [Phase 2] Data Sensitivity Classifications -- DS-XXX (embedded in data-model.md)
 
-Classify every data element the system handles.
+> Sensitivity classifications are now documented per-entity/per-attribute in `data-model.md` during Phase 2 (Design). See the `patterns-entity-modeling` skill for details.
 
-| Field | Required | Purpose |
-|-------|----------|---------|
-| ID | Yes | DS-XXX sequential format |
-| Data Element | Yes | What data this is |
-| Classification | Yes | public / internal / confidential / restricted |
-| Encryption | Yes | At rest and in transit requirements |
-| Retention | Yes | How long, and what happens after |
-| Compliance | No | GDPR, HIPAA, PCI-DSS, SOC2 mappings |
-| Access Control | Yes | Who can read, write, delete |
+Fields per entity: classification level, encryption at rest/in transit, retention period, access control, audit requirements, masking rules. Compliance mapping table per entity.
 
 ## Traceability Rules
 
@@ -115,11 +115,10 @@ See [TRACEABILITY-PATTERNS.md](references/TRACEABILITY-PATTERNS.md) for detailed
 **Mandatory links:**
 - TR -> FR (every technical requirement traces to business source)
 - NFR -> source (every quality attribute has a justification)
-- INT -> TR (integrations referenced by the TRs that need them)
-- DS -> TR (data elements referenced by TRs that handle them)
+- C -> D (constraints reference the decisions they shape; decisions reference constraints that shaped them)
 - C -> impact (every constraint identifies what it restricts)
 
-**Completeness check:** No FR without a TR. No TR without acceptance criteria. No NFR without a numeric target. No integration without failure modes. No data element without classification.
+**Completeness check:** No FR without a TR. No TR without acceptance criteria. No NFR without a numeric target. No constraint without a source. No decision without referenced constraints.
 
 ## Technology-Agnostic Writing
 
@@ -141,13 +140,12 @@ Before finalizing, verify:
 - [ ] Every FR has at least one TR (no unmapped business requirements)
 - [ ] Every TR maps to at least one FR (no orphan technical requirements)
 - [ ] Every TR has testable acceptance criteria
-- [ ] Every constraint has a source and type classification
+- [ ] Every constraint has a source, type, and severity classification
+- [ ] Every decision references the constraints that shaped it (C-XXX ↔ D-XXX)
 - [ ] Every NFR has a numeric target AND measurement method
-- [ ] Every integration has failure modes AND fallback strategies
-- [ ] Every data element has classification, encryption, and retention
 - [ ] Cross-references between artifacts are consistent
 - [ ] Language is technology-agnostic (except real infrastructure constraints)
-- [ ] ID sequences are sequential with no gaps (TR-001, TR-002...)
+- [ ] ID sequences are sequential with no gaps (TR-001, TR-002..., C-001..., D-001...)
 
 ## Common Mistakes
 

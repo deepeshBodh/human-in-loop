@@ -31,7 +31,7 @@ These guidelines derive from the project constitution. RFC 2119 keywords (MUST, 
 | III | **Error Handling** | Structured JSON output with `checks`/`summary` fields; exit codes 0/1/2; `FrozenEntryError`; `ValidationViolation` |
 | IV | **Observability** | JSON to stdout, parseable by `jq`; StrategyGraph JSON as primary workflow observability artifact |
 | V | **Structured Output** | All 7 `hil-dag` CLI subcommands follow `checks`/`summary` JSON schema |
-| VI | **ADR Discipline** | Architectural decisions documented in `docs/decisions/` (7 ADRs) |
+| VI | **ADR Discipline** | Architectural decisions documented in `docs/decisions/` (8 ADRs) |
 | VII | **Skill Structure** | `SKILL.md` required; progressive disclosure with bundled reference files; kebab-case with category prefix |
 | VIII | **Conventional Commits** | `type(scope): description` format; pre-commit hook + CI enforcement |
 | IX | **Deterministic Infrastructure** | Two tiers: Tier 1 (strict graph-algorithmic) + Tier 2 (heuristic-deterministic); all in `humaninloop_brain`; agents consume via CLI |
@@ -156,7 +156,7 @@ When amending `.humaninloop/memory/constitution.md`:
 - **[.humaninloop/memory/constitution.md](.humaninloop/memory/constitution.md)**: Project constitution - governance principles and enforcement (v3.0.0).
 - **[docs/claude-plugin-documentation.md](docs/claude-plugin-documentation.md)**: Claude Code plugin development reference.
 - **[docs/agent-skills-documentation.md](docs/agent-skills-documentation.md)**: Agent Skills technical reference.
-- **[docs/decisions/](docs/decisions/)**: Architecture Decision Records (7 ADRs).
+- **[docs/decisions/](docs/decisions/)**: Architecture Decision Records (8 ADRs).
 - **[docs/architecture/](docs/architecture/)**: DAG-first architecture synthesis documents.
 - **[docs/architecture/v3/](docs/architecture/v3/)**: V3 architecture design documents.
 - **[docs/AGENT-GUIDELINES.md](docs/AGENT-GUIDELINES.md)**: Agent creation guidelines — persona design, coupling detection, compliance.

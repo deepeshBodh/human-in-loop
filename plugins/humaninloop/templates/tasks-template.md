@@ -4,7 +4,7 @@ description: "Task list template for feature implementation using vertical slice
 
 # Implementation Tasks: [FEATURE NAME]
 
-> Generated from: spec.md, plan.md, research.md, data-model.md, contracts/
+> Generated from: spec.md, plan.md, requirements.md, constraints-and-decisions.md, nfrs.md, data-model.md, contracts/
 > Structure: Vertical slices organized as TDD cycles
 
 ## Overview
@@ -41,7 +41,7 @@ Each cycle follows TDD discipline:
 
   The /humaninloop:tasks command MUST replace these with actual cycles based on:
   - User stories from spec.md (with their priorities P1, P2, P3...)
-  - Design artifacts from plan.md, research.md, data-model.md, contracts/
+  - Design artifacts from plan.md, requirements.md, constraints-and-decisions.md, nfrs.md, data-model.md, contracts/
 
   Cycles MUST follow vertical slicing + TDD principles:
   - Each cycle delivers observable, testable user value

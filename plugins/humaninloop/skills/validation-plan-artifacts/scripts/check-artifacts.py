@@ -35,10 +35,15 @@ UNRESOLVED_MARKERS = [
 
 # Required sections by file type (filename pattern -> list of required headers)
 REQUIRED_SECTIONS = {
-    'research.md': [
-        '## Technical Decisions',
-        '## Alternatives Considered',
-        '## Rationale',
+    'constraints-and-decisions.md': [
+        '## Constraints',
+        '## Decisions',
+    ],
+    'requirements.md': [
+        '## Technical Requirements',
+    ],
+    'nfrs.md': [
+        '## Non-Functional Requirements',
     ],
     'data-model.md': [
         '## Entities',

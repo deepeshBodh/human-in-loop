@@ -44,7 +44,7 @@ MINOR if:
 ### Issue: [Short description]
 
 **Severity**: Critical | Important | Minor
-**Phase**: A0 | B0 | B1 | B2 | B3
+**Phase**: A0 | P1 | P2 | P3
 **Artifact**: [Which file has the issue]
 **Check Failed**: [Which review check]
 
@@ -68,20 +68,20 @@ MINOR if:
 
 | # | Severity | Phase | Description | Artifact | Suggested Action |
 |---|----------|-------|-------------|----------|------------------|
-| 1 | Critical | B1 | Session entity missing expiresAt | data-model.md | Add expiresAt timestamp |
-| 2 | Important | B2 | No 429 error for login | contracts/ | Add rate limit response |
-| 3 | Minor | B2 | Inconsistent path naming | contracts/ | Standardize to kebab-case |
+| 1 | Critical | P2 | Session entity missing expiresAt | data-model.md | Add expiresAt timestamp |
+| 2 | Important | P2 | No 429 error for login | contracts/ | Add rate limit response |
+| 3 | Minor | P2 | Inconsistent path naming | contracts/ | Standardize to kebab-case |
 ```
 
 ---
 
-## Advocate Report Format
+## Review Report Format
 
 ```markdown
 ## Plan Artifact Review: {Phase Name}
 
 **Artifact Reviewed**: {file path}
-**Reviewer**: Devil's Advocate
+**Reviewer**: {reviewer}
 **Date**: {timestamp}
 
 ---
@@ -129,8 +129,8 @@ MINOR if:
 
 ### Recommended Actions
 
-1. [Specific action for responsible archetype]
-2. [Specific action for responsible archetype]
+1. [Specific action for responsible party]
+2. [Specific action for responsible party]
 
 ---
 

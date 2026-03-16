@@ -613,7 +613,7 @@ Apply these standards during validation:
 This release manager is configured for the HumanInLoop Marketplace. Key facts:
 
 ### humaninloop Plugin (v0.2.6+)
-- **5 agents**: requirements-analyst, devils-advocate, plan-architect, principal-architect, task-validator
+- **5 agents**: requirements-analyst, devils-advocate, technical-analyst, principal-architect, task-architect
 - **6 commands**: setup, specify, plan, tasks, audit, implement
 - **3 bundled skills**: authoring-requirements, authoring-user-stories, iterative-analysis
 - **6 check modules**: research-checks, model-checks, contract-checks, final-checks, mapping-checks, task-checks

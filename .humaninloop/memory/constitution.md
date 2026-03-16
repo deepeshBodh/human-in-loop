@@ -1,427 +1,312 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 2.0.0 -> 3.0.0 (MAJOR: Complete rewrite for v3 architecture. humaninloop_brain is now the sole governed Python codebase. Plugin validators removed from scope. Two-tier deterministic infrastructure. V3 entity model throughout.)
+Version change: (none) -> 3.0.0 (MAJOR: Initial brownfield constitution)
 
-Modified principles:
-- I. Security by Default: Removed plugin validator scope; secret scanning remains GAP-003
-- II. Testing Discipline: Single codebase (humaninloop_brain only); 90% blocking floor; ratchet REMOVED; 381 tests at 97% coverage
-- III. Error Handling Standards: Updated to v3 entities (FrozenEntryError, not FrozenPassError); removed references to legacy entry points
-- IV. Observability Requirements: Updated CLI subcommand list (7 subcommands, no hil-dag create); StrategyGraph JSON as primary artifact
-- V. Structured Output Pattern: Reduced to 7 hil-dag CLI entry points (legacy validators removed from scope)
-- VI. ADR Discipline: Unchanged in substance
-- VII. Skill Structure Requirements: Unchanged in substance
-- VIII. Conventional Commits: Added pre-commit hook as enforcement; CI commit-lint job documented
-- IX. Deterministic Infrastructure: Split into Tier 1 (strict graph-algorithmic) and Tier 2 (heuristic-deterministic); v3 layer separation with 7 entity modules
-- X. Pydantic Entity Modeling: Updated to v3 entities (StrategyGraph, NodeHistoryEntry, PassEntry, GateLifecycleStatus, GateVerdict); 11 enums, 14 models, 7 modules
-- XI. Layer Dependency Discipline: NEW — codifies the entities -> graph -> validators -> passes -> cli import rule
-- XII. Catalog-Driven Assembly: NEW — codifies v3 single-DAG iteration model with catalog resolution and invariant enforcement
+Rationale for bump:
+- Initial ratification of project constitution from brownfield analysis
+- Establishes 12 core principles: 4 Essential Floor (NON-NEGOTIABLE) + 8 Emergent Ceiling
+- Codifies existing strong patterns discovered in codebase analysis (97% coverage, frozen models, layer dependency, structured JSON, deterministic infrastructure, catalog assembly, conventional commits, ADR discipline)
+- MAJOR version chosen to align with existing CLAUDE.md version reference (v3.0.0)
 
-Added sections:
-- Principle XI (Layer Dependency Discipline)
-- Principle XII (Catalog-Driven Assembly)
-- Architecture section (Three-Tier Agent Model, Single-DAG Iteration Model)
+Modified Sections: N/A (initial version)
 
-Removed sections:
-- Two-codebase distinction (plugin validators removed from scope)
-- All GAP-001 annotations (CI is resolved)
-- Coverage ratchet (replaced by flat 90% floor)
-- Plugin validator references throughout
+Added Sections:
+- Core Principles (I through XII)
+- Technology Stack
+- Quality Gates
+- Governance
+- CLAUDE.md Sync Mandate
+- Evolution Notes
 
-Configuration changes:
-- Coverage threshold: 90% blocking + 98% ratchet -> 90% blocking only (no ratchet)
-- Quality Gates: Removed GAP-001 annotations; removed coverage ratchet gate; updated test count to 381
-- Technology Stack: Added conventional-pre-commit, shellcheck-py; removed plugin validator mentions
-- Entity counts: 8 enums -> 11 enums; 6 modules -> 7 modules; 12 entry points -> 7 CLI subcommands
-- CLI subcommands: Removed hil-dag create (auto-bootstrapped); corrected to 7 (validate, sort, assemble, status, record, freeze, catalog-validate)
-- Title: "Plugin Marketplace Constitution" -> "Project Constitution"
+Removed Sections: None
 
-Templates requiring updates:
-- CLAUDE.md: pending (sync required after constitution ratification)
+Templates Alignment:
+- ✅ CLAUDE.md: Already aligned at v3.0.0 (pre-existing, authored in anticipation of this constitution)
+- ⚠️ plan-template.md: Review for constitution compliance
+- ⚠️ spec-template.md: Review for constitution compliance
 
 Follow-up TODOs:
-- GAP-003: Add secret scanning to CI pipeline
+- GAP-001: Configure secret scanning in CI (git-secrets or gitleaks)
+- GAP-002: Configure static type checking (mypy or pyright)
+- GAP-003: Add structured logging library for debug observability
+- Create evolution-roadmap.md with prioritized gap cards
 
-Previous reports:
-- 2.0.0 (2026-02-18): Full rewrite reflecting DAG infrastructure, humaninloop_brain package, deprecation of legacy validators, CI mandate, 10 principles
-- 1.0.0 (2026-01-13): Initial brownfield constitution with 8 principles, 2 gaps identified
+Previous Reports: None (initial version)
 -->
 
 # HumanInLoop Project Constitution
 
-> project_type: brownfield
-> Version: 3.0.0
-> Ratified: 2026-02-19
-> Last Amended: 2026-02-19
+> **Version**: 3.0.0 | **Ratified**: 2026-03-05 | **Last Amended**: 2026-03-05
+>
+> **Project Type**: brownfield
+>
+> **Governed Codebase**: `humaninloop_brain/` -- Python package providing deterministic DAG infrastructure for workflow execution. The plugin marketplace (`plugins/`) is the consumption layer and is not governed by code-level principles, only by commit and skill structure conventions.
 
-This constitution establishes enforceable governance for the HumanInLoop project. Every principle includes enforcement mechanisms, testability criteria, and rationale. RFC 2119 keywords (MUST, SHOULD, MAY, MUST NOT, SHOULD NOT) define requirement levels per RFC 2119.
-
-**Governed codebase**: `humaninloop_brain/` -- a Python package providing deterministic DAG infrastructure for workflow execution. The plugin marketplace (agents, commands, skills, templates in `plugins/`) is the consumption layer and is not directly governed by Python code quality principles, though shell scripts and structural conventions apply.
+This constitution defines the enforceable principles, quality gates, and governance processes for the HumanInLoop project. Every principle uses RFC 2119 keywords (MUST, SHOULD, MAY, MUST NOT, SHOULD NOT) and includes Enforcement, Testability, and Rationale sections.
 
 ---
 
 ## Core Principles
 
-### Essential Floor Principles
-
-#### I. Security by Default (NON-NEGOTIABLE)
-
-All code artifacts MUST follow security best practices appropriate to a CLI tooling and plugin repository.
-
-- Secrets MUST NOT be committed to the repository
-- `.gitignore` MUST exclude sensitive patterns: `.env`, `.env.local`, `.env.*.local`, `*.pem`, `credentials`, `secrets`
-- Input validation MUST be present in all Python code before processing user-provided file paths or external data
-- Shell scripts MUST validate arguments before processing
-- Pydantic models MUST validate all inputs via model validators (enforced by Pydantic runtime)
-- CI MUST run secret scanning on every push (GAP-003: not yet configured)
-
-**Enforcement**:
-- CI runs `git secrets --scan` or equivalent secret scanner and blocks merge on findings (GAP-003: not yet configured)
-- Code review MUST verify no hardcoded secrets in PRs
-- `.gitignore` patterns auditable via inspection of `.gitignore` file
-- Pydantic model validators enforce input constraints at runtime
-- Pre-commit hooks run `check-ast`, `check-yaml`, `check-added-large-files` (max 500KB) on every commit
-
-**Testability**:
-- Pass: `grep -rn "API_KEY\|PASSWORD\|SECRET_KEY\|PRIVATE_KEY" --include="*.py" --include="*.sh" humaninloop_brain/` returns no matches (excluding test fixtures and documentation)
-- Pass: `.gitignore` contains patterns for `.env`, `.env.local`, `.env.*.local`, `*.pem`
-- Pass: All Pydantic models with external input have model validators
-- Fail: Any hardcoded secret detected in source files
-- Fail: `.gitignore` missing required exclusion patterns
-
-**Rationale**: Even in CLI tooling repositories, secrets can leak through example code, test fixtures, or configuration files. The `.gitignore` and scanning approach prevents accidental exposure. Pydantic validation at model boundaries catches malformed input before it propagates through the DAG infrastructure.
+### Essential Floor (NON-NEGOTIABLE)
 
 ---
 
-#### II. Testing Discipline (NON-NEGOTIABLE)
+### I. Security by Default (NON-NEGOTIABLE)
 
-All Python code in `humaninloop_brain` MUST have automated tests with measurable coverage.
+All code MUST follow security-first principles. The HumanInLoop project is a CLI tool and library with no network boundaries; security focuses on secret management, input validation, and dependency integrity.
 
-- Test coverage MUST NOT fall below 90% (blocking CI gate)
-- Test files MUST use pytest and follow `test_*.py` naming in `test_<module>/` directories
-- New functionality MUST include tests in the same PR
-- Test fixtures MUST be JSON files in `tests/fixtures/` for DAG scenario testing
-- Tests MUST include unit, subprocess integration, and end-to-end levels
-- Tests MUST verify error paths return correct exit codes and structured output
+- Secrets MUST be loaded from environment variables. Hardcoded secrets (API keys, tokens, passwords) MUST NOT appear in source code.
+- Sensitive config files (`.env`, `.env.*.local`) MUST be listed in `.gitignore`.
+- All external inputs MUST be validated before processing. For `humaninloop_brain`, Pydantic model validators (`@model_validator`) MUST enforce type-status constraints and derived field integrity.
+- CI MUST run secret scanning on every push and pull request. Tool: `gitleaks` (preferred) or `git-secrets`.
+- New dependencies MUST NOT introduce known high or critical vulnerabilities. Dependency audit SHOULD be run before adding new packages.
 
 **Enforcement**:
-- CI runs `cd humaninloop_brain && uv run pytest --cov --cov-fail-under=90` and blocks merge on failure
-- Code review MUST verify test files accompany new `humaninloop_brain` functionality
-- Coverage report generated on each PR via CI pipeline (`.github/workflows/ci.yml`)
+- CI MUST run `gitleaks detect --source .` and block merge on findings (GAP-001: not yet configured -- MUST be added to `.github/workflows/ci.yml`).
+- Pre-commit hook `check-ast` validates Python syntax integrity on every commit.
+- Code review MUST verify no hardcoded secrets in PRs.
+- Pydantic `model_validator` decorators are the enforcement mechanism for input validation in domain entities.
 
 **Testability**:
-- Pass: `cd humaninloop_brain && uv run pytest --cov --cov-fail-under=90` exits with code 0
-- Pass: All 381+ tests pass
-- Pass: Coverage >= 90%
-- Fail: Coverage drops below 90%
-- Fail: New functionality merged without tests
+- Pass: Zero secrets detected by `gitleaks detect --source .`; all Pydantic models have `model_validator` for inputs with domain constraints; `.env` and `.env.*.local` in `.gitignore`.
+- Fail: Any secret detected in source code OR any Pydantic entity model missing input validation for constrained fields OR sensitive files not in `.gitignore`.
 
-**Rationale**: The `humaninloop_brain` package is the foundation of deterministic DAG workflow execution. Its 381 tests at 97% coverage demonstrate that high coverage is achievable and sustainable. The 90% blocking threshold maintains this standard while allowing minor gaps in defensive error-path edge cases. A flat threshold (no ratchet) avoids the operational friction of baseline file management while providing a strong floor.
+**Rationale**: Even CLI tools handle user-provided JSON files and catalog definitions. Input validation prevents malformed data from causing undefined behavior. Secret scanning prevents accidental credential commits that persist in git history.
 
 ---
 
-#### III. Error Handling Standards (NON-NEGOTIABLE)
+### II. Testing Discipline (NON-NEGOTIABLE)
 
-All CLI tools and library code MUST handle errors explicitly with contextual information for debugging.
+All production code in `humaninloop_brain` MUST have automated tests.
 
-- Python code MUST return structured JSON output with `checks`, `summary`, and `issues` fields (see Principle V)
-- Exit codes MUST follow the project convention:
-  - `0` = success
-  - `1` = validation failure (expected, actionable)
-  - `2` = unexpected error (bug, environment issue)
-- Shell scripts MUST use `set -e` or explicit error checking
-- Shell scripts MUST exit with code 1 and stderr message on failure
-- Error messages MUST include sufficient context: file path, node ID, edge ID, pass number, or check name as applicable
-- `FrozenEntryError` MUST be raised when code attempts to modify a frozen history entry or pass entry
-- `ValidationViolation` objects MUST include `code`, `severity`, `message`, and optional `node_id`/`edge_id` for traceability
+- New functionality MUST have accompanying tests before merge.
+- Test coverage MUST be >= 90% (blocking CI gate). Current: 97%.
+- Coverage MUST NOT decrease below 90%. The 90% floor is enforced as an absolute threshold, not a ratchet, because coverage is already well above the floor.
+- Test files MUST follow the naming convention: `test_<module>.py`, mirroring the source structure.
+- Tests MUST be organized into directories mirroring source layers: `test_entities/`, `test_graph/`, `test_validators/`, `test_passes/`, `test_cli/`.
+- All tests MUST pass before merge. Zero test failures is a blocking gate.
 
 **Enforcement**:
-- Code review MUST verify JSON output structure in Python entry points
-- Code review MUST verify exit code handling (0/1/2 convention) in all CLI tools
-- Tests MUST verify error paths return correct exit codes and structured output
-- Pydantic `ValidationViolation` schema enforces required fields at runtime
+- CI runs `cd humaninloop_brain && uv run pytest --cov --cov-report=term --tb=short -q` on every push and PR.
+- CI enforces 90% coverage floor: extracts coverage percentage from output and fails if below 90.
+- Pre-commit hook `check-ast` validates Python AST integrity before commit.
+- Code review MUST verify new functionality has tests.
 
 **Testability**:
-- Pass: `hil-dag validate nonexistent.json` exits with code 2 and outputs JSON with error details
-- Pass: All `hil-dag` subcommands output JSON matching the structured output schema
-- Pass: `FrozenEntryError` raised when attempting to modify a frozen history entry
-- Pass: `ValidationViolation` objects always include `code`, `severity`, `message`
-- Fail: Any entry point returns non-JSON output or uses exit code outside {0, 1, 2}
-- Fail: Error message lacks context (e.g., "validation failed" without identifying which node or check)
+- Pass: All 381+ tests pass AND coverage >= 90% AND test files mirror source structure in named directories.
+- Fail: Any test failure OR coverage < 90% OR new code without tests.
 
-**Rationale**: Consistent error handling enables reliable CI integration, debugging, and downstream tool composition. The three-tier exit code convention (success/expected-failure/unexpected-error) enables shell-level orchestration. Structured violations with node/edge IDs enable programmatic error routing in DAG workflows.
+**Rationale**: The `humaninloop_brain` package provides deterministic infrastructure -- correctness is not optional. The 90% floor reflects the project's existing standard (97% actual) and prevents erosion. Tests mirror source structure so developers can locate tests by knowing the module location.
 
 ---
 
-#### IV. Observability Requirements (NON-NEGOTIABLE)
+### III. Error Handling Standards (NON-NEGOTIABLE)
 
-All CLI commands MUST produce machine-parseable output for integration with external tools. Observability requirements are scoped to CLI tool output, not web service logging (this project has no web services).
+All code MUST handle errors explicitly with structured, machine-parseable output. The HumanInLoop project uses structured JSON error output, not RFC 7807 (which targets HTTP APIs).
 
-- `hil-dag` subcommands MUST output JSON to stdout (not stderr)
-- Validation results MUST include check name, pass/fail status, and issue list
-- Summary section MUST include total, passed, and failed counts
-- StrategyGraph JSON MUST serve as the primary observability artifact for workflow execution, containing node history entries with evidence attachments, execution traces with timestamps, and pass metadata
-- No PII or sensitive data MAY appear in output
-- stderr MUST be reserved for human-readable diagnostic messages (progress indicators, warnings)
+- Custom exception types MUST be used for domain-specific errors. Existing: `FrozenEntryError` for frozen history entry writes.
+- All CLI commands MUST output structured JSON on error with `{"status": "error", "message": "<description>"}` schema.
+- Exit codes MUST follow the convention: 0 (success), 1 (validation/user error), 2 (runtime exception).
+- `ValidationViolation` objects MUST include `code`, `severity`, `message`, and location fields (`node_id` and/or `edge_id`) for precise error identification.
+- CLI validation output MUST follow the `{"checks": [...], "summary": {"total": N, "passed": N, "failed": N, "warnings": N}}` schema.
+- Pydantic `ValueError` exceptions MUST include descriptive messages identifying the constraint violated.
+- The top-level `main()` function MUST catch all unhandled exceptions and output JSON to stderr with exit code 2.
 
 **Enforcement**:
-- Code review MUST verify JSON output format for all new CLI subcommands
-- Existing entry points (`hil-dag validate`, `hil-dag sort`, `hil-dag assemble`, `hil-dag status`, `hil-dag record`, `hil-dag freeze`, `hil-dag catalog-validate`) serve as reference patterns
-- Tests MUST verify output is valid JSON parseable by `jq`
+- CLI output schema is validated by E2E tests in `test_cli/` that parse JSON output and verify field presence.
+- Exit codes are verified by CLI tests checking `result.exit_code` against expected values.
+- `ValidationViolation` schema is enforced by Pydantic model definition (fields are required).
+- Code review MUST verify new CLI commands follow the structured output contract.
 
 **Testability**:
-- Pass: `hil-dag validate pass.json | jq .summary` succeeds without parsing errors
-- Pass: All 7 CLI subcommand outputs can be piped to `jq .` without errors
-- Pass: StrategyGraph JSON includes `nodes[].history[]` with `evidence`, `trace` fields
-- Pass: Output contains only structural data (node IDs, edge IDs, violation codes) -- no PII
-- Fail: Output contains unparseable data before or after JSON
-- Fail: StrategyGraph JSON missing node history entries or pass metadata
+- Pass: All CLI commands produce valid JSON output parseable by `jq`; all error paths return correct exit codes (0/1/2); all `ValidationViolation` objects include `code`, `severity`, `message`.
+- Fail: Any CLI command producing non-JSON output OR wrong exit code OR `ValidationViolation` missing required fields.
 
-**Rationale**: Structured JSON output enables CI/CD integration, composable tooling (piping commands), and trend analysis. For CLI tools (not web services), stdout JSON is the observability layer -- there are no APM dashboards or health check endpoints to configure. StrategyGraph JSON with node history entries provides workflow-level observability equivalent to structured logging in service-oriented architectures.
+**Rationale**: The structured output contract enables machine consumption by agents and scripts. Agents parse CLI output to make workflow decisions. Inconsistent output formats break the agent-CLI integration that is the project's core value proposition.
 
 ---
 
-### Emergent Ceiling Principles
+### IV. Observability Requirements (NON-NEGOTIABLE)
 
-#### V. Structured Output Pattern
+The system MUST produce sufficient information for debugging workflow execution and diagnosing failures.
 
-All `hil-dag` CLI entry points MUST follow the established structured output pattern for consistency and composability.
-
-The `hil-dag` CLI has 7 subcommands that produce structured JSON:
-- `validate` -- structural validation of a StrategyGraph
-- `sort` -- topological sort of execution order
-- `assemble` -- add or re-open a node in the StrategyGraph
-- `status` -- update node status in current pass history entry
-- `record` -- write evidence, trace, and status to a node's current pass history entry
-- `freeze` -- freeze current pass and optionally create next pass
-- `catalog-validate` -- validate a node catalog against schema and constraints
-
-**Output schema**:
-```json
-{
-  "checks": [
-    {"check": "<name>", "passed": true, "issues": [...]}
-  ],
-  "summary": {"total": 1, "passed": 1, "failed": 0}
-}
-```
-
-- All `hil-dag` subcommands MUST output JSON conforming to this schema (or a documented superset)
-- `validation_result_to_output()` helper MUST be used for validation-result subcommands
-- New CLI subcommands MUST be added to `humaninloop_brain/src/humaninloop_brain/cli/main.py`
+- All CLI output MUST be structured JSON, parseable by `jq`.
+- The `StrategyGraph` JSON file MUST serve as the primary workflow observability artifact, containing the complete execution state: nodes, edges, passes, history entries, and evidence attachments.
+- CLI output MUST NOT include unstructured debug prints or log messages that corrupt JSON output.
+- Structured logging with Python's `logging` module or `structlog` SHOULD be added for internal library diagnostics (GAP-003: not yet implemented). When implemented, log output MUST go to stderr to avoid corrupting structured JSON on stdout.
+- `StrategyGraph` MUST include `id` and `workflow_id` fields for workflow-level identification across CLI invocations.
+- PII MUST NOT appear in any output. The domain model does not handle user PII, but this constraint MUST be maintained.
 
 **Enforcement**:
-- Code review MUST compare new subcommands against existing implementations as reference
-- Tests MUST validate output JSON schema for each subcommand
-- `validation_result_to_output()` helper function MUST be used for new validation entry points
+- CLI tests validate JSON parseability of all command output using `json.loads()`.
+- E2E tests verify `StrategyGraph` contains expected nodes, edges, and history after operations.
+- Code review MUST verify no `print()` statements in library code (only structured JSON via `json.dumps()`).
+- GAP-003 tracks the addition of structured logging for internal diagnostics.
 
 **Testability**:
-- Pass: Every `hil-dag` subcommand produces JSON matching the structured output schema
-- Pass: `hil-dag validate <valid_input> | jq '.checks, .summary'` succeeds for all subcommands
-- Pass: New subcommands use `validation_result_to_output()` helper
-- Fail: Subcommand outputs non-JSON or uses a different schema
-- Fail: New CLI entry point created outside `humaninloop_brain`
+- Pass: All CLI output is valid JSON; `StrategyGraph` JSON contains complete execution state after operations; zero `print()` calls in `humaninloop_brain/src/` (excluding test fixtures).
+- Fail: Any non-JSON output on stdout from CLI commands OR missing execution state in `StrategyGraph` after operations.
 
-**Rationale**: The structured output pattern is this project's strongest emergent convention, consistently followed across all 7 CLI subcommands. It enables programmatic consumption, CI integration, and compositional tooling. Codifying it prevents drift as new subcommands are added.
+**Rationale**: Agents consume CLI output programmatically. Non-JSON output breaks agent workflows. The `StrategyGraph` JSON file is the single source of truth for workflow state -- if it is incomplete, agents cannot make correct decisions. Logging to stderr (when implemented) preserves stdout for structured data.
 
 ---
 
-#### VI. ADR Discipline
-
-Architectural decisions MUST be documented in Architecture Decision Records.
-
-- ADRs MUST be created for decisions affecting agent architecture, skill organization, workflow structure, or DAG infrastructure design
-- ADRs MUST follow the Context/Decision/Rationale/Consequences format
-- ADRs MUST be placed in `docs/decisions/` with filename `NNN-descriptive-name.md`
-- ADR numbers MUST be sequential (001, 002, 003...)
-- ADRs MUST include Status (Proposed, Accepted, Deprecated, Superseded)
-- The ADR index at `docs/decisions/README.md` MUST be updated when ADRs are added or status changes
-
-Current ADRs (7):
-1. ADR-001: Multi-Agent Architecture
-2. ADR-002: Claude Code Native Integration
-3. ADR-003: Brownfield-First Design
-4. ADR-004: Skill-Augmented Agents
-5. ADR-005: Decoupled Agents
-6. ADR-006: RFC 2119 Auto-Invocation
-7. ADR-007: DAG-First Infrastructure
-
-**Enforcement**:
-- Code review for architectural changes MUST include ADR or justification for why ADR is not needed
-- ADR index in `docs/decisions/README.md` MUST be kept current
-- CHANGELOG.md SHOULD reference ADRs when documenting architectural changes
-
-**Testability**:
-- Pass: All files in `docs/decisions/` (except `README.md`) contain Status, Context, Decision, Rationale, Consequences sections
-- Pass: ADR numbers are sequential with no gaps
-- Pass: `docs/decisions/README.md` lists all ADR files
-- Fail: Architectural change merged without corresponding ADR
-- Fail: ADR index out of date
-
-**Rationale**: ADRs preserve decision context for future maintainers. The 7 existing ADRs demonstrate this discipline is well-established. Without ADRs, teams cargo-cult decisions they do not understand or reverse decisions without knowing the original constraints. ADR-007 (DAG-First Infrastructure) is a prime example of a decision whose rationale must be preserved.
+### Emergent Ceiling (FROM CODEBASE)
 
 ---
 
-#### VII. Skill Structure Requirements
+### V. Structured Output Contract
 
-All skills MUST follow the established skill organization pattern with progressive disclosure.
+All 7 `hil-dag` CLI subcommands MUST produce machine-parseable JSON following the established schema conventions.
 
-- Skills MUST have a `SKILL.md` entry point file
-- `SKILL.md` SHOULD use progressive disclosure: core instructions in the main file, detailed reference material in bundled files (e.g., `references/PATTERNS.md`, `references/EXAMPLES.md`)
-- Skill directories MUST use kebab-case naming with category prefix (`authoring-*`, `validation-*`, `patterns-*`, `analysis-*`, `dag-*`, `using-*`, `testing-*`, `syncing-*`, `brownfield-*`)
-- Skills with validation logic MUST include scripts in a `scripts/` subdirectory
-- Skills MUST specify related skills with invocation guidance using RFC 2119 keywords (`REQUIRED`, `OPTIONAL`)
-
-Current skill categories (9 categories, 25 skills):
-- `analysis-*` (4), `authoring-*` (6), `brownfield-*` (1), `dag-*` (1), `patterns-*` (6), `syncing-*` (1), `testing-*` (1), `using-*` (2), `validation-*` (3)
+- Validation commands (`validate`, `catalog-validate`) MUST output `{"checks": [...], "summary": {"total": N, "passed": N, "failed": N, "warnings": N}}`.
+- Mutation commands (`assemble`, `status`, `record`, `freeze`) MUST output operation result JSON with `"status"` field.
+- Query commands (`sort`) MUST output the requested data structure as JSON.
+- All commands MUST use exit code 0 for success, 1 for validation/user errors, 2 for runtime exceptions.
+- JSON output MUST go to stdout. Error diagnostics MUST go to stderr.
+- New CLI subcommands MUST follow the same output conventions before merge.
 
 **Enforcement**:
-- Code review MUST verify skill structure (SKILL.md present, kebab-case directory name, category prefix)
-- Plugin discovery validates `SKILL.md` presence
-- Code review MUST verify that large skills bundle reference files rather than placing all content in SKILL.md
+- E2E tests in `test_cli/test_e2e_scenarios.py` and `test_cli/test_spec_consistency.py` validate output schema for all 7 subcommands.
+- CLI tests verify exit codes match expected values for success, validation failure, and runtime error paths.
+- Code review MUST verify new subcommands produce conformant JSON output.
 
 **Testability**:
-- Pass: All skill directories contain `SKILL.md`
-- Pass: All skill directory names match pattern `^[a-z]+-[a-z-]+$` (kebab-case with category prefix)
-- Pass: Skills with > 300 lines of instructional content use bundled reference files
-- Fail: Skill directory missing `SKILL.md`
-- Fail: Skill directory name uses non-kebab-case or lacks category prefix
+- Pass: All 7 subcommands produce valid JSON matching their expected schema; exit codes are correct for all paths; output goes to stdout, errors to stderr.
+- Fail: Any subcommand producing non-conformant JSON OR incorrect exit code OR mixed stdout/stderr output.
 
-**Rationale**: Progressive disclosure keeps token usage efficient when skills are loaded into agent context. Category prefixes enable alphabetical grouping and quick identification of skill purpose. The progressive disclosure pattern with bundled reference files is the proven effective approach across all 25 skills.
+**Rationale**: Agents invoke `hil-dag` commands and parse output to drive workflow decisions. Schema consistency across all subcommands means agents can use uniform parsing logic. Breaking the schema breaks agent workflows.
 
 ---
 
-#### VIII. Conventional Commits
+### VI. ADR Discipline
 
-All commits MUST follow Conventional Commits specification with scope.
+Significant architectural decisions MUST be documented as Architecture Decision Records (ADRs) in `docs/decisions/`.
+
+- New architectural decisions MUST have an ADR before implementation begins.
+- ADRs MUST follow the numbered naming convention: `NNN-<kebab-case-title>.md` (e.g., `007-dag-first-infrastructure.md`).
+- ADRs MUST include: Title, Status (proposed/accepted/deprecated/superseded), Context, Decision, Consequences.
+- ADRs MUST NOT be deleted. Superseded ADRs MUST reference their replacement.
+- Trivial implementation choices (library version bumps, formatting config) do not require ADRs. ADRs are for decisions that constrain future development.
+
+**Enforcement**:
+- Code review MUST verify ADR presence for PRs that introduce new architectural patterns, new layers, new external dependencies, or new integration patterns.
+- `docs/decisions/README.md` MUST maintain an index of all ADRs.
+- ADR presence is a code review checklist item, not a CI gate (architectural significance requires human judgment).
+
+**Testability**:
+- Pass: Every architectural change has a corresponding ADR in `docs/decisions/`; ADR follows naming convention; README index is current.
+- Fail: Architectural change merged without ADR OR ADR missing required sections OR README index outdated.
+
+**Rationale**: Architectural decisions outlive the developers who made them. Without ADRs, future maintainers cannot understand why constraints exist, leading to either cargo-culting or accidental violation. The 7 existing ADRs (001-007) demonstrate this pattern's value.
+
+---
+
+### VII. Skill Structure Standards
+
+Claude Code skills in `plugins/humaninloop/skills/` MUST follow the established structure conventions.
+
+- Every skill MUST have a `SKILL.md` file as its entry point.
+- Skills MUST use progressive disclosure: core instructions in `SKILL.md`, detailed reference material in a `references/` subdirectory.
+- Skill directory names MUST use kebab-case with a category prefix (e.g., `authoring-constitution`, `analysis-codebase`, `patterns-entity-modeling`).
+- Skills MUST NOT duplicate content that belongs in a reference file. Large tables, examples, and templates MUST be in `references/`.
+- `SKILL.md` MUST include: Overview, When to Use, When NOT to Use, and Related Skills sections.
+
+**Enforcement**:
+- Code review MUST verify new skills have `SKILL.md` with required sections.
+- Code review MUST verify kebab-case naming with category prefix.
+- Shell syntax check in CI validates any scripts bundled with skills: `find plugins/humaninloop -name '*.sh' -print0 | xargs -0 -n1 bash -n`.
+
+**Testability**:
+- Pass: Every skill directory has `SKILL.md` with Overview/When to Use/When NOT to Use/Related Skills; directory name is kebab-case with category prefix; no orphaned reference files.
+- Fail: Skill directory missing `SKILL.md` OR `SKILL.md` missing required sections OR non-kebab-case directory name.
+
+**Rationale**: Skills are the primary mechanism for augmenting agent capabilities. Consistent structure enables progressive disclosure -- agents read `SKILL.md` first and drill into references only when needed. Without structure, skills become monolithic instruction dumps that degrade agent performance.
+
+---
+
+### VIII. Conventional Commits
+
+All commits MUST follow [Conventional Commits](https://www.conventionalcommits.org/) format with scope.
 
 - Format: `type(scope): description`
-- Valid types: `feat`, `fix`, `docs`, `refactor`, `chore`, `test`, `ci`
-- Scope MUST identify affected plugin or area (e.g., `humaninloop`, `constitution`, `brain`, `dag`)
-- Description MUST be imperative mood, lowercase, no period
-- Breaking changes MUST include `BREAKING CHANGE:` footer or `!` after type
-- Multi-line commit bodies SHOULD provide additional context for non-trivial changes
+- Valid types: `feat`, `fix`, `docs`, `refactor`, `chore`, `test`, `ci`.
+- Scope MUST identify the affected area (e.g., `humaninloop`, `brain`, `constitution`, `dag`).
+- Description MUST be imperative mood, lowercase, with no trailing period.
+- Breaking changes MUST include `!` after type/scope or `BREAKING CHANGE:` in the footer.
+- Merge commits are exempt from format validation.
 
 **Enforcement**:
-- Pre-commit hook (`conventional-pre-commit` v4.0.0) validates commit message format on every commit
-- CI job (`commit-lint` in `.github/workflows/ci.yml`) validates all PR commits against pattern `^(feat|fix|docs|refactor|chore|test|ci)(\([a-z][a-z0-9-]*\))?!?: .+`
-- CLAUDE.md instructs AI agents to follow this convention
-- CHANGELOG.md updates MUST reference conventional commit types
+- Pre-commit hook (`conventional-pre-commit` v4.0.0) validates format on every commit locally.
+- CI job (`commit-lint`) validates all PR commits against pattern `^(feat|fix|docs|refactor|chore|test|ci)(\([a-z][a-z0-9-]*\))?!?: .+` and blocks merge on violation.
+- Double gate (local + CI) ensures no single point of failure for commit format governance.
 
 **Testability**:
-- Pass: `git log --oneline -20` shows all commits matching pattern `^[a-f0-9]+ (feat|fix|docs|refactor|chore|test|ci)(\([a-z-]+\))?: .+`
-- Pass: Pre-commit hook rejects malformed commit messages locally
-- Pass: CI `commit-lint` job passes on PR
-- Fail: Commit message does not match the conventional commits pattern
-- Fail: CI `commit-lint` job fails
+- Pass: Every non-merge commit in PR matches the conventional commits regex pattern; pre-commit hook is installed and active.
+- Fail: Any non-merge commit failing the pattern OR pre-commit hook not installed.
 
-**Rationale**: Conventional commits enable automated changelog generation, semantic versioning decisions, and clear history for debugging. The scope requirement ensures changes are traceable to specific components. Pre-commit hooks and CI enforcement provide two layers of automated validation, catching violations before they reach the repository.
+**Rationale**: Conventional commits enable automated changelog generation, semantic versioning decisions, and clear commit history. The double gate (pre-commit + CI) prevents format violations regardless of whether developers have pre-commit hooks installed.
 
 ---
 
-#### IX. Deterministic Infrastructure
+### IX. Deterministic Infrastructure
 
-Deterministic logic MUST be implemented in Python infrastructure (`humaninloop_brain`), not in LLM agent prompts. Deterministic operations are divided into two tiers based on output guarantees.
+All graph operations, structural validation, and workflow execution logic MUST live in `humaninloop_brain` and MUST produce deterministic results.
 
-**Tier 1 -- Strict Graph-Algorithmic** (identical output for identical input):
-- Topological sort (`graph/sort.py`)
-- Cycle detection (`graph/guard.py`)
-- Structural validation (`validators/structural.py`, `validators/contracts.py`, `validators/invariants.py`)
-- Edge inference from artifact contracts (`graph/inference.py`)
-- DAG assembly (add/re-open nodes, edge creation)
-- Pass lifecycle (freeze, status transitions, immutability enforcement)
-- Type-status coherence via `TYPE_STATUS_MAP`
-
-**Tier 2 -- Heuristic-Deterministic** (reproducible but not guaranteed optimal):
-- `resolve_by_capabilities()` -- capability tag intersection scoring
-- `resolve_by_description()` -- word-overlap scoring for intent-to-catalog resolution
-
-Both tiers MUST be implemented in `humaninloop_brain`. LLM agents MUST consume deterministic infrastructure output via CLI (`hil-dag`) or Python API, not re-implement graph logic. Shell scripts (`dag-*.sh`) MUST delegate to `hil-dag` CLI subcommands.
-
-**Layer separation**:
-
-| Layer | Location | Responsibility | MAY contain |
-|-------|----------|----------------|-------------|
-| Entities | `entities/` (7 modules) | Pydantic models, enums, type definitions | Validation logic via model validators |
-| Graph | `graph/` (5 modules) | NetworkX operations, DAG algorithms | Topological sort, cycle detection, edge inference, execution order |
-| Validators | `validators/` (3 modules) | Structural validation, invariant checking | Violation reporting via `ValidationViolation` |
-| Passes | `passes/` (1 module) | Pass lifecycle, freezing, history | State transitions, immutability enforcement via `FrozenEntryError` |
-| CLI | `cli/` (1 module) | Command-line interface, argument parsing | JSON output formatting via `validation_result_to_output()` |
-| Catalogs | `catalogs/` (JSON files) | Workflow node catalog definitions | Node definitions, edge constraints, invariants, capabilities |
-
-All locations are relative to `humaninloop_brain/src/humaninloop_brain/`.
+- Deterministic logic MUST NOT live in agent prompts. Agents MUST consume `humaninloop_brain` via the `hil-dag` CLI.
+- The `hil-dag` CLI MUST be the sole write gate for `StrategyGraph` JSON files. Agents MUST NOT write or modify JSON directly.
+- The system implements two determinism tiers:
+  - **Tier 1 (Strict Graph-Algorithmic)**: Topological sort, cycle detection, acyclicity verification, edge inference from contracts. These operations MUST be fully deterministic -- same input always produces same output.
+  - **Tier 2 (Heuristic-Deterministic)**: Catalog node resolution by capability tags or description. Resolution MUST be deterministic given the same catalog and query. Ambiguous resolution MUST fail explicitly rather than guessing.
+- Lexicographic topological sort MUST be used to ensure stable execution ordering across runs.
+- `save_graph()` MUST use the write-validate-swap pattern: backup existing file, write to temp, validate parse-back, atomic rename. This prevents corruption of the single-file `StrategyGraph` JSON.
 
 **Enforcement**:
-- Code review MUST verify that new graph logic is in `humaninloop_brain`, not in agent definitions or shell scripts
-- Code review MUST verify shell scripts delegate to `hil-dag` CLI
-- Code review MUST classify new deterministic operations as Tier 1 or Tier 2
-- ADR-007 documents the architectural decision and MUST be referenced for context
+- Tests in `test_graph/test_sort.py` verify lexicographic topological sort stability.
+- Tests in `test_graph/test_inference.py` verify deterministic edge inference.
+- Tests in `test_cli/` verify that `save_graph()` uses atomic write pattern.
+- Code review MUST reject PRs that add graph logic to agent prompts or plugin code.
 
 **Testability**:
-- Pass: All Tier 1 operations produce identical output for identical input across multiple runs
-- Pass: All Tier 2 operations produce consistent output for identical input (same scoring, same ranking)
-- Pass: Shell scripts in `plugins/humaninloop/skills/dag-operations/scripts/dag-*.sh` invoke `hil-dag` subcommands
-- Pass: No NetworkX or graph algorithm code exists outside `humaninloop_brain/`
-- Fail: Graph logic implemented in agent markdown files or shell scripts
-- Fail: Shell script implements DAG operations without delegating to `hil-dag`
-- Fail: Non-deterministic logic placed in `humaninloop_brain` without Tier 2 classification
+- Pass: Same graph input produces identical topological sort output across 100 runs; edge inference produces identical edges for identical contracts; catalog resolution fails explicitly on ambiguity; `save_graph()` produces valid JSON after atomic write.
+- Fail: Non-deterministic sort order OR silent resolution of ambiguous catalog queries OR corrupted `StrategyGraph` after write failure.
 
-**Rationale**: LLM agents produce non-deterministic output by nature. Graph operations (cycle detection, topological sort, structural validation) require deterministic, testable behavior. The two-tier distinction acknowledges that catalog resolution involves heuristic scoring -- it is deterministic (same input produces same output) but not provably optimal. Separating concerns means the infrastructure layer can be tested at 97% coverage while agents focus on judgment-based tasks. This separation is documented in ADR-007.
+**Rationale**: The core value proposition of `humaninloop_brain` is deterministic workflow execution. If agents make graph decisions via LLM prompts instead of deterministic algorithms, workflow behavior becomes unpredictable. The CLI-as-write-gate pattern ensures all mutations go through validated code paths.
 
 ---
 
-#### X. Pydantic Entity Modeling
+### X. Pydantic Entity Modeling
 
-All domain entities in `humaninloop_brain` MUST use Pydantic frozen models with explicit type-status validation.
+All domain entities in `humaninloop_brain/src/humaninloop_brain/entities/` MUST use Pydantic v2 models with frozen configuration.
 
-- Entity models MUST use `model_config = ConfigDict(frozen=True)` (or `{"frozen": True}`) for immutability
-- Status updates MUST create new model instances (via `model_copy()`) rather than mutating existing ones
-- Model validators MUST enforce type-status coherence via `TYPE_STATUS_MAP` (e.g., task nodes MUST NOT have gate statuses)
-- Model validators MUST enforce derived field consistency (node `status`, `verdict`, `last_active_pass` derived from latest `NodeHistoryEntry`)
-- Enum types MUST be used for constrained value sets
-- `FrozenEntryError` MUST be raised when code attempts to modify a frozen history entry or pass entry
-
-**V3 entity model** (11 enums, 14 model classes across 7 modules):
-
-| Module | Entities |
-|--------|----------|
-| `enums.py` | `NodeType`, `EdgeType`, `PassOutcome`, `TaskStatus`, `GateLifecycleStatus`, `GateVerdict`, `DecisionStatus`, `MilestoneStatus`, `InvariantEnforcement`, `InvariantSeverity`, `TYPE_STATUS_MAP` |
-| `nodes.py` | `GraphNode`, `NodeHistoryEntry`, `NodeContract`, `ArtifactConsumption`, `EvidenceAttachment` |
-| `edges.py` | `Edge` |
-| `dag_pass.py` | `PassEntry`, `ExecutionTraceEntry` |
-| `strategy_graph.py` | `StrategyGraph` |
-| `catalog.py` | `CatalogNodeDefinition`, `NodeCatalog`, `EdgeConstraint`, `SystemInvariant` |
-| `validation.py` | `ValidationResult`, `ValidationViolation` |
+- All Pydantic models MUST use `model_config = {"frozen": True}`. No mutable domain models are permitted.
+- Type-status validation MUST use the `TYPE_STATUS_MAP` enum mapping. Each `NodeType` has a corresponding status enum (`TaskStatus`, `GateLifecycleStatus`, `DecisionStatus`, `MilestoneStatus`), and `model_validator(mode="after")` MUST enforce valid combinations.
+- Derived fields (e.g., `edge_id` computed from source, target, and type) MUST be enforced by `model_validator`, not left to callers.
+- New entities MUST be added to the `entities/` layer with appropriate validators.
+- Entity models MUST NOT contain business logic beyond validation. Business logic belongs in `graph/`, `validators/`, or `passes/`.
 
 **Enforcement**:
-- Code review MUST verify new entities use frozen Pydantic models
-- Code review MUST verify type-status validators are present on models with status fields
-- Code review MUST verify derived field validators are present on models with history arrays
-- Tests MUST verify that mutation attempts raise appropriate errors
-- Tests MUST verify type-status coherence constraints
+- Tests in `test_entities/` verify frozen model behavior (modification attempts raise `ValidationError`).
+- Tests verify `TYPE_STATUS_MAP` enforcement: invalid type-status combinations raise `ValueError`.
+- Tests verify derived field computation matches expected values.
+- Code review MUST verify new models have `model_config = {"frozen": True}` and appropriate validators.
 
 **Testability**:
-- Pass: All entity models in `humaninloop_brain/src/humaninloop_brain/entities/` use `frozen=True`
-- Pass: History entry mutation attempt raises `FrozenEntryError`
-- Pass: `GraphNode(type=NodeType.TASK, status="passed")` raises `ValueError` (passed is a `GateLifecycleStatus`, not valid for tasks)
-- Pass: All constrained value sets use Enum types, not raw strings
-- Pass: `GraphNode` with history enforces `status == history[-1].status`
-- Fail: New entity model without `frozen=True`
-- Fail: Code mutates an entity model in-place instead of creating a new instance
-- Fail: Raw string used where an Enum type exists
+- Pass: All Pydantic models have `frozen: True`; type-status violations raise `ValueError`; derived fields are computed correctly; entity models contain no business logic.
+- Fail: Any model missing `frozen: True` OR type-status mismatch not raising error OR derived field computation delegated to caller.
 
-**Rationale**: Immutable entities prevent accidental state corruption in StrategyGraph processing. When a pass is frozen (completed), its history entries MUST NOT change -- `FrozenEntryError` enforces this invariant. Type-status validation catches category errors at construction time (a task cannot be "passed" -- only gates pass). Derived field validation ensures top-level node fields always reflect the latest history entry, preventing stale state.
+**Rationale**: Frozen models prevent accidental state mutation in a multi-pass DAG system where nodes are processed repeatedly. The `FrozenEntryError` pattern catches attempts to modify completed history entries. Type-status validation at the model level prevents invalid graph states from ever being constructed, which is cheaper than detecting them later.
 
 ---
 
-#### XI. Layer Dependency Discipline
+### XI. Layer Dependency Rule
 
-The `humaninloop_brain` package MUST maintain strict unidirectional import dependencies between layers.
-
-**Import hierarchy** (each layer MAY only import from layers above it):
+The `humaninloop_brain` package MUST maintain strict unidirectional import dependencies across its 5 layers.
 
 ```
-entities       (no internal imports)
+entities       (no internal cross-layer imports; only entities submodules)
     |
   graph        (imports from: entities)
     |
@@ -432,121 +317,46 @@ validators     (imports from: entities, graph)
    cli         (imports from: entities, graph, validators, passes)
 ```
 
-- No module MUST import from a layer below it in the hierarchy
-- `entities/` MUST NOT import from `graph/`, `validators/`, `passes/`, or `cli/`
-- `graph/` MUST NOT import from `validators/`, `passes/`, or `cli/`
-- `validators/` MUST NOT import from `passes/` or `cli/`
-- `passes/` MUST NOT import from `cli/`
-- Cross-layer imports within the same tier (e.g., `validators/` importing from `passes/`) MUST NOT occur
+- No module MUST import from a layer above it in this hierarchy (e.g., `entities` MUST NOT import from `graph`; `graph` MUST NOT import from `validators`).
+- `validators` and `passes` are at the same tier -- they MAY NOT import from each other. Both import from `entities` and `graph` only.
+- Inline imports that violate layer direction are violations regardless of being inside function bodies.
+- New layers or modules MUST be placed in the correct position in the hierarchy and documented.
 
 **Enforcement**:
-- Code review MUST verify import statements do not violate the hierarchy
-- Tests SHOULD include an import-order check that scans `from humaninloop_brain.` imports in each module
-- CI MAY run a static import analysis tool to detect violations
+- Import analysis: `grep -r "from humaninloop_brain" humaninloop_brain/src/humaninloop_brain/` filtered by layer to detect upward imports. This SHOULD be automated in CI (GAP-002 candidate).
+- Code review MUST verify all imports respect layer direction.
+- The existing codebase has zero layer violations (verified in codebase analysis).
 
 **Testability**:
-- Pass: `grep -rn "from humaninloop_brain.graph\|from humaninloop_brain.validators\|from humaninloop_brain.passes\|from humaninloop_brain.cli" humaninloop_brain/src/humaninloop_brain/entities/` returns no matches
-- Pass: `grep -rn "from humaninloop_brain.validators\|from humaninloop_brain.passes\|from humaninloop_brain.cli" humaninloop_brain/src/humaninloop_brain/graph/` returns no matches
-- Pass: No circular import errors when running `python -c "import humaninloop_brain"`
-- Fail: Any module imports from a layer below it in the hierarchy
-- Fail: Circular import detected
+- Pass: Zero upward imports detected by import analysis; all new modules placed in correct layer position.
+- Fail: Any import from a lower layer to a higher layer (e.g., `entities` importing from `graph`).
 
-**Rationale**: Unidirectional dependencies prevent circular imports, enable independent testing of each layer, and enforce separation of concerns. The current codebase already follows this pattern perfectly -- codifying it prevents regression as the package grows. When every layer depends only on layers above it, changes to lower layers (e.g., CLI output formatting) cannot break higher layers (e.g., entity validation).
+**Rationale**: Unidirectional dependencies make the codebase testable in isolation -- `entities` can be tested without `graph`, `graph` without `validators`. Bidirectional imports create circular dependency chains that make isolated testing impossible and refactoring dangerous. This is the project's architectural backbone.
 
 ---
 
-#### XII. Catalog-Driven Assembly
+### XII. Catalog-Driven Assembly
 
-Workflow node assembly MUST be driven by JSON node catalogs with capability-based resolution and system invariant enforcement.
+Node assembly MUST be driven by the JSON catalog, not by hardcoded node construction in agent code.
 
-- Node catalogs MUST define available nodes with `node_id`, `type`, `name`, `description`, `capabilities`, and `contract` (consumes/produces)
-- Node catalogs MUST define edge constraints specifying valid source/target node types per edge type
-- Node catalogs MUST define system invariants with `id`, `rule`, `enforcement` (assembly-time or runtime), and `severity`
-- The `hil-dag assemble` command MUST resolve intent to catalog nodes using two-tier resolution:
-  1. Capability tag match (primary): intersect recommendation capability tags with catalog node `capabilities` arrays
-  2. Semantic description match (fallback): word-overlap scoring between intent and catalog node `description`/`name`
-- Gates with `carry_forward: true` MUST auto-satisfy invariant checks across passes when previously passed
-- Assembly MUST auto-resolve invariant prerequisites (e.g., adding prerequisite gate nodes when INV-002 requires constitution verification)
-- The `hil-dag` CLI MUST be the sole write gate -- agents MUST NOT write StrategyGraph JSON directly
-
-**Current system invariants**:
-
-| Invariant | Rule | Enforcement |
-|-----------|------|-------------|
-| INV-001 | Every task node output must pass through a gate node | Assembly-time |
-| INV-002 | Constitution must exist before specification work | Assembly-time |
-| INV-003 | A `validates` edge must connect to a gate node, not a task node | Assembly-time |
-| INV-004 | Maximum 5 passes per workflow before mandatory human checkpoint | Assembly-time |
-| INV-005 | Frozen history entries must not be modified | Runtime |
+- The node catalog (`humaninloop_brain/catalogs/`) MUST define all available node types with their contracts, capability tags, and constraints.
+- Node resolution MUST use the two-tier system: Tier 1 (capability tag match) attempted first, Tier 2 (semantic description fallback) used only when Tier 1 produces no match.
+- System invariants (INV-001 through INV-005) MUST be enforced at assembly-time or runtime as specified in the catalog.
+- Edge constraints in the catalog MUST define valid source-target node type combinations.
+- `carry_forward` gates MUST be respected: nodes MUST NOT advance past a gate that has not been completed.
+- New node types MUST be added to the catalog with contracts and capability tags before they can be assembled.
 
 **Enforcement**:
-- `hil-dag catalog-validate` MUST validate catalog schema and constraint consistency
-- `hil-dag assemble` MUST enforce all assembly-time invariants
-- `hil-dag record`, `hil-dag status`, `hil-dag freeze` MUST enforce runtime invariants (frozen entry immutability)
-- Tests MUST verify invariant enforcement for each INV-XXX
-- Code review MUST verify new catalog entries include `capabilities` arrays
+- Tests in `test_validators/test_invariants.py` verify all 5 system invariants.
+- Tests in `test_cli/` verify catalog-driven assembly produces expected graph structures.
+- `hil-dag catalog-validate` CLI command validates catalog integrity.
+- Code review MUST verify new node types are in the catalog, not hardcoded.
 
 **Testability**:
-- Pass: `hil-dag catalog-validate catalogs/specify-catalog.json | jq .summary.failed` returns `0`
-- Pass: Assembling a task node without a validating gate triggers INV-001 violation
-- Pass: `carry_forward` gate auto-satisfies on pass 2+ when passed in prior pass
-- Pass: Direct JSON file writes by agents are rejected (only `hil-dag` CLI may write)
-- Fail: Catalog node missing `capabilities` array
-- Fail: Assembly bypasses invariant checks
-- Fail: Agent writes StrategyGraph JSON directly without going through `hil-dag` CLI
+- Pass: All 5 system invariants (INV-001 through INV-005) pass validation; catalog-validate reports zero errors; assembly uses catalog definitions; edge constraints respected.
+- Fail: Any invariant violation OR assembly bypassing catalog OR edge constraint violation OR missing catalog entry for new node type.
 
-**Rationale**: Catalog-driven assembly centralizes workflow definitions in declarative JSON, making them inspectable, validatable, and version-controlled independently of code. Capability-based resolution enables intent-driven assembly where the State Analyst recommends by capability tags and the DAG Assembler resolves to concrete catalog nodes. System invariants enforce structural correctness at assembly time, catching constraint violations before workflow execution begins.
-
----
-
-## Architecture
-
-### Three-Tier Agent Model
-
-The v3 architecture uses a three-tier agent model where the Supervisor is domain-agnostic, the State Analyst and DAG Assembler own domain knowledge and graph mechanics respectively, and specialist agents focus on their domain expertise.
-
-```
-Tier 1: Supervisor (domain-agnostic dispatcher)
-    |
-    +-- Tier 2a: State Analyst (domain-aware recommender, reads catalog + artifacts + DAG)
-    +-- Tier 2b: DAG Assembler (graph mechanic, resolves intent, assembles nodes, freezes passes)
-    |
-    +-- Tier 3: Domain Agents (8 specialists: requirements-analyst, devils-advocate,
-        plan-architect, principal-architect, task-architect, technical-analyst,
-        testing-agent, ui-designer)
-```
-
-**Knowledge distribution**:
-
-| Agent | Knows | Does NOT Know |
-|-------|-------|---------------|
-| Supervisor | 4 node types, 6 edge types, pass lifecycle, gate verdicts, goal criteria | Node IDs, agent types, strategy patterns, catalog contents |
-| State Analyst | Catalog, strategy skills, artifact state, DAG history, gap classification | Assembly mechanics, prompt construction, graph structure operations |
-| DAG Assembler | Catalog structure, invariants, edge inference, intent resolution | Strategy patterns, artifact content, prior pass context |
-| Domain Agents | Their domain expertise, skills, artifact conventions | Workflow structure, DAG mechanics, other agents' existence |
-
-### Single-DAG Iteration Model
-
-A single `StrategyGraph` JSON file captures the complete workflow story across multiple passes:
-
-- **One file per workflow invocation** -- the entire history in one place
-- **Nodes accumulate history** -- each pass adds a `NodeHistoryEntry`, never modifies prior entries
-- **Structural edges persist** -- `depends_on`, `produces`, `validates`, `constrained_by`, `informed_by` edges created once at first assembly
-- **Revision edges are explicit** -- `triggered_by` edges capture why a node re-executed, with `source_pass`, `target_pass`, and `reason` fields
-- **Pass-entry immutability** -- frozen entries cannot be modified; enforced by `hil-dag` CLI via `FrozenEntryError`
-- **Derived fields computed automatically** -- node `status`, `verdict`, and `last_active_pass` always equal the values from the most recent history entry
-
-### `hil-dag` CLI Subcommands
-
-| Command | Purpose |
-|---------|---------|
-| `hil-dag validate` | Structural validation (10-step) of a StrategyGraph |
-| `hil-dag sort` | Topological sort producing execution order |
-| `hil-dag assemble` | Add new node or re-open existing node with new history entry |
-| `hil-dag status` | Update node status in current pass history entry |
-| `hil-dag record` | Write evidence, trace, and status to a node's current pass history entry |
-| `hil-dag freeze` | Freeze current pass entries atomically; optionally create next pass |
-| `hil-dag catalog-validate` | Validate node catalog against schema and constraints |
+**Rationale**: Catalog-driven assembly separates "what nodes exist" (catalog) from "how nodes are assembled" (CLI). This enables non-developers to modify workflow structures by editing JSON catalogs without touching Python code. It also makes the set of valid workflows discoverable and auditable.
 
 ---
 
@@ -554,20 +364,21 @@ A single `StrategyGraph` JSON file captures the complete workflow story across m
 
 | Category | Choice | Version | Rationale |
 |----------|--------|---------|-----------|
-| Infrastructure Language | Python | >= 3.11 | Type hints, Pydantic support, rich stdlib |
-| Entity Modeling | Pydantic | >= 2.0 | Frozen models, model validators, JSON serialization |
-| Graph Operations | NetworkX | >= 3.0 | Mature DAG algorithms, topological sort, cycle detection |
-| Package Manager | uv | Latest | Fast, reliable Python package management |
-| Build System | hatchling | Latest | PEP 517 compliant, minimal configuration |
-| Shell Scripts | Bash | POSIX-compatible | Available on all target platforms, CI integration |
-| Test Framework | pytest | >= 8.0 | Fixtures, parametrization, subprocess testing |
-| Coverage Tool | pytest-cov | >= 5.0 | Coverage measurement, fail-under thresholds |
-| Commit Linting | conventional-pre-commit | v4.0.0 | Pre-commit hook for Conventional Commits |
+| Infrastructure Language | Python | >= 3.11 (CI: 3.12) | Type hints, ecosystem, Pydantic integration |
+| Entity Modeling | Pydantic | >= 2.0 | Frozen models, validators, JSON serialization |
+| Graph Operations | NetworkX | >= 3.0 | MultiDiGraph, topological sort, cycle detection |
+| Package Manager | uv | Latest | Fast resolution, lockfile support |
+| Build System | hatchling | Latest | PEP 517 compliance, script entry points |
+| Test Framework | pytest | >= 8.0 | Fixtures, parametrization, plugin ecosystem |
+| Coverage Tool | pytest-cov | >= 5.0 | Coverage measurement integrated with pytest |
+| Commit Linting | conventional-pre-commit | v4.0.0 | Pre-commit hook for conventional commits |
 | Shell Linting | shellcheck-py | v0.10.0.1 | Shell script static analysis |
-| Plugin Architecture | Claude Code Plugin System | N/A | Native integration with Claude Code runtime |
-| Primary Content | Markdown | N/A | Universal readability, version control friendly |
-| Version Control | Git | N/A | Industry standard, GitHub integration |
-| GitHub Integration | `gh` CLI | N/A | Scriptable, consistent across workflows |
+| Pre-commit Hooks | pre-commit-hooks | v5.0.0 | AST check, YAML check, whitespace, EOF, large files |
+| Shell Scripts | Bash | POSIX-compatible | Plugin scripts |
+| Plugin Architecture | Claude Code Plugin System | N/A | Agent/skill/command delivery |
+| Primary Content | Markdown | N/A | Documentation, skills, agents |
+| Version Control | Git | N/A | Source control |
+| GitHub Integration | `gh` CLI | N/A | GitHub operations from command line |
 
 ---
 
@@ -575,16 +386,16 @@ A single `StrategyGraph` JSON file captures the complete workflow story across m
 
 | Gate | Scope | Requirement | Command | Enforcement |
 |------|-------|-------------|---------|-------------|
-| Python Tests | humaninloop_brain | All 381+ tests pass | `cd humaninloop_brain && uv run pytest --tb=short` | CI automated |
-| Test Coverage | humaninloop_brain | >= 90% | `cd humaninloop_brain && uv run pytest --cov --cov-fail-under=90` | CI automated, blocking |
-| Python Syntax | humaninloop_brain | Valid Python | `find src/humaninloop_brain -name '*.py' -print0 \| xargs -0 uv run python -m py_compile` | CI automated |
-| Shell Syntax | Plugin scripts | Valid Bash | `find plugins/humaninloop -name '*.sh' -print0 \| xargs -0 -n1 bash -n` | CI automated |
-| JSON Schema | CLI output | Valid structured output | `hil-dag validate <input> \| jq .` | Tests |
-| Commit Format | All | Conventional Commits | Pre-commit hook + CI `commit-lint` job | CI automated + pre-commit |
-| ADR Presence | Architectural changes | ADR exists | Manual review of `docs/decisions/` | Code review |
-| Secret Scanning | All | No secrets in code | `git secrets --scan` | GAP-003: not yet configured |
-
-**GAP-003**: Secret scanning is not yet configured in CI. This SHOULD be added to the CI pipeline.
+| Python Tests | `humaninloop_brain` | All 381+ tests pass | `cd humaninloop_brain && uv run pytest --cov --cov-report=term --tb=short -q` | CI automated, blocking |
+| Test Coverage | `humaninloop_brain` | >= 90% | CI extracts coverage from pytest output; fails if < 90 | CI automated, blocking |
+| Python Syntax (brain) | `humaninloop_brain` | Valid Python AST | `find src/humaninloop_brain -name '*.py' -print0 \| xargs -0 uv run python -m py_compile` | CI automated, blocking |
+| Python Syntax (plugins) | `plugins/humaninloop/skills` | Valid Python AST | `find plugins/humaninloop/skills -name '*.py' -print0 \| xargs -0 python3 -m py_compile` | CI automated, blocking |
+| Shell Syntax | `plugins/humaninloop` | Valid Bash | `find plugins/humaninloop -name '*.sh' -print0 \| xargs -0 -n1 bash -n` | CI automated, blocking |
+| Commit Format | All | Conventional Commits | Pre-commit hook + CI `commit-lint` job (regex: `^(feat\|fix\|docs\|refactor\|chore\|test\|ci)(\([a-z][a-z0-9-]*\))?!?: .+`) | CI automated + pre-commit, blocking |
+| JSON Schema | CLI output | Valid structured output | `hil-dag validate <input> \| jq .` | Tests, blocking |
+| ADR Presence | Architectural changes | ADR exists in `docs/decisions/` | Manual review | Code review |
+| Secret Scanning | All | No secrets in code | `gitleaks detect --source .` | GAP-001: not yet configured |
+| Static Type Check | `humaninloop_brain` | Zero type errors | `mypy` or `pyright` | GAP-002: not yet configured |
 
 ---
 
@@ -592,118 +403,101 @@ A single `StrategyGraph` JSON file captures the complete workflow story across m
 
 ### Amendment Process
 
-1. Propose change via PR to `.humaninloop/memory/constitution.md`
-2. Document rationale for change in PR description
-3. Review impact on existing code and CLAUDE.md sync artifacts
-4. Obtain maintainer approval
-5. Update version per semantic versioning
-6. Update CLAUDE.md to reflect changes (see Synchronization section)
-7. Include both constitution and CLAUDE.md in the same commit
+1. Propose change via PR to this constitution file.
+2. Document rationale in PR description.
+3. Review impact on existing code and governance.
+4. Update version per semantic versioning (see Version Policy below).
+5. Update `CLAUDE.md` to reflect all changes per the CLAUDE.md Sync Mandate.
+6. Include both constitution and `CLAUDE.md` in the same commit.
+7. PR description MUST note "Constitution sync: CLAUDE.md updated".
 
 ### Version Policy
 
-- **MAJOR**: Principle removal, incompatible redefinition, or threshold change that breaks existing compliance
-- **MINOR**: New principle, significant expansion of existing principle, or new quality gate
-- **PATCH**: Clarification, typo fixes, wording improvement, or updated counts/statistics
+| Bump | Trigger | Examples |
+|------|---------|---------|
+| **MAJOR** | Principle removal or incompatible redefinition | Removing a principle; lowering a NON-NEGOTIABLE threshold |
+| **MINOR** | New principle added or significant expansion | Adding Principle XIII; adding 5+ rules to existing principle |
+| **PATCH** | Clarification or non-semantic wording change | Fixing typos; rewording for clarity; adding examples |
 
 ### Exception Registry
 
-Approved exceptions to constitution principles MUST be recorded in `docs/constitution-exceptions.md` (create when first exception is approved).
+Approved exceptions to constitution principles MUST be recorded in `docs/constitution-exceptions.md` (create if not exists) with:
 
-Exception record format:
-
-| Field | Required |
-|-------|----------|
-| Exception ID | EXC-XXX |
-| Principle | Which principle is excepted |
-| Scope | Which files/areas are affected |
-| Justification | Why exception is needed |
-| Approved By | Maintainer who approved |
+| Field | Description |
+|-------|-------------|
+| Exception ID | `EX-NNN` |
+| Principle | Which principle is being excepted |
+| Scope | What code/area is affected |
+| Justification | Why the exception is necessary |
+| Approved By | Who approved (PR author + reviewer) |
 | Date | When approved (ISO format) |
-| Expiry | When exception should be reviewed |
+| Expiry | When exception should be re-evaluated |
 | Tracking Issue | GitHub issue for resolution |
 
-### Approvers
+### Compliance Review
 
-In absence of CODEOWNERS file, project maintainers have approval authority. Maintainers are identified by repository admin access.
+- Constitution compliance SHOULD be reviewed quarterly.
+- Exception registry MUST be reviewed for expired exceptions quarterly.
+- Quality gate thresholds SHOULD be evaluated against actual metrics annually.
 
 ---
 
 ## CLAUDE.md Synchronization
 
-The `CLAUDE.md` file at repository root MUST remain synchronized with this constitution. It serves as the primary agent instruction file and MUST contain all information necessary for AI coding assistants to operate correctly.
+The `CLAUDE.md` file at repository root MUST remain synchronized with this constitution. It serves as the primary AI agent instruction file and MUST contain all information necessary for AI coding assistants to operate correctly.
 
 **Mandatory Sync Artifacts**:
 
 | Constitution Section | CLAUDE.md Section | Sync Rule |
 |---------------------|-------------------|-----------|
-| Core Principles (I-XII) | Key Principles table | MUST list all 12 principles with enforcement keywords |
+| Core Principles (I-XII) | Key Principles table | MUST list all principles with enforcement keywords |
+| Layer Import Rules (XI) | Layer Dependency Rule section | MUST replicate exact layer hierarchy |
 | Technology Stack | Technology Stack table | MUST match exactly |
-| Quality Gates | Quality Gates table | MUST match exactly (commands, thresholds) |
-| Conventional Commits (VIII) | Commit Conventions | MUST match exactly |
-| Governance | Development Workflow | MUST include amendment rules |
-| Layer Dependency (XI) | Architecture guidance | MUST replicate import hierarchy |
+| Quality Gates | Quality Gates table | MUST match exactly |
+| Governance | Development Workflow + Constitution Amendment | MUST include amendment and commit rules |
+| Commit Conventions (VIII) | Commit Conventions section | MUST match format, types, and examples |
 
 **Synchronization Process**:
 
 When amending this constitution:
 
-1. Update constitution version and content
-2. Update CLAUDE.md to reflect changes in all mapped sections
-3. Verify CLAUDE.md reflects current constitution version
-4. Include both files in the same commit
-5. PR description MUST note "Constitution sync: CLAUDE.md updated"
+1. Update constitution version and content.
+2. Update `CLAUDE.md` to reflect all changes per the Mandatory Sync Artifacts table.
+3. Verify `CLAUDE.md` version footer matches constitution version.
+4. Include both files in the same commit.
+5. PR description MUST note "Constitution sync: CLAUDE.md updated".
 
 **Enforcement**:
 
-- Code review MUST verify CLAUDE.md is updated when constitution changes
-- Sync drift between files is a blocking issue for PRs that modify either file
+- Code review MUST verify `CLAUDE.md` is updated when constitution changes.
+- `CLAUDE.md` MUST display the same version number as the constitution in its sync footer.
+- Sync drift between files is a blocking issue for PRs that modify either file.
 
-**Rationale**: If CLAUDE.md diverges from the constitution, agents will operate with outdated or incorrect guidance, undermining the governance this constitution establishes.
+**Rationale**: If `CLAUDE.md` diverges from the constitution, AI agents operate with outdated or incorrect guidance, undermining the governance this constitution establishes. The CLAUDE.md is the operational interface; the constitution is the source of truth.
 
 ---
 
 ## Evolution Notes
 
-This constitution was created from brownfield analysis of the HumanInLoop project (v3.0.0 complete rewrite).
+This constitution was created from brownfield analysis of the HumanInLoop codebase on 2026-03-05.
 
-**Essential Floor Status** (from codebase-analysis.md, 2026-02-19):
+**Essential Floor Status** (from `codebase-analysis.md`):
 
 | Category | Status | Gap |
 |----------|--------|-----|
-| Security | partial | GAP-003: Add secret scanning to CI |
-| Testing | present (381 tests, 97% coverage, CI enforced) | -- |
-| Error Handling | present | -- |
-| Observability | present (JSON stdout, StrategyGraph artifact) | -- |
+| Security | partial | GAP-001: Secret scanning not configured in CI |
+| Testing | present | None -- 381 tests, 97% coverage, 90% CI floor |
+| Error Handling | present | None -- structured JSON output, custom exceptions, exit codes |
+| Observability | partial | GAP-003: No structured logging library for internal diagnostics |
 
-**Emergent Ceiling Patterns Codified**:
+**Identified Gaps**:
 
-1. Structured Output Pattern (from 7 hil-dag CLI subcommands)
-2. ADR Discipline (from 7 existing ADRs)
-3. Skill Structure Requirements (from 25 existing skills, progressive disclosure)
-4. Conventional Commits (from consistent commit history + pre-commit + CI enforcement)
-5. Deterministic Infrastructure (from humaninloop_brain architecture, ADR-007, two-tier classification)
-6. Pydantic Entity Modeling (from 25 entity definitions with frozen immutability, v3 model)
-7. Layer Dependency Discipline (from observed clean import hierarchy)
-8. Catalog-Driven Assembly (from v3 single-DAG iteration model with capability resolution)
+| Gap ID | Description | Priority | Principle |
+|--------|-------------|----------|-----------|
+| GAP-001 | Secret scanning not configured in CI (`gitleaks` or `git-secrets`) | P1 | I. Security |
+| GAP-002 | No static type checker configured (`mypy` or `pyright`) despite extensive type hints | P2 | Quality Gates |
+| GAP-003 | No structured logging library for internal library diagnostics | P3 | IV. Observability |
 
-**Key Changes from v2.0.0**:
+See `.humaninloop/memory/evolution-roadmap.md` for prioritized improvement plan (create after constitution ratification).
 
-| Aspect | v2.0.0 | v3.0.0 |
-|--------|--------|--------|
-| Principles | 10 (I-X) | 12 (I-XII) |
-| Governed codebases | 2 (humaninloop_brain + plugin validators) | 1 (humaninloop_brain only) |
-| Coverage threshold | 90% blocking + 98% ratchet | 90% blocking (no ratchet) |
-| Test count | 190+ | 381+ |
-| Entity modules | 6 | 7 (strategy_graph.py added) |
-| Enum types | 8 | 11 (GateLifecycleStatus, GateVerdict, TYPE_STATUS_MAP added) |
-| CLI subcommands | 7 (incl. create) | 7 (create removed, replaced by auto-bootstrap) |
-| Deterministic tiers | 1 (undifferentiated) | 2 (strict graph-algorithmic + heuristic-deterministic) |
-| CI status | GAP-001 (not configured) | Resolved (`.github/workflows/ci.yml`) |
-| Agent model | Not specified | Three-tier (Supervisor, State Analyst + DAG Assembler, Domain Agents) |
-| DAG model | DAG-per-pass (implied) | Single-DAG iteration (StrategyGraph) |
-| Title | Plugin Marketplace Constitution | Project Constitution |
-
----
-
-**Version**: 3.0.0 | **Ratified**: 2026-02-19 | **Last Amended**: 2026-02-19
+**Version**: 3.0.0 | **Ratified**: 2026-03-05 | **Last Amended**: 2026-03-05
