@@ -10,9 +10,9 @@ The humaninloop plugin enforces specification-driven development—ensuring arch
 
 ---
 
-## Current State (v3.1.1)
+## Current State (v3.2.0)
 
-The core specify → plan → tasks → implement workflow is complete and functional. The specify workflow uses v3 StrategyGraph-based execution with single-DAG iteration, deterministic graph infrastructure (`humaninloop_brain`), and a three-agent architecture (Supervisor + DAG Assembler + State Analyst).
+The core specify → plan → tasks → implement workflow is complete and functional. Both the specify and implement workflows use v3 StrategyGraph-based execution with single-DAG iteration, deterministic graph infrastructure (`humaninloop_brain`), and a three-agent architecture (Supervisor + DAG Assembler + State Analyst).
 
 **6 Commands** for the full development lifecycle:
 - `/humaninloop:setup` - Initialize your project constitution (brownfield-aware)
@@ -20,11 +20,11 @@ The core specify → plan → tasks → implement workflow is complete and funct
 - `/humaninloop:plan` - Unified analysis and design planning (requirements, constraints, decisions, data models, API contracts)
 - `/humaninloop:tasks` - Create implementation tasks with vertical TDD slicing
 - `/humaninloop:audit` - Analyze artifacts for quality and consistency
-- `/humaninloop:implement` - Execute implementation with progress tracking
+- `/humaninloop:implement` - Execute implementation with DAG-based TDD discipline and cycle management
 
-**27 Skills** that Claude invokes automatically when relevant (authoring, analysis, patterns, validation, testing, using, dag-operations, strategy)
+**30 Skills** that Claude invokes automatically when relevant (authoring, analysis, patterns, validation, testing, using, dag-operations, strategy)
 
-**9 Specialized Agents** with focused responsibilities (requirements analyst, technical analyst, devil's advocate, principal architect, task architect, testing agent, UI designer, DAG assembler, state analyst)
+**10 Specialized Agents** with focused responsibilities (requirements analyst, technical analyst, devil's advocate, principal architect, task architect, staff engineer, testing agent, UI designer, DAG assembler, state analyst)
 
 ---
 
