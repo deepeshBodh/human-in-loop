@@ -14,10 +14,14 @@ This reference file contains detailed review checklists for each task phase. Use
 | Feature parallelization | Are feature cycles marked [P] where appropriate? | Important |
 | Dependency accuracy | Are cycle dependencies correct and minimal? | Important |
 | Slice sizing | Are cycles appropriately sized (not too big/small)? | Important |
+| Infrastructure coverage | Are all IP-XXX items from constraints-and-decisions.md mapped to foundation cycles? | Critical |
+| Platform-app ordering | Do platform foundation cycles precede application foundation cycles? | Critical |
 | Traceability | Can we trace from story to cycle? | Important |
 
 ### Key Questions
 
+- Are there IP-XXX items with no corresponding cycle?
+- Is platform foundation distinct from application foundation?
 - Are any P1/P2 stories missing from the mapping?
 - Are there cycles that are really horizontal slices (all models, then all services)?
 - Is the foundation too large? Too small?
@@ -51,12 +55,15 @@ If NO to any: the cycle may need restructuring.
 | Task IDs | Are task IDs properly formatted (TN.X)? | Important |
 | Story labels | Are tasks linked to stories where appropriate? | Important |
 | Brownfield markers | Are [EXTEND]/[MODIFY] markers correctly applied? | Important |
+| IP-XXX task coverage | Does every IP-XXX item have at least one corresponding task? | Critical |
+| Deployment cycle | Is there at least one cycle for deployment/CI/CD if IP-XXX items require it? | Important |
 | Parallel markers | Are [P] markers correctly applied to feature cycles? | Important |
 | Checkpoints | Does each cycle have a human-verifiable checkpoint? | Important |
 | Dependencies | Are dependencies between cycles correctly documented? | Important |
 
 ### Key Questions
 
+- Do infrastructure tasks have specific file paths (Terraform, Dockerfile, CI config)?
 - Are any cycles from the mapping missing from tasks.md?
 - Does every cycle start with a test task?
 - Are there tasks without file paths (using vague descriptions)?
@@ -118,6 +125,7 @@ Why bad? No concrete steps, no real files created, "checkpoint" describes what t
 | Cycle consistency | Do cycle descriptions match between artifacts? | Important |
 | Dependency consistency | Do dependencies match between artifacts? | Important |
 | Foundation-Feature alignment | Is foundation/feature classification consistent? | Important |
+| Constraint-task traceability | Can we trace C-XXX → IP-XXX → Cycle → Tasks for infrastructure constraints? | Important |
 
 ### Cross-Reference Steps
 

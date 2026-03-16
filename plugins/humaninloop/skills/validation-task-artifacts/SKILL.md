@@ -20,11 +20,11 @@ Find gaps in task artifacts and generate issues that need resolution before proc
 
 ## When NOT to Use
 
-- **Plan artifact review** - Use `humaninloop:validation-plan-artifacts` instead
+- **Plan artifact review** - **OPTIONAL:** Use `humaninloop:validation-plan-artifacts` instead
 - **Implementation code review** - Use code review tools
 - **Creating task artifacts** - This skill is for validation only
 - **When tasks.md doesn't exist yet** - Wait for Task Architect to complete
-- **Specification review** - Use `humaninloop:analysis-specifications` instead
+- **Specification review** - **OPTIONAL:** Use `humaninloop:analysis-specifications` instead
 
 ## Review Focus by Phase
 

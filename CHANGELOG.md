@@ -6,6 +6,29 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [3.1.1] - 2026-03-16
+
+### humaninloop 3.1.1
+
+#### Fixed
+
+- **Infrastructure requirements silently dropped** — Constraints (C-XXX) and NFRs implying platform provisioning (deployment, CI/CD, monitoring, environment config) are now captured as IP-XXX items in Part 3 of `constraints-and-decisions.md` and threaded through the entire workflow pipeline (issue #79)
+- **Platform foundation missing from task cycles** — Vertical TDD skill now distinguishes platform foundation (IP-XXX items) from application foundation, with platform cycles preceding application cycles
+
+#### Changed
+
+- **`authoring-technical-requirements` skill** — Added Section 3 (Infrastructure Requirements) with IP-XXX template, traceability rules, and quality checklist items; added namespace-qualified cross-references; added loophole closures for key rules
+- **`patterns-vertical-tdd` skill** — Added C0 platform infrastructure cycle to foundation example; updated foundation identification to include "in production" qualifier; fixed second-person writing to imperative style
+- **`validation-plan-artifacts` checklists** — Added Critical checks for infrastructure coverage (IP-XXX) and IP-NFR coverage
+- **`validation-task-artifacts` checklists** — Added Critical checks for IP-XXX task coverage, platform-app ordering, and constraint-task traceability
+- **Technical Analyst agent** — Added infrastructure-aware quality standard and constraint-to-infrastructure tracing; refactored brownfield awareness to character traits
+- **Task Architect agent** — Added IP-XXX mapping and platform ordering to success criteria
+- **Plan command** — Added infrastructure planning block, constraint actionability advocate check, and infrastructure-design alignment consistency check
+- **Plan template** — Added Infrastructure Requirements summary table
+- **ARTIFACT-TEMPLATES.md** — Added Part 3 template with IP-XXX field definitions and infrastructure type taxonomy
+
+---
+
 ## [3.1.0] - 2026-03-16
 
 **BREAKING CHANGE**: `/humaninloop:techspec` merged into `/humaninloop:plan` as a unified two-phase workflow.

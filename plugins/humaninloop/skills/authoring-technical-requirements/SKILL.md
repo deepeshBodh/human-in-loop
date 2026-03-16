@@ -1,6 +1,6 @@
 ---
 name: authoring-technical-requirements
-description: This skill MUST be invoked when the user says "write technical requirements", "define constraints", "define NFRs", "map integrations", or "classify data sensitivity". SHOULD also invoke when user mentions "TR-", "C-", "NFR-", "INT-", "DS-", "non-functional", "system integration", or "data classification". Produces three traceable analysis artifacts from business specifications.
+description: This skill MUST be invoked when the user says "write technical requirements", "define constraints", "define NFRs", "map integrations", "classify data sensitivity", or "infrastructure requirements". SHOULD also invoke when user mentions "TR-", "C-", "NFR-", "IP-", "INT-", "DS-", "non-functional", "system integration", "infrastructure provisioning", or "data classification". Produces three traceable analysis artifacts from business specifications.
 ---
 
 # Authoring Technical Requirements
@@ -31,7 +31,7 @@ Translate business specifications into three traceable analysis artifacts: requi
 
 Each artifact uses a distinct ID prefix and traces to business sources. These are produced during Phase 1 (Analysis) of `/humaninloop:plan`: requirements.md, constraints-and-decisions.md, and nfrs.md.
 
-> **Note:** Integration maps (INT-XXX) are now embedded as `x-integration` extensions in `contracts/api.yaml` during Phase 2 (Design). Data sensitivity classifications (DS-XXX) are now embedded per-entity in `data-model.md` during Phase 2 (Design). See `patterns-api-contracts` and `patterns-entity-modeling` skills respectively.
+> **Note:** Integration maps (INT-XXX) are now embedded as `x-integration` extensions in `contracts/api.yaml` during Phase 2 (Design). Data sensitivity classifications (DS-XXX) are now embedded per-entity in `data-model.md` during Phase 2 (Design). See `humaninloop:patterns-api-contracts` and `humaninloop:patterns-entity-modeling` skills respectively.
 
 See [ARTIFACT-TEMPLATES.md](references/ARTIFACT-TEMPLATES.md) for complete field definitions and examples.
 
@@ -48,6 +48,8 @@ Map every business FR to one or more TRs. A single FR-001 ("users can sign in") 
 | Dependencies | No | Other TRs, constraints, or NFRs referenced |
 
 **No orphan TRs.** Every TR maps to at least one FR. **No unmapped FRs.** Every FR has at least one TR.
+
+**No exceptions:** Not for "simple" systems. Not for "obvious" mappings. Not even when the FR appears to map 1:1 — decompose anyway.
 
 ### 2. Constraints and Decisions (constraints-and-decisions.md) -- C-XXX / D-XXX
 
@@ -77,6 +79,20 @@ Document hard boundaries (constraints) and the technology decisions shaped by th
 
 **Constraints are facts, not preferences.** Each decision record MUST reference the constraints that shaped the choice. Each constraint impact field SHOULD reference decisions it influences.
 
+**No exceptions:** Not for "well-known" constraints. Not for "obvious" technology choices. Not even when the team has consensus — document the constraint and its source explicitly.
+
+**Section 3: Infrastructure Requirements (IP-XXX)**
+
+| Field | Required | Purpose |
+|-------|----------|---------|
+| ID | Yes | IP-XXX sequential format |
+| Type | Yes | compute / networking / storage / ci-cd / monitoring / security / environment-config |
+| Source | Yes | C-XXX or NFR-XXX that necessitates this provisioning |
+| Description | Yes | What must be provisioned (WHAT, not HOW) |
+| Acceptance Criteria | Yes | Verifiable provisioning conditions |
+
+**Every constraint that implies platform work gets an IP-XXX item.** Constraints document boundaries; IP-XXX items document what those boundaries require operationally.
+
 ### 3. Non-Functional Requirements (nfrs.md) -- NFR-XXX
 
 Define measurable quality attributes. Every NFR has a numeric target.
@@ -92,9 +108,11 @@ Define measurable quality attributes. Every NFR has a numeric target.
 
 **"Fast" is not a requirement.** "p95 response time < 200ms under 1000 concurrent users, measured by APM" is.
 
+**No exceptions:** Not for "standard" performance expectations. Not for "obvious" availability targets. Every NFR gets a number, a measurement method, and a source — no deferrals to "later during design."
+
 ### 4. [Phase 2] System Integrations -- INT-XXX (embedded in contracts/api.yaml)
 
-> Integrations are now documented as `x-integration` extensions per endpoint in `contracts/api.yaml` during Phase 2 (Design). See the `patterns-api-contracts` skill for details.
+> Integrations are now documented as `x-integration` extensions per endpoint in `contracts/api.yaml` during Phase 2 (Design). See the `humaninloop:patterns-api-contracts` skill for details.
 
 Fields per integration: system name, protocol, API version, criticality, failure modes (detection, impact, fallback), authentication details.
 
@@ -102,7 +120,7 @@ Fields per integration: system name, protocol, API version, criticality, failure
 
 ### 5. [Phase 2] Data Sensitivity Classifications -- DS-XXX (embedded in data-model.md)
 
-> Sensitivity classifications are now documented per-entity/per-attribute in `data-model.md` during Phase 2 (Design). See the `patterns-entity-modeling` skill for details.
+> Sensitivity classifications are now documented per-entity/per-attribute in `data-model.md` during Phase 2 (Design). See the `humaninloop:patterns-entity-modeling` skill for details.
 
 Fields per entity: classification level, encryption at rest/in transit, retention period, access control, audit requirements, masking rules. Compliance mapping table per entity.
 
@@ -117,8 +135,9 @@ See [TRACEABILITY-PATTERNS.md](references/TRACEABILITY-PATTERNS.md) for detailed
 - NFR -> source (every quality attribute has a justification)
 - C -> D (constraints reference the decisions they shape; decisions reference constraints that shaped them)
 - C -> impact (every constraint identifies what it restricts)
+- C/NFR -> IP (constraints and NFRs with infrastructure implications reference IP-XXX items)
 
-**Completeness check:** No FR without a TR. No TR without acceptance criteria. No NFR without a numeric target. No constraint without a source. No decision without referenced constraints.
+**Completeness check:** No FR without a TR. No TR without acceptance criteria. No NFR without a numeric target. No constraint without a source. No decision without referenced constraints. No infrastructure-implying constraint without an IP-XXX.
 
 ## Technology-Agnostic Writing
 
@@ -143,9 +162,10 @@ Before finalizing, verify:
 - [ ] Every constraint has a source, type, and severity classification
 - [ ] Every decision references the constraints that shaped it (C-XXX ↔ D-XXX)
 - [ ] Every NFR has a numeric target AND measurement method
+- [ ] Every constraint implying platform provisioning has a corresponding IP-XXX
 - [ ] Cross-references between artifacts are consistent
 - [ ] Language is technology-agnostic (except real infrastructure constraints)
-- [ ] ID sequences are sequential with no gaps (TR-001, TR-002..., C-001..., D-001...)
+- [ ] ID sequences are sequential with no gaps (TR-001, TR-002..., C-001..., D-001..., IP-001...)
 
 ## Common Mistakes
 

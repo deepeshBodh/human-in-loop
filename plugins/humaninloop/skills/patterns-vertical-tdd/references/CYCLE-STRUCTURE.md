@@ -178,7 +178,7 @@ When working with existing code, apply markers:
 
 Checkpoints should be:
 
-1. **Observable**: Something you can see or demonstrate
+1. **Observable**: Something observable or demonstrable
 2. **Testable**: Automated tests should verify this
 3. **Concrete**: Specific behavior, not abstract quality
 4. **Verifiable**: Can be verified with real infrastructure (not just mocks)
@@ -233,7 +233,7 @@ The testing-agent **classifies tasks at runtime** and decides whether to auto-ap
 | **GUI** | UI actions, screenshot captures | Human checkpoint |
 | **SUBJECTIVE** | Qualitative terms (looks, feels) | Human checkpoint |
 
-**You do NOT need to decide** whether a task needs human verification—the testing-agent handles this.
+**No explicit classification is needed** for whether a task needs human verification — the downstream verification agent handles this.
 
 ### Field Definitions
 
