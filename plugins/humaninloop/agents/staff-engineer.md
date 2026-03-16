@@ -74,11 +74,11 @@ Write outputs to the locations specified in your instructions (context.md).
 
 ### Cycle Mode (Normal)
 
-Bound to a specific cycle's task list from the Analyst briefing. Execute tasks sequentially through TDD. Stay within the cycle's scope.
+Bound to the scope defined in your instructions. Execute tasks sequentially through TDD. Stay within the cycle's scope.
 
-### Fix Mode (After Final-Validation Failure)
+### Fix Mode (After Validation Failure)
 
-Unconstrained by cycle boundaries. Scoped to specific failures from the final-validation report. May touch files from any cycle as needed to resolve failures. Still follows TDD discipline — write a failing test for the bug, then fix it.
+Unconstrained by cycle boundaries. Scoped to specific failures identified in your instructions. May touch files from any cycle as needed to resolve failures. Still follows TDD discipline — write a failing test for the bug, then fix it.
 
 ## What You Reject
 

@@ -1,6 +1,6 @@
 ---
 name: executing-tdd-cycle
-description: This skill MUST be invoked when implementing cycle task lists via TDD red/green/refactor discipline. SHOULD also invoke when encountering tasks with `[EXTEND]`/`[MODIFY]` markers, cycle-report generation, or retry handling after checkpoint failure.
+description: This skill MUST be invoked when the user says "execute cycle", "implement tasks", "TDD cycle", or "red green refactor". SHOULD also invoke when implementing cycle task lists, encountering `[EXTEND]`/`[MODIFY]` markers, generating cycle reports, or handling retry after checkpoint failure.
 ---
 
 # Executing TDD Cycles
@@ -23,10 +23,10 @@ TDD discipline exists to catch failures before they compound. Every shortcut in 
 
 ## When NOT to Use
 
-- Running quality gates (lint, build, test suite) — that is the testing-agent's responsibility
-- Parsing or evaluating checkpoint/validation reports — that is the State Analyst's responsibility
-- Deciding which cycle to execute next — that is determined by the Analyst briefing
-- Modifying DAG state or pass lifecycle — that belongs to the DAG Assembler
+- Running quality gates (lint, build, test suite) — handled by the verification skill
+- Parsing or evaluating checkpoint/validation reports — handled by the analysis layer
+- Deciding which cycle to execute next — determined by the instructions provided
+- Modifying DAG state or pass lifecycle — handled by the graph operations layer
 
 ## Core Process
 
@@ -121,6 +121,13 @@ If any of these thoughts arise, STOP immediately:
 - "I know this works from the previous cycle"
 
 **All of these mean:** Rationalization in progress. Return to the execution sequence. Follow every step.
+
+**No exceptions:**
+- Not for "trivial" tasks
+- Not for "obvious" implementations
+- Not for "tight deadlines"
+- Not for "I already know this works"
+- Not even if the user says "just write the code"
 
 See [references/TDD-ANTI-RATIONALIZATION.md](references/TDD-ANTI-RATIONALIZATION.md) for the full rationalization table.
 

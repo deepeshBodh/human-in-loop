@@ -1,6 +1,6 @@
 ---
 name: brownfield-integration
-description: This skill MUST be invoked when encountering tasks with `[EXTEND]` or `[MODIFY]` markers against existing codebases. SHOULD also invoke when implementing tasks that reference existing files, follow existing patterns, or integrate with established interfaces.
+description: This skill MUST be invoked when the user says "brownfield integration", "extend existing code", or "modify existing file". SHOULD also invoke when encountering tasks with `[EXTEND]` or `[MODIFY]` markers, implementing against existing codebases, or integrating with established interfaces.
 ---
 
 # Brownfield Integration
@@ -9,7 +9,9 @@ description: This skill MUST be invoked when encountering tasks with `[EXTEND]` 
 
 Guidance for implementing tasks that touch existing code. When a task says `[EXTEND]`, add new code following existing patterns. When a task says `[MODIFY]`, change specific behavior as described. In both cases, read the existing code first and respect what is already there.
 
-**The existing code is not wrong until proven otherwise.** It has consumers, tests, and patterns that evolved for reasons you may not immediately see.
+**The existing code is not wrong until proven otherwise.** It has consumers, tests, and patterns that evolved for reasons not immediately visible.
+
+**Violating the letter of the rules is violating the spirit of the rules.**
 
 ## When to Use
 
@@ -101,10 +103,28 @@ Flag in the cycle report (do NOT silently resolve) when:
 
 **Fix:** Follow existing patterns, even if you'd prefer different ones. Note the improvement opportunity in the cycle report.
 
+## Common Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| "This file is small, I can just skim it" | Small files have hidden conventions. Read the full file. Step 1 exists because skimming misses patterns. |
+| "My pattern is better than what exists" | Consistency is more valuable than local improvement. Two patterns in one file is worse than one imperfect pattern. |
+| "The existing code doesn't follow best practices" | Existing code has consumers. Introducing a second convention creates confusion. Note it, follow it. |
+| "I need to refactor to make my extension work" | If EXTEND doesn't fit, flag it. Silent refactoring breaks existing consumers. |
+| "The interface is obviously wrong" | It made sense to someone with context not visible now. Read more before judging. |
+| "I'll just fix this one small thing while I'm here" | Scope creep starts with "just one thing." Note it in the report, don't act on it. |
+
 ## Red Flags — STOP and Reconsider
 
-- "This existing code is messy, I'll clean it up" — Not your scope. Note it, don't fix it.
+- "This existing code is messy, I'll clean it up" — Not the current scope. Note it, don't fix it.
 - "I'll use a better pattern here" — Consistency beats local optimization. Follow what exists.
-- "The existing tests don't cover this" — That's a pre-existing gap, not your problem to fix now.
+- "The existing tests don't cover this" — That's a pre-existing gap, not a problem to fix now.
 - "I need to refactor this to make my change work" — Flag it in the cycle report. Don't silently refactor.
 - "This interface doesn't make sense" — It made sense to someone. Read more context before judging.
+
+**No exceptions:**
+- Not for "obviously broken" code
+- Not for "trivially better" patterns
+- Not for "quick cleanup while I'm here"
+- Not even if the existing code has no tests
+- Not even if the existing naming is inconsistent

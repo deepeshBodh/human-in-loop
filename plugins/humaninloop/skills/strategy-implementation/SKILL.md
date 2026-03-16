@@ -1,39 +1,56 @@
 ---
 name: strategy-implementation
-description: Implementation-workflow patterns (cycle sequencing, execute-then-verify, targeted retry, escalation) consumed by the State Analyst alongside strategy-core for targeted Supervisor briefings.
+description: This skill MUST be invoked when the user says "implementation strategy", "cycle sequencing", or "implement workflow patterns". SHOULD also invoke when user mentions "execute-then-verify", "targeted retry", "fix pass", or "implementation escalation". Provides implementation-workflow patterns consumed alongside strategy-core for targeted briefings.
 ---
 
 # Strategy: Implementation
 
-Workflow-specific patterns for the implementation workflow. Consumed by the State Analyst alongside `strategy-core` to produce targeted Supervisor briefings.
+## Overview
+
+Workflow-specific patterns for implementation workflows. Provides heuristics for cycle sequencing, execute-then-verify pairing, targeted retry, and escalation. Consumed alongside `humaninloop:strategy-core` to produce targeted briefings.
+
+## When to Use
+
+- Producing briefings for implementation workflow passes
+- Determining cycle execution order (foundation vs feature)
+- Deciding whether to retry, fix, or escalate after failures
+- Evaluating whether verification should follow execution
+- Assessing convergence signals across implementation passes
+
+## When NOT to Use
+
+- **Specification workflows** — Use `humaninloop:strategy-specification` instead
+- **Graph operations** — Use `humaninloop:dag-operations` instead
+- **Executing implementation tasks** — Use `humaninloop:executing-tdd-cycle` instead
+- **Running quality gates** — Use `humaninloop:testing-end-user` instead
 
 ## Goal
 
-Complete all implementation cycles with all gates passing. Success: `final-validation` gate verdict `ready` and `implementation-complete` milestone `achieved`.
+Complete all implementation cycles with all gates passing. Success: final-validation gate verdict `ready` and implementation-complete milestone `achieved`.
 
 ## Success Criteria
 
 - All tasks in `tasks.md` marked `[x]`
-- `final-validation` gate verdict: `ready`
-- `implementation-complete` milestone: `achieved`
+- Final-validation gate verdict: `ready`
+- Implementation-complete milestone: `achieved`
 
-## Patterns
+## Core Patterns
 
 ### Cycle Sequencing
 
-Foundation cycles execute sequentially (C1 before C2 before C3). Feature cycles begin only after all foundation cycles complete. The Analyst determines the current cycle by reading `tasks.md` checkboxes — the first cycle with unchecked tasks is the current cycle.
+Foundation cycles execute sequentially (C1 before C2 before C3). Feature cycles begin only after all foundation cycles complete. Determine the current cycle by reading `tasks.md` checkboxes — the first cycle with unchecked tasks is the current cycle.
 
 **Rationale**: Foundation cycles establish shared infrastructure that feature cycles depend on. Executing them out of order creates cascading failures that waste tokens on retry.
 
 ### Execute-then-Verify
 
-Every `execute-cycle` node MUST be followed by a `verify-cycle` node within the same pass. Never skip verification, even when the cycle report claims all tasks passed. The testing-agent runs quality gates (lint, build, tests) independently.
+Every execution node MUST be followed by a verification node within the same pass. Never skip verification, even when the cycle report claims all tasks passed. Quality gates (lint, build, tests) run independently of the implementer.
 
-**Rationale**: Self-reported success from the Staff Engineer is unreliable for the same reason self-review is unreliable in specification — systematic blind spots. Independent verification catches what the implementer cannot see in their own work.
+**Rationale**: Self-reported success is unreliable for the same reason self-review is unreliable in specification — systematic blind spots. Independent verification catches what the implementer cannot see in their own work.
 
 ### Targeted Retry
 
-On checkpoint failure, the next `execute-cycle` dispatch focuses on the specific failures from the checkpoint report. The Staff Engineer traces failures to responsible tasks, re-opens only those tasks, and fixes them. Full re-implementation of the cycle wastes tokens on working code.
+On checkpoint failure, the next execution dispatch focuses on the specific failures from the checkpoint report. Trace failures to responsible tasks, re-open only those tasks, and fix them. Full re-implementation of the cycle wastes tokens on working code.
 
 **Rationale**: Most checkpoint failures affect 1-2 tasks, not the entire cycle. Selective rework converges faster and avoids introducing new issues in previously-working code.
 
@@ -45,20 +62,29 @@ After 3 retry attempts on a cycle (or 3 fix passes after final-validation), esca
 
 ### Fix Pass Scoping
 
-A fix pass after final-validation failure is scoped to the specific failures in the validation report. It is NOT a refactoring opportunity, a chance to improve code quality, or a license to make sweeping changes. The Staff Engineer addresses exactly what failed.
+A fix pass after validation failure is scoped to the specific failures in the validation report. It is NOT a refactoring opportunity, a chance to improve code quality, or a license to make sweeping changes. Address exactly what failed.
 
 **Rationale**: Unconstrained fix passes can introduce more failures than they resolve. Tight scoping to reported failures maintains convergence toward completion.
 
-## Anti-Patterns
-
-- **Skip verification**: Running execute-cycle without follow-up verify-cycle — hides failures until final-validation
-- **Full re-implementation on retry**: Re-doing all cycle tasks when checkpoint fails — wastes tokens on working code and risks new regressions
-- **Continue past 3 retries**: Silently continuing retry loops instead of escalating — burns tokens without convergence
-- **Premature final-validation**: Running final-validation before all cycles complete — will always fail, wastes a pass
-- **Fix pass as refactoring**: Using fix passes to improve code beyond what the validation report requires — scope creep that risks new failures
-
 ## Guardrails
 
-- All tasks in `tasks.md` must be `[x]` before final-validation runs (INV-002 analog for implement)
-- Every execute-cycle must be followed by verify-cycle in the same pass (INV-003)
-- Max 3 retry attempts per cycle or fix pass before mandatory user escalation (INV-004)
+- All tasks in `tasks.md` must be `[x]` before final-validation runs
+- Every execution node must be followed by a verification node in the same pass
+- Max 3 retry attempts per cycle or fix pass before mandatory user escalation
+
+## Common Mistakes
+
+### Skipping Verification After Execution
+Running an execution cycle without follow-up verification — hides failures until final-validation when they are more expensive to fix.
+
+### Full Re-Implementation on Retry
+Re-doing all cycle tasks when a checkpoint fails. Most failures affect 1-2 tasks. Selective rework converges faster and avoids regressions in working code.
+
+### Continuing Past 3 Retries
+Silently continuing retry loops instead of escalating. Burns tokens without convergence. 3 failures signal a structural problem that needs human intervention.
+
+### Premature Final-Validation
+Running final-validation before all cycles complete. Will always fail because unchecked tasks remain. Wastes a pass.
+
+### Using Fix Passes for Refactoring
+Expanding fix pass scope beyond what the validation report requires. Scope creep during fix passes risks introducing new failures while resolving old ones.
