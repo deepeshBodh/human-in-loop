@@ -39,7 +39,7 @@ human-in-loop/
 │   ├── tests/               # pytest test suite (27 files)
 │   └── pyproject.toml       # Package configuration
 ├── plugins/humaninloop/     # Claude Code plugin marketplace
-│   ├── agents/              # 10 agent definitions (.md)
+│   ├── agents/              # 9 agent definitions (.md)
 │   ├── commands/            # 7 slash commands (.md)
 │   ├── skills/              # 24 skills (SKILL.md + references)
 │   ├── catalogs/            # Specify workflow catalog (.json)
@@ -218,9 +218,9 @@ No external services, databases, or APIs. The package is a pure library/CLI tool
 
 | Category | Count | Examples |
 |----------|-------|---------|
-| Agents | 10 | dag-assembler, devils-advocate, plan-architect, principal-architect, requirements-analyst, state-analyst, task-architect, technical-analyst, testing-agent, ui-designer |
-| Commands | 7 | audit, implement, plan, setup, specify, tasks, techspec |
-| Skills | 24 | analysis-codebase, authoring-constitution, brownfield-constitution, dag-operations, patterns-entity-modeling, strategy-core, syncing-claude-md, etc. |
+| Agents | 9 | dag-assembler, devils-advocate, principal-architect, requirements-analyst, state-analyst, task-architect, technical-analyst, testing-agent, ui-designer |
+| Commands | 7 | audit, implement, plan, setup, specify, tasks, techspec (deprecated) |
+| Skills | 27 | analysis-codebase, authoring-constitution, brownfield-constitution, dag-operations, patterns-entity-modeling, strategy-core, syncing-claude-md, etc. |
 | Templates | 19 | codebase-analysis-template, constitution-template, spec-template, plan-template, etc. |
 | Scripts | 4 | check-prerequisites.sh, common.sh, create-new-feature.sh, setup-plan.sh |
 | Catalogs | 1 | specify-catalog.json |

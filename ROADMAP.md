@@ -10,7 +10,7 @@ The humaninloop plugin enforces specification-driven development—ensuring arch
 
 ---
 
-## Current State (v3.0.0)
+## Current State (v3.1.0)
 
 The core specify → plan → tasks → implement workflow is complete and functional. The specify workflow uses v3 StrategyGraph-based execution with single-DAG iteration, deterministic graph infrastructure (`humaninloop_brain`), and a three-agent architecture (Supervisor + DAG Assembler + State Analyst).
 
@@ -24,7 +24,7 @@ The core specify → plan → tasks → implement workflow is complete and funct
 
 **27 Skills** that Claude invokes automatically when relevant (authoring, analysis, patterns, validation, testing, using, dag-operations, strategy)
 
-**10 Specialized Agents** with focused responsibilities (requirements analyst, technical analyst, devil's advocate, plan architect, principal architect, task architect, testing agent, UI designer, DAG assembler, state analyst)
+**9 Specialized Agents** with focused responsibilities (requirements analyst, technical analyst, devil's advocate, principal architect, task architect, testing agent, UI designer, DAG assembler, state analyst)
 
 ---
 

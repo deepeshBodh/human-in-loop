@@ -6,6 +6,50 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [3.1.0] - 2026-03-16
+
+**BREAKING CHANGE**: `/humaninloop:techspec` merged into `/humaninloop:plan` as a unified two-phase workflow.
+
+### humaninloop 3.1.0
+
+#### Breaking Changes
+
+- **Techspec command deprecated** — `/humaninloop:techspec` is deprecated; all functionality absorbed into `/humaninloop:plan` with Phase 1 (Analysis) and Phase 2 (Design)
+- **Artifact layout changed** — `technical/` subdirectory eliminated; `constraints.md` + `research.md` merged into `constraints-and-decisions.md`; `data-sensitivity.md` absorbed into `data-model.md`; `integrations.md` absorbed into `contracts/api.yaml` as `x-integration` extensions
+- **Plan Architect agent removed** — responsibilities absorbed by expanded Technical Analyst agent
+- **Techspec context file removed** — `techspec-context.md` replaced by unified `plan-context.md`
+
+#### New Features
+
+- **Unified `/humaninloop:plan` command** — Single command with 2 phases, 3 agents, 5 invocations producing 6 artifacts + summary
+  - Phase P1 (Analysis): Technical Analyst → Principal Architect (feasibility gate) → Devil's Advocate
+  - Phase P2 (Design): Technical Analyst → Devil's Advocate
+- **Constraints-and-decisions artifact** — Unified document with C-XXX constraints and D-XXX technology decisions with bidirectional cross-references
+- **Embedded data sensitivity** — Per-entity/per-attribute sensitivity classifications within `data-model.md`
+- **Embedded integration boundaries** — `x-integration` OpenAPI extensions in `contracts/api.yaml` with failure modes and fallback strategies
+- **Narrowed Principal Architect scope** — Feasibility intersection review only (cross-artifact contradictions, not individual completeness)
+
+#### Updated Skills
+
+- `authoring-technical-requirements` — Updated for three-artifact analysis output (requirements, constraints-and-decisions, NFRs)
+- `validation-plan-artifacts` — Rewritten with P1/P2 phase checklists replacing B0/B1/B2
+- `patterns-api-contracts` — Added `x-integration` extension guidance
+
+#### Updated Templates
+
+- `plan-context-template.md` — Unified template with `analysis_status`/`design_status` tracking
+- `techanalyst-report-template.md` — Added Phase 2 (Design) sections
+- `architect-report-template.md` — Narrowed to feasibility intersection format
+- `plan-template.md` — Updated for merged artifact references
+
+#### Documentation
+
+- ADR-008: Techspec-plan merge decision documented
+- Agent count corrected to 9 (plan-architect removed)
+- README and ROADMAP updated for unified workflow
+
+---
+
 ## [3.0.0] - 2026-02-19
 
 **BREAKING CHANGE**: Complete v3 architecture redesign. Single-DAG iteration model replaces per-pass DAGPass. StrategyGraph is the new top-level entity. Constitution v3.0.0.
