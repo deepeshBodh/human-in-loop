@@ -159,6 +159,8 @@ When amending `.humaninloop/memory/constitution.md`:
 - **[docs/decisions/](docs/decisions/)**: Architecture Decision Records (7 ADRs).
 - **[docs/architecture/](docs/architecture/)**: DAG-first architecture synthesis documents.
 - **[docs/architecture/v3/](docs/architecture/v3/)**: V3 architecture design documents.
+- **[docs/AGENT-GUIDELINES.md](docs/AGENT-GUIDELINES.md)**: Agent creation guidelines — persona design, coupling detection, compliance.
+- **[docs/SKILL-GUIDELINES.md](docs/SKILL-GUIDELINES.md)**: Skill creation guidelines — structure, testing, anti-rationalization.
 
 ## Adding New Plugins
 
