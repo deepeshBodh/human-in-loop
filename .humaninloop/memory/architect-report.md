@@ -1,108 +1,120 @@
-# Architect Report: Evolution Roadmap (v3.0.0)
+# Architect Report -- Evolution Roadmap Phase
 
 > Phase: Evolution Roadmap
-> Date: 2026-02-19
-> Agent: Principal Architect
-> Constitution: v3.0.0
-> Codebase Analysis: 2026-02-19
+> Date: 2026-03-05
+> Project: human-in-loop (HumanInLoop)
+> Architect: Principal Architect
+> Inputs: codebase-analysis.md, constitution.md (v3.0.0)
+
+---
+
+## What I Created
+
+**Evolution Roadmap**: `.humaninloop/memory/evolution-roadmap.md`
+
+- **6 gap cards** with full structured headers (Priority, Category, Blocks, Enables, Depends On, Effort) and prose bodies (Current state, Target state, Suggested approach, Related files)
+- **Dependency graph**: All 6 gaps are independent -- no blocking relationships
+- **Recommended execution order**: Priority-then-effort ordering for maximum value per unit work
+- **Maintenance protocol**: Instructions for marking gaps as addressed in commits and updating roadmap
 
 ---
 
 ## Gap Summary
 
-Gap analysis of the HumanInLoop codebase against the v3.0.0 constitution (12 principles) identified **5 gaps**. This is a significant reduction from the v2 roadmap (7 gaps), with GAP-001 (CI) resolved, GAP-004 (ratchet) superseded, and GAP-005 (validator migration) out of scope.
+**Total Gaps**: 6
 
-| Priority | Count | Gaps |
-|----------|-------|------|
-| P1 (Critical) | 0 | -- |
-| P2 (Important) | 2 | GAP-003, GAP-008 |
-| P3 (Nice-to-have) | 3 | GAP-009, GAP-010, GAP-011 |
-
-**10 of 12 principles are fully compliant.** The two partial-compliance principles are:
-- Principle I (Security): Missing secret scanning in CI (GAP-003)
-- Principle XI (Layer Dependency): Import hierarchy is clean but lacks an automated enforcement test (GAP-008)
+| Priority | Count | Description |
+|----------|-------|-------------|
+| P1 (Critical) | 2 | Security and constitutional MUST violations |
+| P2 (Important) | 2 | Tooling and enforcement improvements |
+| P3 (Nice-to-have) | 2 | Observability and governance hygiene |
 
 ---
 
 ## Critical Gaps (P1)
 
-None. The project has no critical gaps. All P1 items from the v2 roadmap (GAP-001: CI workflow, GAP-002: CLAUDE.md sync) have been resolved.
+| ID | Title | Category | Effort | Constitution Reference |
+|----|-------|----------|--------|----------------------|
+| GAP-001 | Configure secret scanning in CI | Security | Small | Principle I (Security by Default) -- CI MUST run `gitleaks detect --source .` |
+
+GAP-001 is the only true P1 gap. It is a direct MUST violation: the constitution requires secret scanning in CI, and no such step exists. The `.github/workflows/ci.yml` has no `gitleaks` or `git-secrets` step. This is a Small effort fix -- add a single CI job using the `gitleaks/gitleaks-action@v2` GitHub Action.
+
+There are no other P1 gaps. The previous architect report listed GAP-001 through GAP-003. Upon closer analysis for the roadmap:
+- GAP-001 (secret scanning) remains P1 -- it is a MUST violation.
+- GAP-002 (type checker) was re-assessed to P2 -- the Quality Gates table lists it as a gap, but the constitution says type checking is desired, not that its absence blocks compliance with any NON-NEGOTIABLE principle.
+- GAP-003 (structured logging) remains P3 -- the constitution uses SHOULD language for logging.
 
 ---
 
 ## Important Gaps (P2)
 
-### GAP-003: Add secret scanning to CI
+| ID | Title | Category | Effort | Constitution Reference |
+|----|-------|----------|--------|----------------------|
+| GAP-002 | Configure static type checker | Tooling | Medium | Quality Gates table -- "Static Type Check: Zero type errors" |
+| GAP-004 | Automate layer dependency enforcement in CI | Architecture | Small | Principle XI -- import analysis "SHOULD be automated in CI" |
 
-- **Principle**: I (Security by Default)
-- **Category**: Security (Essential Floor)
-- **Status**: Carried forward from v1.0.0 -- the longest-standing open gap in the project
-- **Impact**: Only remaining Essential Floor gap. Without secret scanning, accidental credential commits rely on `.gitignore` patterns and manual review
-- **Effort**: Small -- add a step to the existing `.github/workflows/ci.yml`
-- **Blocker removed**: GAP-001 (CI) is resolved, so this can proceed immediately
+GAP-004 is a new gap not identified in the constitution's Evolution Notes. The previous architect report assumed code review was adequate enforcement for layer dependencies. While currently true (zero violations exist), the constitution itself states this SHOULD be automated. A simple grep-based CI step provides automated regression prevention for the project's architectural backbone.
 
-### GAP-008: Add layer dependency enforcement test
+---
 
-- **Principle**: XI (Layer Dependency Discipline)
-- **Category**: Testing/Architecture
-- **Status**: New gap identified in v3.0.0 analysis
-- **Impact**: The `entities -> graph -> validators -> passes -> cli` import hierarchy is currently clean (verified by grep), but compliance depends on code review alone. A pytest test would catch violations automatically before review
-- **Effort**: Small -- single test file scanning imports against a rules table
+## Nice-to-Have Gaps (P3)
+
+| ID | Title | Category | Effort | Constitution Reference |
+|----|-------|----------|--------|----------------------|
+| GAP-003 | Add structured logging for internal diagnostics | Observability | Medium | Principle IV -- logging "SHOULD be added" |
+| GAP-005 | Create CODEOWNERS file | Governance | Small | Codebase analysis -- CODEOWNERS "Not present" |
+| GAP-006 | Create exception registry file | Governance | Small | Governance section -- exceptions "MUST be recorded in docs/constitution-exceptions.md" |
+
+GAP-005 and GAP-006 are new gaps identified during roadmap analysis. GAP-005 (CODEOWNERS) improves review routing. GAP-006 (exception registry) is a governance infrastructure file that the constitution references but does not yet exist. Both are trivial to create.
 
 ---
 
 ## Dependency Chain
 
-No blocking dependencies exist between any gaps. All 5 gaps can be addressed independently and in parallel.
+No dependencies exist between gaps. All 6 gaps are fully independent and can be addressed in any order or in parallel.
 
-```
-[All Independent -- no blocking relationships]
-    GAP-003: Add secret scanning to CI ............... P2, Small
-    GAP-008: Add layer dependency enforcement test .... P2, Small
-    GAP-009: Resolve specs/ directory reference ........ P3, Small
-    GAP-010: Update constitution skill counts .......... P3, Small
-    GAP-011: Add CODEOWNERS file ...................... P3, Small
-```
-
-This is a significant improvement from the v2 roadmap where GAP-001 (CI) blocked GAP-003 and GAP-004. With CI resolved, the entire dependency chain is flattened.
-
-**Recommended order**: GAP-003 and GAP-008 first (parallel), then P3 items in any order.
+**Recommended order** (priority, then effort):
+1. GAP-001 (P1, Small) -- Secret scanning
+2. GAP-004 (P2, Small) -- Layer dependency CI
+3. GAP-002 (P2, Medium) -- Type checker
+4. GAP-006 (P3, Small) -- Exception registry
+5. GAP-005 (P3, Small) -- CODEOWNERS
+6. GAP-003 (P3, Medium) -- Structured logging
 
 ---
 
-## What Changed from v2 Roadmap
+## Gap Identification Method
 
-| v2 Gap | Status | Disposition |
-|--------|--------|-------------|
-| GAP-001: CI workflow | Resolved | `.github/workflows/ci.yml` exists with tests, coverage, syntax, commit lint |
-| GAP-002: CLAUDE.md sync | Resolved | Synchronized with constitution v3.0.0 |
-| GAP-003: Secret scanning | Carried forward | Blocker removed (CI exists), priority unchanged (P2) |
-| GAP-004: Coverage ratchet | Superseded | Constitution v3.0.0 removed ratchet; 90% flat floor only |
-| GAP-005: Validator migration | Out of scope | Constitution v3.0.0 removed plugin validators from governance |
-| GAP-006: specs/ directory | Renumbered to GAP-009 | Carried forward as P3 |
-| GAP-007: CODEOWNERS | Renumbered to GAP-011 | Carried forward as P3 |
-| GAP-008: Layer test | -- | New gap identified in v3.0.0 analysis |
-| GAP-010: Skill counts | -- | New gap identified in v3.0.0 analysis |
+Gaps were identified through two systematic passes:
 
----
+1. **Essential Floor pass**: Checked the four NON-NEGOTIABLE categories from `codebase-analysis.md`. Categories with "partial" or "absent" status generated gap cards. Testing and Error Handling were "present" -- no gaps. Security (partial: missing secret scanning) and Observability (partial: missing structured logging) generated GAP-001 and GAP-003.
 
-## Operational Notes
-
-1. **Coverage baseline mismatch**: `.coverage-baseline` contains `98` and CI enforces a ratchet against it. Constitution v3.0.0 removed the ratchet -- 90% flat floor is authoritative. The ratchet step is not a gap (it is stricter than required) but could cause CI failures if coverage dips below 98%. Consider removing the ratchet step or documenting it as a voluntary operational standard.
-
-2. **Skill count drift pattern**: Two skills added without updating constitution counts suggests the amendment process may be too heavyweight for PATCH-level changes. Consider whether exact counts belong in the constitution or whether Principle VII should reference the skill directory as source of truth.
+2. **Constitution principle compliance pass**: Checked each of the 12 principles against codebase evidence. Verified:
+   - All entity models have `frozen: True` (Principle X: compliant)
+   - Zero upward imports (Principle XI: compliant, but no CI automation -> GAP-004)
+   - All 7 CLI subcommands follow structured output schema (Principle V: compliant)
+   - 7 ADRs with README index (Principle VI: compliant)
+   - 27 skills all have SKILL.md (Principle VII: compliant)
+   - Pre-commit + CI double gate active (Principle VIII: compliant)
+   - Quality Gates table gaps: secret scanning absent (GAP-001), type checker absent (GAP-002)
+   - Governance references file that does not exist (GAP-006)
+   - CODEOWNERS absent per codebase analysis (GAP-005)
 
 ---
 
-## Artifacts Produced
+## Assumptions Made
 
-| Artifact | Location |
-|----------|----------|
-| Evolution Roadmap | `.humaninloop/memory/evolution-roadmap.md` |
-| Architect Report | `.humaninloop/memory/architect-report.md` |
+1. **GAP-004 promoted from observation to gap**: The previous architect report noted layer dependency CI enforcement as "deferred" because code review was adequate. This roadmap promotes it to a formal P2 gap because the constitution uses SHOULD language for automation, and the Three-Part Rule demands enforcement mechanisms beyond code review for structural rules.
 
-Both artifacts are based on:
-- Codebase analysis at `.humaninloop/memory/codebase-analysis.md`
-- Constitution at `.humaninloop/memory/constitution.md` (v3.0.0)
-- CI workflow at `.github/workflows/ci.yml`
-- Verified: layer imports (grep, zero violations), skill directories (27 count), ADRs (7 files), test suite (381 tests), quality gates (all automated except secret scanning)
+2. **GAP-006 is a governance gap, not a code gap**: The exception registry file is infrastructure. The constitution mandates its existence for recording exceptions. Creating an empty template satisfies the requirement.
+
+3. **No gaps for compliant principles**: Principles II, III, V, VI, VII, VIII, IX, X, XII are fully compliant based on codebase evidence. No gap cards were created for these.
+
+---
+
+## Files Written
+
+| File | Purpose |
+|------|---------|
+| `/Users/deepeshadmin/Documents/GitHub/human-in-loop/.humaninloop/memory/evolution-roadmap.md` | Prioritized gap analysis with 6 gap cards, dependency graph, and maintenance protocol |
+| `/Users/deepeshadmin/Documents/GitHub/human-in-loop/.humaninloop/memory/architect-report.md` | This summary report (overwrites previous constitution phase report) |
