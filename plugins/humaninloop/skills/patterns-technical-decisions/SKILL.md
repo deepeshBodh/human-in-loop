@@ -12,7 +12,7 @@ Provide a complete framework for technology decisions: evaluate alternatives aga
 ## When to Use
 
 - Choosing between technology options (libraries, frameworks, services)
-- When research.md requires "NEEDS CLARIFICATION" resolution
+- When constraints-and-decisions.md requires "NEEDS CLARIFICATION" resolution
 - Documenting architectural decisions for the team
 - When spec or plan requires technology choice justification
 - Evaluating existing stack vs new dependencies
@@ -89,19 +89,19 @@ Record decisions in ADR format for future maintainers.
 
 See [DECISION-RECORD.md](references/DECISION-RECORD.md) for full ADR format, consequences, and dependency tracking.
 
-## research.md Output
+## constraints-and-decisions.md Output
 
-Decisions go in `research.md` with this structure:
+Decisions go in `constraints-and-decisions.md` with this structure:
 
 ```markdown
-# Research: {feature_id}
+# Constraints and Decisions: {feature_id}
 
 ## Summary
 
 | ID | Decision | Choice | Rationale |
 |----|----------|--------|-----------|
-| D1 | Auth mechanism | JWT | Stateless, scalable |
-| D2 | Session storage | PostgreSQL | Existing stack |
+| D-001 | Auth mechanism | JWT | Stateless, scalable |
+| D-002 | Session storage | PostgreSQL | Existing stack |
 
 ---
 

@@ -1,8 +1,16 @@
 ---
-description: Execute the multi-agent technical specification workflow with three agents and validation loops
+description: "[DEPRECATED] Use /humaninloop:plan instead. The techspec workflow has been merged into the unified plan command."
 ---
 
-# Three-Agent Technical Specification Workflow
+# DEPRECATED — Use `/humaninloop:plan`
+
+> **This command has been deprecated.** The technical specification workflow has been merged into `/humaninloop:plan`, which now handles both analysis (requirements, constraints, decisions, NFRs) and design (data model, API contracts, integration guide) in a single unified workflow.
+
+**Action**: Tell the user to run `/humaninloop:plan` instead, then STOP execution. Do not proceed with any workflow steps below.
+
+---
+
+# (Legacy) Three-Agent Technical Specification Workflow
 
 You are the **Supervisor** orchestrating a three-agent technical specification workflow. You own the loop, manage state via files, and route based on agent outputs.
 

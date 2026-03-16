@@ -64,7 +64,9 @@ Derive absolute paths for artifacts that exist:
 - SPEC = FEATURE_DIR/spec.md (if exists)
 - PLAN = FEATURE_DIR/plan.md (if exists)
 - TASKS = FEATURE_DIR/tasks.md (if exists)
-- RESEARCH = FEATURE_DIR/research.md (if exists)
+- REQUIREMENTS = FEATURE_DIR/requirements.md (if exists)
+- CONSTRAINTS_DECISIONS = FEATURE_DIR/constraints-and-decisions.md (if exists)
+- NFRS = FEATURE_DIR/nfrs.md (if exists)
 - DATA_MODEL = FEATURE_DIR/data-model.md (if exists)
 - CONTRACTS = FEATURE_DIR/contracts/ (if exists)
 
@@ -92,7 +94,7 @@ For each artifact that exists, load relevant sections:
 - Edge Cases
 - Success Criteria
 
-**From plan.md / research.md / data-model.md:**
+**From plan.md / constraints-and-decisions.md / data-model.md:**
 - Key decisions
 - Entities defined
 - Technical constraints
@@ -122,7 +124,7 @@ If spec.md exists, apply `analysis-specifications` skill criteria:
 #### 4b. Plan Artifact Analysis
 
 If plan artifacts exist, apply `validation-plan-artifacts` skill criteria:
-- Research decision quality
+- Constraints and decision quality
 - Data model entity coverage
 - Contract endpoint coverage
 - Cross-artifact consistency

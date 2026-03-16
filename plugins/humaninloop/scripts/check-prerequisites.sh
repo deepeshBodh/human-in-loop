@@ -86,8 +86,8 @@ check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
 if $PATHS_ONLY; then
     if $JSON_MODE; then
         # Full JSON paths payload (no validation performed)
-        printf '{"REPO_ROOT":"%s","BRANCH":"%s","FEATURE_DIR":"%s","FEATURE_SPEC":"%s","IMPL_PLAN":"%s","TASK_MAPPING":"%s","TASKS":"%s","RESEARCH":"%s","DATA_MODEL":"%s","QUICKSTART":"%s","CONTRACTS_DIR":"%s"}\n' \
-            "$REPO_ROOT" "$CURRENT_BRANCH" "$FEATURE_DIR" "$FEATURE_SPEC" "$IMPL_PLAN" "$TASK_MAPPING" "$TASKS" "$RESEARCH" "$DATA_MODEL" "$QUICKSTART" "$CONTRACTS_DIR"
+        printf '{"REPO_ROOT":"%s","BRANCH":"%s","FEATURE_DIR":"%s","FEATURE_SPEC":"%s","IMPL_PLAN":"%s","TASK_MAPPING":"%s","TASKS":"%s","REQUIREMENTS":"%s","CONSTRAINTS_DECISIONS":"%s","NFRS":"%s","DATA_MODEL":"%s","QUICKSTART":"%s","CONTRACTS_DIR":"%s"}\n' \
+            "$REPO_ROOT" "$CURRENT_BRANCH" "$FEATURE_DIR" "$FEATURE_SPEC" "$IMPL_PLAN" "$TASK_MAPPING" "$TASKS" "$REQUIREMENTS" "$CONSTRAINTS_DECISIONS" "$NFRS" "$DATA_MODEL" "$QUICKSTART" "$CONTRACTS_DIR"
     else
         echo "REPO_ROOT: $REPO_ROOT"
         echo "BRANCH: $CURRENT_BRANCH"
@@ -96,7 +96,9 @@ if $PATHS_ONLY; then
         echo "IMPL_PLAN: $IMPL_PLAN"
         echo "TASK_MAPPING: $TASK_MAPPING"
         echo "TASKS: $TASKS"
-        echo "RESEARCH: $RESEARCH"
+        echo "REQUIREMENTS: $REQUIREMENTS"
+        echo "CONSTRAINTS_DECISIONS: $CONSTRAINTS_DECISIONS"
+        echo "NFRS: $NFRS"
         echo "DATA_MODEL: $DATA_MODEL"
         echo "QUICKSTART: $QUICKSTART"
         echo "CONTRACTS_DIR: $CONTRACTS_DIR"
@@ -132,8 +134,10 @@ docs=()
 [[ -f "$IMPL_PLAN" ]] && docs+=("plan.md")
 [[ -f "$TASK_MAPPING" ]] && docs+=("task-mapping.md")
 
-# Supplementary planning documents
-[[ -f "$RESEARCH" ]] && docs+=("research.md")
+# Planning artifacts
+[[ -f "$REQUIREMENTS" ]] && docs+=("requirements.md")
+[[ -f "$CONSTRAINTS_DECISIONS" ]] && docs+=("constraints-and-decisions.md")
+[[ -f "$NFRS" ]] && docs+=("nfrs.md")
 [[ -f "$DATA_MODEL" ]] && docs+=("data-model.md")
 
 # Check contracts directory (only if it exists and has files)
@@ -169,8 +173,10 @@ else
     check_file "$IMPL_PLAN" "plan.md"
     check_file "$TASK_MAPPING" "task-mapping.md"
 
-    # Supplementary planning documents
-    check_file "$RESEARCH" "research.md"
+    # Planning artifacts
+    check_file "$REQUIREMENTS" "requirements.md"
+    check_file "$CONSTRAINTS_DECISIONS" "constraints-and-decisions.md"
+    check_file "$NFRS" "nfrs.md"
     check_file "$DATA_MODEL" "data-model.md"
     check_dir "$CONTRACTS_DIR" "contracts/"
     check_file "$QUICKSTART" "quickstart.md"

@@ -28,7 +28,7 @@ You think like an architect who has:
 
 You read your instructions from a **context file** that tells you:
 1. Which **phase** you're in (mapping or tasks)
-2. What **artifacts** already exist (spec.md, plan.md, research.md, data-model.md, contracts/)
+2. What **artifacts** already exist (spec.md, plan.md, constraints-and-decisions.md, data-model.md, contracts/)
 3. What **clarifications** have been resolved from previous iterations
 4. Any **constitution principles** to align with
 
@@ -43,7 +43,7 @@ Based on the phase, you produce the appropriate artifact and write a report.
 **Read**:
 - `spec.md` - User stories with priorities and acceptance criteria
 - `plan.md` - Summary of planning decisions
-- `research.md` - Technical decisions and constraints
+- `constraints-and-decisions.md` - Technical decisions and constraints
 - `data-model.md` - Entities, relationships, validation rules
 - `contracts/` - API endpoints and schemas
 - Constitution - Project principles
@@ -75,7 +75,7 @@ Based on the phase, you produce the appropriate artifact and write a report.
 - `task-mapping.md` - Story to cycle mapping
 - `spec.md` - Acceptance criteria for each story
 - `plan.md` - Implementation guidance
-- `research.md` - Technical decisions affecting implementation
+- `constraints-and-decisions.md` - Technical decisions affecting implementation
 - `data-model.md` - Entity details for implementation
 - `contracts/` - Endpoint details for implementation
 - Constitution - Project principles
@@ -104,7 +104,7 @@ Based on the phase, you produce the appropriate artifact and write a report.
 
 ## Report Format
 
-After producing each artifact, write a report to `.workflow/planner-report.md`:
+After producing each artifact, write a report to the report path specified in your context file:
 
 ```markdown
 # Planner Report: {phase}

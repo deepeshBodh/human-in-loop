@@ -51,8 +51,7 @@ Every step produces artifacts you can review, refine, and approve before moving 
 |-------|---------|--------------|
 | **Setup** | `/humaninloop:setup` | Project constitution with your standards |
 | **Specify** | `/humaninloop:specify` | Structured spec with user stories and requirements |
-| **Techspec** | `/humaninloop:techspec` | Technical requirements, constraints, NFRs, integrations, data sensitivity |
-| **Plan** | `/humaninloop:plan` | Implementation plan with data models and contracts |
+| **Plan** | `/humaninloop:plan` | Technical requirements, constraints, decisions, data models, API contracts |
 | **Tasks** | `/humaninloop:tasks` | Ordered task list with TDD cycles |
 | **Audit** | `/humaninloop:audit` | Quality analysis across all artifacts |
 | **Implement** | `/humaninloop:implement` | Guided implementation with progress tracking |
@@ -111,56 +110,7 @@ Each command produces artifacts you review before the next step. You stay in con
 </details>
 
 <details>
-<summary><strong>Techspec</strong> - Translate spec into technical artifacts</summary>
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        /humaninloop:techspec                        │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌──────────────┐                                                   │
-│  │  SUPERVISOR  │ ◄─── Reads spec.md                                │
-│  └──────┬───────┘                                                   │
-│         │                                                           │
-│         ▼                Phase T0 (Core)                            │
-│  ┌──────────────────┐  ┌───────────────────┐  ┌─────────────────┐   │
-│  │   Technical      │─▶│   Principal       │─▶│   Devil's       │   │
-│  │   Analyst        │  │   Architect       │  │   Advocate      │   │
-│  └────────┬─────────┘  └───────────────────┘  └────────┬────────┘   │
-│           │              (feasibility)                  │           │
-│           ▼                                            ▼           │
-│  ┌────────────────┐  ┌──────────────────┐       ┌──────────┐       │
-│  │ requirements   │  │  constraints     │       │  gaps?   │       │
-│  │    .md         │  │     .md          │       └──────────┘       │
-│  └────────────────┘  └──────────────────┘                          │
-│                                                                     │
-│         │                Phase T1 (Supplementary)                   │
-│         ▼                                                           │
-│  ┌──────────────────┐  ┌───────────────────┐  ┌─────────────────┐   │
-│  │   Technical      │─▶│   Principal       │─▶│   Devil's       │   │
-│  │   Analyst        │  │   Architect       │  │   Advocate      │   │
-│  └────────┬─────────┘  └───────────────────┘  └────────┬────────┘   │
-│           │              (feasibility)                  │           │
-│           ▼                                            ▼           │
-│  ┌──────────┐ ┌──────────────┐ ┌──────────────────┐ ┌──────────┐   │
-│  │ nfrs.md  │ │integrations  │ │data-sensitivity   │ │  gaps?   │   │
-│  │          │ │    .md       │ │       .md         │ └──────────┘   │
-│  └──────────┘ └──────────────┘ └──────────────────┘                 │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-**Output**: `specs/{feature}/technical/` — 5 traceable artifacts
-
-**Agents**:
-- **Technical Analyst** — Translates business FRs into technical requirements, constraints, NFRs, integrations, and data sensitivity
-- **Principal Architect** — Reviews feasibility of each pass; validates constraints and NFR measurability
-- **Devil's Advocate** — Validates traceability, completeness, and cross-artifact consistency
-
-</details>
-
-<details>
-<summary><strong>Plan</strong> - Create implementation plan</summary>
+<summary><strong>Plan</strong> - Unified analysis and design planning</summary>
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -168,37 +118,50 @@ Each command produces artifacts you review before the next step. You stay in con
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
 │  ┌──────────────┐                                                   │
-│  │  SUPERVISOR  │ ◄─── Reads spec.md + technical/                    │
+│  │  SUPERVISOR  │ ◄─── Reads spec.md                                │
 │  └──────┬───────┘                                                   │
 │         │                                                           │
+│         ▼                Phase P1 (Analysis)                       │
+│  ┌──────────────────┐  ┌───────────────────┐  ┌─────────────────┐   │
+│  │   Technical      │─▶│   Principal       │─▶│   Devil's       │   │
+│  │   Analyst        │  │   Architect       │  │   Advocate      │   │
+│  └────────┬─────────┘  └───────────────────┘  └────────┬────────┘   │
+│           │            (feasibility gate)               │           │
+│           ▼                                            ▼           │
+│  ┌──────────────┐ ┌───────────────────┐ ┌─────────┐ ┌────────┐     │
+│  │requirements  │ │constraints-and-   │ │ nfrs.md │ │ gaps?  │     │
+│  │    .md       │ │  decisions.md     │ │         │ └────────┘     │
+│  └──────────────┘ └───────────────────┘ └─────────┘                │
+│                                                                     │
+│         │                Phase P2 (Design)                         │
 │         ▼                                                           │
-│  ┌──────────────────┐     ┌───────────────────┐                     │
-│  │     Plan         │────▶│   Devil's         │                     │
-│  │     Architect    │     │   Advocate        │                     │
-│  └────────┬─────────┘     └─────────┬─────────┘                     │
-│           │                         │                               │
-│           │         ┌───────────────┼───────────────┐               │
-│           ▼         ▼               ▼               ▼               │
-│     ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐             │
-│     │ research │ │  data-   │ │contracts/│ │quickstart│             │
-│     │   .md    │ │ model.md │ │ api.yaml │ │   .md    │             │
-│     └──────────┘ └──────────┘ └──────────┘ └──────────┘             │
-│           │             │           │            │                  │
-│           └─────────────┴───────────┴────────────┘                  │
-│                                │                                    │
-│                                ▼                                    │
-│                          ┌──────────┐                               │
-│                          │ plan.md  │                               │
-│                          └──────────┘                               │
+│  ┌──────────────────┐     ┌─────────────────┐                       │
+│  │   Technical      │────▶│   Devil's       │                       │
+│  │   Analyst        │     │   Advocate      │                       │
+│  └────────┬─────────┘     └────────┬────────┘                       │
+│           │                        │                               │
+│           ▼                       ▼                               │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐               │
+│  │  data-   │ │contracts/│ │quickstart│ │  gaps?   │               │
+│  │ model.md │ │ api.yaml │ │   .md    │ └──────────┘               │
+│  └──────────┘ └──────────┘ └──────────┘                             │
+│           │          │           │                                  │
+│           └──────────┴───────────┘                                  │
+│                      │                                              │
+│                      ▼                                              │
+│                ┌──────────┐                                         │
+│                │ plan.md  │                                         │
+│                └──────────┘                                         │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-**Output**: `specs/{feature}/plan.md` + supporting artifacts
+**Output**: `specs/{feature}/plan.md` + 6 supporting artifacts
 
 **Agents**:
-- **Plan Architect** — Creates research, data models, and API contracts; no code generation
-- **Devil's Advocate** — Validates technical decisions and cross-artifact consistency
+- **Technical Analyst** — Produces analysis artifacts (requirements, constraints-and-decisions, NFRs) and design artifacts (data model, API contracts, integration guide)
+- **Principal Architect** — Reviews cross-artifact feasibility after analysis phase (one-time gate)
+- **Devil's Advocate** — Validates completeness, traceability, and cross-artifact consistency
 
 </details>
 
@@ -383,7 +346,7 @@ Each command produces artifacts you review before the next step. You stay in con
 ## What's Included
 
 ### 7 Commands
-The full specify → techspec → plan → tasks → implement lifecycle.
+The full specify → plan → tasks → implement lifecycle.
 
 ### 27 Skills
 Claude automatically invokes these when relevant—authoring requirements, technical specifications, analyzing codebases, designing APIs, running verification tests, managing GitHub issues, DAG operations, workflow strategy, and more.

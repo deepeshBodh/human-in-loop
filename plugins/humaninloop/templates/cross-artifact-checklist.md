@@ -19,12 +19,12 @@ This checklist enables **incremental validation**—fully reviewing only the new
 - [ ] No invented requirements (addressed but not in spec)
 
 ### Decision Consistency
-- [ ] New artifact honors decisions from research.md
+- [ ] New artifact honors decisions from constraints-and-decisions.md
 - [ ] No contradictions with chosen technologies/approaches
 - [ ] Rationale still applies
 
 ### Naming Conventions
-- [ ] API endpoints follow patterns established in research
+- [ ] API endpoints follow patterns established in constraints-and-decisions.md
 - [ ] Field names match data model attributes
 - [ ] Error codes are consistent
 
@@ -33,14 +33,14 @@ This checklist enables **incremental validation**—fully reviewing only the new
 1. **Extract entity mentions** from new artifact
 2. **Grep previous artifacts** for those entity names
 3. **Spot-check 2-3 requirement IDs** trace correctly
-4. **Verify technology choices** match research decisions
+4. **Verify technology choices** match constraints-and-decisions.md
 5. **Flag inconsistencies** as Important issues
 
 ## Time Budget
 
 | Previous Artifact | Max Time |
 |-------------------|----------|
-| research.md | 1-2 minutes |
+| constraints-and-decisions.md | 1-2 minutes |
 | data-model.md | 1-2 minutes |
 | Total per phase | 2-3 minutes |
 

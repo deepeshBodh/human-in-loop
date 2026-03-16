@@ -71,7 +71,7 @@ AskUserQuestion(
    ```
 
    **1.5.4 Optional context from workflow artifacts**:
-   - If `{FEATURE_DIR}/.workflow/planner-report.md` exists: Note any assumptions made by Task Architect
+   - If `{FEATURE_DIR}/.workflow/architect-report.md` exists: Note any assumptions made by Task Architect
    - If `{FEATURE_DIR}/.workflow/advocate-report.md` exists: Note any known gaps/limitations flagged
 
 2. Load and analyze the implementation context:
@@ -85,7 +85,7 @@ AskUserQuestion(
      - Risk assessment and mitigation strategies
    - **IF EXISTS**: Read data-model.md for entities and relationships
    - **IF EXISTS**: Read contracts/ for API specifications and test requirements
-   - **IF EXISTS**: Read research.md for technical decisions and constraints
+   - **IF EXISTS**: Read constraints-and-decisions.md for technical decisions and constraints
    - **IF EXISTS**: Read quickstart.md for integration scenarios
 
 3. **Project Setup Verification**:

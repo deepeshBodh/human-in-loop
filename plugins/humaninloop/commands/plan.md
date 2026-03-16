@@ -2,9 +2,9 @@
 description: Execute the multi-agent implementation planning workflow with specialized agents and validation loops
 ---
 
-# Two-Agent Planning Workflow
+# Unified Planning Workflow
 
-You are the **Supervisor** orchestrating a two-agent planning workflow. You own the loop, manage state via files, and route based on agent outputs.
+You are the **Supervisor** orchestrating a unified planning workflow across two phases (Analysis → Design). You own the loop, manage state via files, and route based on agent outputs.
 
 ## User Input
 
@@ -50,8 +50,10 @@ SUPERVISOR (this command)
 
 AGENTS (independent, no workflow knowledge)
     │
-    ├── Plan Architect → Writes research.md, data-model.md, contracts/
-    └── Devil's Advocate → Reviews artifacts, finds gaps
+    ├── Technical Analyst → Phase 1: requirements.md, constraints-and-decisions.md, nfrs.md
+    │                     → Phase 2: data-model.md, contracts/api.yaml, quickstart.md
+    ├── Principal Architect → Feasibility intersection review (Phase 1 only)
+    └── Devil's Advocate → Completeness review (both phases)
 ```
 
 **Communication Pattern**: Context + Artifacts + Separate Reports
@@ -59,24 +61,20 @@ AGENTS (independent, no workflow knowledge)
 ```
 specs/{feature-id}/
 ├── spec.md                          # Input (from specify workflow)
-├── technical/                       # Input (from techspec workflow)
-│   ├── requirements.md              # Business FR → Technical TR mapping
-│   ├── constraints.md               # Tech constraints & migration needs
-│   ├── nfrs.md                      # Non-functional requirements
-│   ├── integrations.md              # System boundaries & external deps
-│   └── data-sensitivity.md          # Data classification & security
-├── research.md                      # Phase 1 output
-├── data-model.md                    # Phase 2 output
-├── contracts/                       # Phase 3 output
-│   └── api.yaml
-├── quickstart.md                    # Phase 3 output
+├── requirements.md                  # Phase 1 output
+├── constraints-and-decisions.md     # Phase 1 output
+├── nfrs.md                          # Phase 1 output
+├── data-model.md                    # Phase 2 output (includes sensitivity)
+├── contracts/                       # Phase 2 output
+│   └── api.yaml                     # (includes integration boundaries)
+├── quickstart.md                    # Phase 2 output
 ├── plan.md                          # Summary (completion)
 └── .workflow/
     ├── context.md                   # Context + instructions (specify)
-    ├── techspec-context.md          # Context + instructions (techspec)
     ├── plan-context.md              # Context + instructions (plan)
-    ├── planner-report.md            # Plan Architect output
-    └── advocate-report.md           # Devil's Advocate output
+    ├── techanalyst-report.md        # Technical Analyst output
+    ├── architect-report.md          # Principal Architect feasibility report
+    └── advocate-report.md           # Devil's Advocate completeness report
 ```
 
 ---
@@ -85,8 +83,35 @@ specs/{feature-id}/
 
 | Agent | File | Purpose |
 |-------|------|---------|
-| Plan Architect | `${CLAUDE_PLUGIN_ROOT}/agents/plan-architect.md` | Transform spec into planning artifacts |
-| Devil's Advocate | `${CLAUDE_PLUGIN_ROOT}/agents/devils-advocate.md` | Review artifacts, find gaps, generate clarifications |
+| Technical Analyst | `${CLAUDE_PLUGIN_ROOT}/agents/technical-analyst.md` | Produce analysis and design artifacts |
+| Principal Architect | `${CLAUDE_PLUGIN_ROOT}/agents/principal-architect.md` | Review cross-artifact feasibility (Phase 1 only) |
+| Devil's Advocate | `${CLAUDE_PLUGIN_ROOT}/agents/devils-advocate.md` | Review completeness, find gaps, check consistency |
+
+---
+
+## Pre-Execution: Constitution Check
+
+Before any workflow execution, verify that the project constitution exists:
+
+1. **Check for constitution file** at `.humaninloop/memory/constitution.md`
+2. **If NOT found**, display the following and STOP execution:
+
+```
+Constitution Required
+
+The HumanInLoop plan workflow requires a project constitution to be configured.
+
+The constitution defines project principles that guide planning quality validation.
+
+To set up your constitution, run:
+/humaninloop:setup
+
+This will walk you through defining your project's core principles.
+
+Then retry /humaninloop:plan
+```
+
+3. **If found**: Continue to Entry Gate
 
 ---
 
@@ -118,28 +143,7 @@ Before starting, verify the specification workflow is complete:
      )
      ```
 
-4. **Check techspec workflow status**: Read `specs/{feature-id}/.workflow/techspec-context.md`
-   - If NOT found: Block and tell user to run `/humaninloop:techspec` first:
-     ```
-     AskUserQuestion(
-       questions: [{
-         question: "Technical specification not found. Planning requires a completed techspec.\n\nRun /humaninloop:techspec first to translate business requirements into technical requirements.",
-         header: "Entry Gate",
-         options: [
-           {label: "Run techspec first", description: "Return to /humaninloop:techspec"},
-           {label: "Abort", description: "Cancel planning workflow"}
-         ],
-         multiSelect: false
-       }]
-     )
-     ```
-   - If `status` != `completed`: Block with same pattern, directing user to complete techspec
-
-5. **Verify technical artifacts**: Check all 5 files exist in `specs/{feature-id}/technical/`:
-   - `requirements.md`, `constraints.md`, `nfrs.md`, `integrations.md`, `data-sensitivity.md`
-   - If any missing: Block and tell user to run `/humaninloop:techspec` to completion
-
-6. **If entry gate passes**: Continue to Brownfield Check
+4. **If entry gate passes**: Continue to Brownfield Check
 
 ---
 
@@ -216,8 +220,8 @@ Before starting, check for interrupted planning workflows:
    )
    ```
 
-4. **If resume**: Read context, jump to appropriate phase based on status
-5. **If fresh**: Delete plan artifacts (research.md, data-model.md, contracts/) and proceed
+4. **If resume**: Read context, jump to appropriate phase based on status (see State Recovery)
+5. **If fresh**: Delete plan artifacts and proceed
 
 ---
 
@@ -231,117 +235,193 @@ Write to `specs/{feature-id}/.workflow/plan-context.md` with these values:
 
 | Placeholder | Value |
 |-------------|-------|
-| `{{phase}}` | `research` |
-| `{{status}}` | `awaiting-planner` |
+| `{{phase}}` | `analysis` |
+| `{{status}}` | `awaiting-analyst` |
 | `{{iteration}}` | `1` |
 | `{{feature_id}}` | Feature ID |
 | `{{created}}` | ISO date |
 | `{{updated}}` | ISO date |
+| `{{analysis_status}}` | `pending` |
+| `{{design_status}}` | `pending` |
 | `{{spec_status}}` | `present` |
-| `{{constitution_path}}` | Path to constitution |
-| `{{constitution_principles}}` | Extracted key principles |
 | `{{spec_path}}` | `specs/{feature-id}/spec.md` |
-| `{{research_path}}` | `specs/{feature-id}/research.md` |
-| `{{research_status}}` | `pending` |
+| `{{requirements_path}}` | `specs/{feature-id}/requirements.md` |
+| `{{requirements_status}}` | `pending` |
+| `{{constraints_decisions_path}}` | `specs/{feature-id}/constraints-and-decisions.md` |
+| `{{constraints_decisions_status}}` | `pending` |
+| `{{nfrs_path}}` | `specs/{feature-id}/nfrs.md` |
+| `{{nfrs_status}}` | `pending` |
 | `{{datamodel_path}}` | `specs/{feature-id}/data-model.md` |
 | `{{datamodel_status}}` | `pending` |
 | `{{contracts_path}}` | `specs/{feature-id}/contracts/` |
 | `{{contracts_status}}` | `pending` |
-| `{{planner_report_path}}` | `specs/{feature-id}/.workflow/planner-report.md` |
+| `{{quickstart_path}}` | `specs/{feature-id}/quickstart.md` |
+| `{{quickstart_status}}` | `pending` |
+| `{{analyst_report_path}}` | `specs/{feature-id}/.workflow/techanalyst-report.md` |
+| `{{architect_report_path}}` | `specs/{feature-id}/.workflow/architect-report.md` |
 | `{{advocate_report_path}}` | `specs/{feature-id}/.workflow/advocate-report.md` |
+| `{{constitution_path}}` | Path to constitution |
+| `{{constitution_principles}}` | Extracted key principles |
 | `{{project_type}}` | `brownfield` or `greenfield` (from constitution) |
 | `{{codebase_analysis_path}}` | `.humaninloop/memory/codebase-analysis.md` (if brownfield) |
 | `{{codebase_analysis_age}}` | Age in days (if brownfield) |
-| `{{codebase_context}}` | Empty (filled by planner if brownfield) |
+| `{{codebase_context}}` | Empty (filled by analyst if brownfield) |
 | `{{supervisor_instructions}}` | See Phase 2 for initial instructions |
 | `{{clarification_log}}` | Empty on first iteration |
 
 ---
 
-## Phase 2: Research
+## Phase 2: Analysis
 
-### 2.1 Set Supervisor Instructions for Planner
+### 2.1 Set Supervisor Instructions for Technical Analyst
 
 Update `{{supervisor_instructions}}` in plan-context.md:
 
 ```markdown
-**Phase**: Research
+**Phase**: Analysis
 
-Create technical research document evaluating technology alternatives and making design decisions.
+Translate the business specification into technical requirements, constraints, decisions, and non-functional requirements.
 
 **Read**:
-- Technical Requirements: `specs/{feature-id}/technical/requirements.md`
-- Technical Constraints: `specs/{feature-id}/technical/constraints.md`
-- System Integrations: `specs/{feature-id}/technical/integrations.md`
+- Spec: `specs/{feature-id}/spec.md`
 - Constitution: `.humaninloop/memory/constitution.md`
 
 **Write**:
-- Research: `specs/{feature-id}/research.md`
-- Report: `specs/{feature-id}/.workflow/planner-report.md`
+- Technical Requirements: `specs/{feature-id}/requirements.md`
+- Constraints and Decisions: `specs/{feature-id}/constraints-and-decisions.md`
+- Non-Functional Requirements: `specs/{feature-id}/nfrs.md`
+- Report: `specs/{feature-id}/.workflow/techanalyst-report.md`
 
 **Use Skills**:
+- `authoring-technical-requirements`
 - `patterns-technical-decisions`
 
 **Brownfield Context** (if `project_type: brownfield`):
 - Read existing analysis from `.humaninloop/memory/codebase-analysis.md`
 - Do NOT invoke `analysis-codebase` skill—use the cached results from setup
 
-**Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/planner-report-template.md`
+**Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/techanalyst-report-template.md`
 ```
 
 ### 2.2 Update Context Status
 
 Update plan-context.md frontmatter:
 ```yaml
-phase: research
-status: awaiting-planner
+phase: analysis
+status: awaiting-analyst
 updated: {ISO date}
 ```
 
-### 2.3 Invoke Plan Architect
+### 2.3 Invoke Technical Analyst
 
 ```
 Task(
-  subagent_type: "humaninloop:plan-architect",
+  subagent_type: "humaninloop:technical-analyst",
   prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-context.md",
-  description: "Create research document"
+  description: "Create analysis artifacts"
 )
 ```
 
 ### 2.4 Verify Output
 
 Confirm the agent created:
-- `specs/{feature-id}/research.md`
-- `specs/{feature-id}/.workflow/planner-report.md`
+- `specs/{feature-id}/requirements.md`
+- `specs/{feature-id}/constraints-and-decisions.md`
+- `specs/{feature-id}/nfrs.md`
+- `specs/{feature-id}/.workflow/techanalyst-report.md`
 
 If missing, report error and stop.
 
-### 2.5 Advocate Review
+### 2.5 Principal Architect Feasibility Review
+
+Update context for architect:
+
+```markdown
+**Phase**: Analysis Feasibility Review
+
+Review the analysis artifacts for cross-artifact contradictions and feasibility.
+
+**Read**:
+- Spec: `specs/{feature-id}/spec.md`
+- Technical Requirements: `specs/{feature-id}/requirements.md`
+- Constraints and Decisions: `specs/{feature-id}/constraints-and-decisions.md`
+- Non-Functional Requirements: `specs/{feature-id}/nfrs.md`
+- Analyst report: `specs/{feature-id}/.workflow/techanalyst-report.md`
+
+**Write**:
+- Report: `specs/{feature-id}/.workflow/architect-report.md`
+
+**Focus Areas** (cross-artifact contradictions ONLY):
+- Constraint-decision conflicts: Do technology decisions contradict hard constraints?
+- NFR-constraint impossibilities: Do NFR targets conflict with constraints or chosen technologies?
+- Requirement-constraint contradictions: Do any TRs assume capabilities not available under stated constraints?
+- Decision-decision conflicts: Do any technology choices contradict each other?
+
+**Out of Scope** (handled by Devil's Advocate):
+- Individual artifact completeness
+- Whether alternatives were properly considered
+- Whether NFRs are individually measurable
+- Formatting or style issues
+
+**Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/architect-report-template.md`
+```
+
+Update status:
+```yaml
+status: awaiting-architect
+```
+
+Invoke architect:
+```
+Task(
+  subagent_type: "humaninloop:principal-architect",
+  prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-context.md",
+  description: "Review analysis feasibility"
+)
+```
+
+### 2.6 Route Based on Architect Verdict
+
+Read architect report and extract verdict.
+
+**If verdict is `feasible`**:
+- Proceed to 2.7 (Devil's Advocate review)
+
+**If verdict is `infeasible` or `needs-revision`**:
+- Enter Feasibility Rejection Loop (see below)
+- After user decision and analyst revision → re-submit to architect (back to 2.5)
+
+### 2.7 Devil's Advocate Completeness Review
 
 Update context for advocate:
 
 ```markdown
-**Phase**: Research Review
+**Phase**: Analysis Completeness Review
 
-Review the research document for gaps and quality.
+Review the analysis artifacts for completeness and gaps.
 
 **Read**:
-- Technical Requirements: `specs/{feature-id}/technical/requirements.md`
-- Technical Constraints: `specs/{feature-id}/technical/constraints.md`
-- System Integrations: `specs/{feature-id}/technical/integrations.md`
-- Research: `specs/{feature-id}/research.md`
-- Planner report: `specs/{feature-id}/.workflow/planner-report.md`
+- Spec: `specs/{feature-id}/spec.md`
+- Technical Requirements: `specs/{feature-id}/requirements.md`
+- Constraints and Decisions: `specs/{feature-id}/constraints-and-decisions.md`
+- Non-Functional Requirements: `specs/{feature-id}/nfrs.md`
+- Analyst report: `specs/{feature-id}/.workflow/techanalyst-report.md`
 
 **Write**:
 - Report: `specs/{feature-id}/.workflow/advocate-report.md`
 
 **Use Skills**:
-- `validation-plan-artifacts` (phase: research)
+- `validation-plan-artifacts` (phase: P1)
 
-**Technical Consistency Checks**:
-- TR references: Do research decisions reference the technical requirements they address?
-- Constraint compliance: Do technology choices respect all constraints from constraints.md?
-- Integration alignment: Do selected technologies support the integration patterns from integrations.md?
+**Focus Areas**:
+- FR coverage: Is every functional requirement from spec.md mapped to at least one TR?
+- Orphan TRs: Are there technical requirements with no business source?
+- Testable criteria: Does every TR have measurable acceptance criteria?
+- Sourced constraints: Is every constraint traceable to a real limitation (not a preference)?
+- Decision quality: Were 2+ alternatives considered for each decision? Does each have rationale?
+- Constraint-decision cross-refs: Does each decision reference the constraints that shaped it?
+- NFR measurability: Does every NFR have a specific, measurable target and measurement method?
+- NFR sources: Do NFR sources trace to valid TRs or business requirements?
 
 **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/advocate-report-template.md`
 ```
@@ -356,230 +436,230 @@ Invoke advocate:
 Task(
   subagent_type: "humaninloop:devils-advocate",
   prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-context.md",
-  description: "Review research document"
+  description: "Review analysis completeness"
 )
 ```
 
-### 2.6 Route Based on Verdict
+### 2.8 Route Based on Advocate Verdict
 
 Read advocate report and extract verdict.
 
 **If verdict is `ready`**:
-- Update `{{research_status}}` to `complete`
-- Proceed to Phase 3 (Data Model)
+- Update `analysis_status` to `complete`
+- Update `requirements_status`, `constraints_decisions_status`, `nfrs_status` to `complete`
+- Proceed to Phase 3 (Design)
 
 **If verdict is `needs-revision` or `critical-gaps`**:
-- Present clarifications to user (see Clarification Loop)
-- Update context with answers
-- Increment iteration
-- Loop back to 2.3
+- Enter Clarification Loop (see below)
+- After user answers and analyst revision → route back:
+  - **Skip architect re-review** UNLESS structural changes occurred:
+    - New constraints added or existing constraints changed
+    - Requirement scope expanded significantly
+    - NFR targets modified
+  - If only clarifications were addressed (adding detail, fixing traceability) → go directly to 2.7
+  - If structural changes occurred → go back to 2.5
 
 ---
 
-## Phase 3: Data Model
+## Phase 3: Design
 
-### 3.1 Set Supervisor Instructions for Planner
+### 3.1 Set Supervisor Instructions for Technical Analyst
 
 Update `{{supervisor_instructions}}` in plan-context.md:
 
 ```markdown
-**Phase**: Data Model
+**Phase**: Design
 
-Create data model document extracting entities, relationships, and validation rules.
+Create data model, API contracts, and integration guide based on the analysis artifacts.
 
 **Read**:
-- Technical Requirements: `specs/{feature-id}/technical/requirements.md`
-- Data Sensitivity: `specs/{feature-id}/technical/data-sensitivity.md`
-- Research: `specs/{feature-id}/research.md`
+- Spec: `specs/{feature-id}/spec.md`
+- Technical Requirements: `specs/{feature-id}/requirements.md`
+- Constraints and Decisions: `specs/{feature-id}/constraints-and-decisions.md`
+- Non-Functional Requirements: `specs/{feature-id}/nfrs.md`
 - Constitution: `.humaninloop/memory/constitution.md`
 
 **Write**:
 - Data Model: `specs/{feature-id}/data-model.md`
-- Report: `specs/{feature-id}/.workflow/planner-report.md`
+- API Contracts: `specs/{feature-id}/contracts/api.yaml`
+- Integration Guide: `specs/{feature-id}/quickstart.md`
+- Report: `specs/{feature-id}/.workflow/techanalyst-report.md`
 
 **Use Skills**:
 - `patterns-entity-modeling`
+- `patterns-api-contracts`
 
 **Brownfield Context** (if `project_type: brownfield`):
-- Read existing entities from `.humaninloop/memory/codebase-analysis.md`
+- Read existing analysis from `.humaninloop/memory/codebase-analysis.md`
 - Do NOT invoke `analysis-codebase` skill—use the cached results from setup
 
-**Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/planner-report-template.md`
+**Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/techanalyst-report-template.md`
 ```
 
 ### 3.2 Update Context Status
 
 ```yaml
-phase: datamodel
-status: awaiting-planner
+phase: design
+status: awaiting-analyst
 iteration: 1
 updated: {ISO date}
 ```
 
-### 3.3 Invoke Plan Architect
+### 3.3 Invoke Technical Analyst
 
 ```
 Task(
-  subagent_type: "humaninloop:plan-architect",
+  subagent_type: "humaninloop:technical-analyst",
   prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-context.md",
-  description: "Create data model"
+  description: "Create design artifacts"
 )
 ```
 
 ### 3.4 Verify Output
 
-Confirm: `specs/{feature-id}/data-model.md`
-
-### 3.5 Advocate Review (Incremental)
-
-Update context for advocate:
-
-```markdown
-**Phase**: Data Model Review (INCREMENTAL MODE)
-
-**Full Review** the data model for completeness and quality.
-**Consistency Check** research.md using cross-artifact checklist.
-
-**Full Review**:
-- Data Model: `specs/{feature-id}/data-model.md`
-- Planner report: `specs/{feature-id}/.workflow/planner-report.md`
-
-**Consistency Check Only** (1-2 min max):
-- Research: `specs/{feature-id}/research.md` (entity names, decision references)
-
-**Write**:
-- Report: `specs/{feature-id}/.workflow/advocate-report.md`
-
-**Use Skills**:
-- `validation-plan-artifacts` (phase: datamodel, mode: incremental)
-
-**Full Review Checks**:
-- Entity coverage (all nouns from requirements)
-- Relationship completeness
-- Attribute definitions
-
-**Consistency Checks**:
-- Entity names match research decisions
-- Technology choices honored
-- Requirement IDs trace correctly
-- Data sensitivity alignment: Entity definitions honor classifications from `specs/{feature-id}/technical/data-sensitivity.md`
-
-**Time Budget**:
-- Data model full review: unlimited
-- Research consistency check: 1-2 minutes max
-```
-
-Invoke advocate and route based on verdict (same as Phase 2).
-
-**If ready**: Proceed to Phase 4 (Contracts)
-
----
-
-## Phase 4: Contracts
-
-### 4.1 Set Supervisor Instructions for Planner
-
-Update `{{supervisor_instructions}}` in plan-context.md:
-
-```markdown
-**Phase**: Contracts
-
-Create API contracts and integration guide.
-
-**Read**:
-- Technical Requirements: `specs/{feature-id}/technical/requirements.md`
-- NFRs: `specs/{feature-id}/technical/nfrs.md`
-- System Integrations: `specs/{feature-id}/technical/integrations.md`
-- Research: `specs/{feature-id}/research.md`
-- Data Model: `specs/{feature-id}/data-model.md`
-- Constitution: `.humaninloop/memory/constitution.md`
-
-**Write**:
-- Contracts: `specs/{feature-id}/contracts/api.yaml`
-- Quickstart: `specs/{feature-id}/quickstart.md`
-- Report: `specs/{feature-id}/.workflow/planner-report.md`
-
-**Use Skills**:
-- `patterns-api-contracts`
-
-**Brownfield Context** (if `project_type: brownfield`):
-- Read existing API patterns from `.humaninloop/memory/codebase-analysis.md`
-- Do NOT invoke `analysis-codebase` skill—use the cached results from setup
-
-**Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/planner-report-template.md`
-```
-
-### 4.2 Update Context Status
-
-```yaml
-phase: contracts
-status: awaiting-planner
-iteration: 1
-updated: {ISO date}
-```
-
-### 4.3 Invoke Plan Architect
-
-```
-Task(
-  subagent_type: "humaninloop:plan-architect",
-  prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-context.md",
-  description: "Create API contracts"
-)
-```
-
-### 4.4 Verify Output
-
-Confirm:
+Confirm the agent created:
+- `specs/{feature-id}/data-model.md`
 - `specs/{feature-id}/contracts/api.yaml`
 - `specs/{feature-id}/quickstart.md`
 
-### 4.5 Advocate Review (Incremental)
+If missing, report error and stop.
+
+### 3.5 Devil's Advocate Review (Incremental)
 
 Update context for advocate:
 
 ```markdown
-**Phase**: Contracts Review (INCREMENTAL MODE)
+**Phase**: Design Review (INCREMENTAL MODE)
 
-**Full Review** API contracts for completeness and consistency with data model.
-**Consistency Check** previous artifacts using cross-artifact checklist.
+**Full Review** the design artifacts for completeness and quality.
+**Consistency Check** analysis artifacts using cross-artifact checklist.
 
 **Full Review**:
-- Contracts: `specs/{feature-id}/contracts/api.yaml`
-- Quickstart: `specs/{feature-id}/quickstart.md`
-- Planner report: `specs/{feature-id}/.workflow/planner-report.md`
+- Data Model: `specs/{feature-id}/data-model.md`
+- API Contracts: `specs/{feature-id}/contracts/api.yaml`
+- Integration Guide: `specs/{feature-id}/quickstart.md`
+- Analyst report: `specs/{feature-id}/.workflow/techanalyst-report.md`
 
-**Consistency Check Only** (2-3 min total):
-- Research: `specs/{feature-id}/research.md` (1-2 min)
-- Data Model: `specs/{feature-id}/data-model.md` (1-2 min)
+**Consistency Check Only** (2-3 min max):
+- Requirements: `specs/{feature-id}/requirements.md`
+- Constraints and Decisions: `specs/{feature-id}/constraints-and-decisions.md`
+- NFRs: `specs/{feature-id}/nfrs.md`
 
 **Write**:
 - Report: `specs/{feature-id}/.workflow/advocate-report.md`
 
 **Use Skills**:
-- `validation-plan-artifacts` (phase: contracts, mode: incremental)
+- `validation-plan-artifacts` (phase: P2, mode: incremental)
 
 **Full Review Checks**:
+- Entity coverage (all nouns from requirements modeled)
+- Attribute completeness and relationship definitions
+- Data sensitivity annotations (PII classified, Confidential+ attributes have full handling requirements)
 - Endpoint coverage (all user actions mapped)
-- Schema consistency with data model
+- Schema-model consistency (schemas match data model entities)
 - Error handling completeness
-- OpenAPI spec validity
+- Integration boundaries (x-integration documentation for external system endpoints)
+- Integration guide usability
 
 **Consistency Checks**:
-- Entity names match data model exactly
-- API patterns match research decisions
+- Entity names match requirement references
+- Technology choices from decisions honored in design
 - Requirement IDs trace correctly
-- NFR targets: API design honors performance targets from `specs/{feature-id}/technical/nfrs.md`
-- Integration patterns: Endpoint design matches integration catalogue from `specs/{feature-id}/technical/integrations.md`
+- Sensitivity-contract alignment: API responses respect data classification (no Restricted data in responses)
+- Integration-contract alignment: Contract integration boundaries match systems implied by requirements
+- NFR-design feasibility: Can the design as specified meet the NFR targets?
 
 **Time Budget**:
-- Contracts full review: unlimited
-- Previous artifacts consistency check: 2-3 minutes total
+- Design full review: unlimited
+- Analysis consistency check: 2-3 minutes max
+
+**Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/advocate-report-template.md`
 ```
 
-Invoke advocate and route based on verdict.
+Update status:
+```yaml
+status: awaiting-advocate
+```
 
-**If ready**: Proceed to Phase 5 (Completion)
+Invoke advocate:
+```
+Task(
+  subagent_type: "humaninloop:devils-advocate",
+  prompt: "Read your instructions from: specs/{feature-id}/.workflow/plan-context.md",
+  description: "Review design completeness"
+)
+```
+
+### 3.6 Route Based on Verdict
+
+Read advocate report and extract verdict.
+
+**If verdict is `ready`**:
+- Update `design_status` to `complete`
+- Update `datamodel_status`, `contracts_status`, `quickstart_status` to `complete`
+- Proceed to Phase 4 (Completion)
+
+**If verdict is `needs-revision` or `critical-gaps`**:
+- Enter Clarification Loop
+- After user answers and analyst revision → loop back to 3.5
+
+---
+
+## Feasibility Rejection Loop
+
+When the Principal Architect verdict is `infeasible` or `needs-revision`:
+
+1. **Present architect's concerns to user** using AskUserQuestion:
+   ```
+   AskUserQuestion(
+     questions: issues.map(issue => ({
+       question: "Feasibility concern: {issue.description}\n\nEvidence: {issue.evidence}\n\nImpact on design: {issue.impact}\n\nSuggested resolution: {issue.suggested_resolution}",
+       header: issue.id || "Feasibility",
+       options: [
+         {label: "Accept resolution", description: "Apply the suggested resolution"},
+         {label: "Relax requirement", description: "Reduce the target or remove the constraint"},
+         {label: "Keep as-is", description: "Proceed despite the concern (architect will re-review)"},
+         {label: "Provide direction", description: "I'll give specific guidance"}
+       ],
+       multiSelect: false
+     }))
+   )
+   ```
+
+2. **Log user decisions** in clarification log:
+   ```markdown
+   ### Phase: Analysis - Feasibility Iteration {N}
+
+   #### Architect Concerns
+   {List from architect report}
+
+   #### User Decisions
+   | Issue | Decision | User Direction |
+   |-------|----------|----------------|
+   | {issue} | {accept/relax/keep/custom} | {user's specific direction} |
+   ```
+
+3. **Update supervisor instructions for revision**:
+   ```markdown
+   **Phase**: Analysis (Feasibility Revision)
+
+   Revise the analysis artifacts based on user decisions about feasibility concerns.
+
+   **Read**:
+   - Current artifacts: `specs/{feature-id}/requirements.md`, `specs/{feature-id}/constraints-and-decisions.md`, `specs/{feature-id}/nfrs.md`
+   - Architect concerns and user decisions: See `## Clarification Log` below
+   - Spec: `specs/{feature-id}/spec.md`
+
+   **Write**:
+   - Updated artifacts as needed
+   - Report: `specs/{feature-id}/.workflow/techanalyst-report.md`
+
+   **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/techanalyst-report-template.md`
+   ```
+
+4. **Increment iteration** in context frontmatter
+
+5. **Re-invoke Technical Analyst** → then re-submit to Principal Architect
 
 ---
 
@@ -662,21 +742,23 @@ When advocate verdict is `needs-revision` or `critical-gaps`:
    ```markdown
    **Phase**: {phase} (Revision)
 
-   Revise the {artifact} based on user feedback.
+   Revise the artifacts based on user feedback.
 
    **Read**:
-   - Current artifact: `specs/{feature-id}/{artifact}`
+   - Current artifacts (see File Paths table in context)
    - Gaps and user answers: See `## Clarification Log` below
-   - Previous artifacts for context
+   - Spec: `specs/{feature-id}/spec.md`
 
    **Write**:
-   - Updated artifact: `specs/{feature-id}/{artifact}`
-   - Report: `specs/{feature-id}/.workflow/planner-report.md`
+   - Updated artifacts as needed
+   - Report: `specs/{feature-id}/.workflow/techanalyst-report.md`
+
+   **Report format**: Follow `${CLAUDE_PLUGIN_ROOT}/templates/techanalyst-report-template.md`
    ```
 
-4. **Increment iteration** in context frontmatter
+5. **Increment iteration** in context frontmatter
 
-5. **Loop back to Planner invocation**
+6. **Loop back to Technical Analyst invocation**
 
 ---
 
@@ -707,84 +789,31 @@ AskUserQuestion(
 
 ---
 
-## Phase 5: Completion
+## Phase 4: Completion
 
-### 5.1 Generate plan.md Summary
+### 4.1 Generate plan.md Summary
 
-Write `specs/{feature-id}/plan.md`:
+Use the template at `${CLAUDE_PLUGIN_ROOT}/templates/plan-template.md`.
 
-```markdown
-# Implementation Plan: {feature_id}
+Write `specs/{feature-id}/plan.md` by extracting:
+- Key decisions from `constraints-and-decisions.md`
+- Entity summary from `data-model.md` (including sensitivity)
+- Endpoint summary from `contracts/api.yaml` (including integrations)
 
-> Summary document for the planning workflow.
-
----
-
-## Overview
-
-{2-3 sentence summary extracted from spec.md}
-
----
-
-## Key Decisions
-
-| Decision | Choice | See |
-|----------|--------|-----|
-{For each decision in research.md}
-
----
-
-## Entities
-
-| Entity | Status | Attributes | Relationships |
-|--------|--------|------------|---------------|
-{For each entity in data-model.md}
-
----
-
-## Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-{For each endpoint in contracts/api.yaml}
-
----
-
-## Artifacts
-
-| Artifact | Path | Status |
-|----------|------|--------|
-| Specification | specs/{feature-id}/spec.md | ✓ Complete |
-| Technical Requirements | specs/{feature-id}/technical/ | ✓ Present (from techspec) |
-| Research | specs/{feature-id}/research.md | ✓ Complete |
-| Data Model | specs/{feature-id}/data-model.md | ✓ Complete |
-| API Contracts | specs/{feature-id}/contracts/api.yaml | ✓ Complete |
-| Quickstart | specs/{feature-id}/quickstart.md | ✓ Complete |
-
----
-
-## Next Steps
-
-Run `/humaninloop:tasks` to generate implementation tasks from this plan.
-```
-
-### 5.2 Update Final Status
+### 4.2 Update Final Status
 
 Update plan-context.md frontmatter:
 ```yaml
 phase: completed
 status: completed
+analysis_status: complete
+design_status: complete
 updated: {ISO date}
 ```
 
-Update artifact statuses:
-```yaml
-research_status: complete
-datamodel_status: complete
-contracts_status: complete
-```
+Update all artifact statuses to `complete`.
 
-### 5.3 Generate Completion Report
+### 4.3 Generate Completion Report
 
 Output to user:
 
@@ -794,16 +823,21 @@ Output to user:
 **Feature**: {feature_id}
 
 ### Summary
-- Decisions documented: {count from research.md}
+- Technical Requirements: {count from requirements.md}
+- Constraints: {count from constraints-and-decisions.md}
+- Decisions: {count from constraints-and-decisions.md}
+- Non-Functional Requirements: {count from nfrs.md}
 - Entities modeled: {count from data-model.md}
-- Endpoints designed: {count from contracts/}
+- Endpoints designed: {count from contracts/api.yaml}
 
 ### Artifacts Generated
-- `specs/{feature-id}/plan.md` - Summary document
-- `specs/{feature-id}/research.md` - Technical decisions
-- `specs/{feature-id}/data-model.md` - Entity definitions
-- `specs/{feature-id}/contracts/api.yaml` - OpenAPI specification
+- `specs/{feature-id}/requirements.md` - FR → TR mapping
+- `specs/{feature-id}/constraints-and-decisions.md` - Hard boundaries and technology choices
+- `specs/{feature-id}/nfrs.md` - Performance and quality targets
+- `specs/{feature-id}/data-model.md` - Entity definitions with sensitivity annotations
+- `specs/{feature-id}/contracts/api.yaml` - OpenAPI specification with integration boundaries
 - `specs/{feature-id}/quickstart.md` - Integration guide
+- `specs/{feature-id}/plan.md` - Summary document
 
 ### Known Limitations
 {Any minor gaps deferred, if applicable}
@@ -843,15 +877,13 @@ Resume logic based on `phase` and `status` fields:
 
 | Phase | Status | Resume Point |
 |-------|--------|--------------|
-| `research` | `awaiting-planner` | Phase 2.3 (invoke planner) |
-| `research` | `awaiting-advocate` | Phase 2.5 (invoke advocate) |
-| `research` | `awaiting-user` | Clarification loop |
-| `datamodel` | `awaiting-planner` | Phase 3.3 (invoke planner) |
-| `datamodel` | `awaiting-advocate` | Phase 3.5 (invoke advocate) |
-| `datamodel` | `awaiting-user` | Clarification loop |
-| `contracts` | `awaiting-planner` | Phase 4.3 (invoke planner) |
-| `contracts` | `awaiting-advocate` | Phase 4.5 (invoke advocate) |
-| `contracts` | `awaiting-user` | Clarification loop |
+| `analysis` | `awaiting-analyst` | Phase 2.3 (invoke analyst) |
+| `analysis` | `awaiting-architect` | Phase 2.5 (invoke architect) |
+| `analysis` | `awaiting-advocate` | Phase 2.7 (invoke advocate) |
+| `analysis` | `awaiting-user` | Clarification or Feasibility loop |
+| `design` | `awaiting-analyst` | Phase 3.3 (invoke analyst) |
+| `design` | `awaiting-advocate` | Phase 3.5 (invoke advocate) |
+| `design` | `awaiting-user` | Clarification loop |
 | `completed` | `completed` | Report already done |
 
 ---
@@ -863,4 +895,7 @@ Resume logic based on `phase` and `status` fields:
 - Always use Task tool to invoke agents
 - Agents have NO workflow knowledge—all context via context file
 - Supervisor owns ALL routing and state decisions
-- Advocate reviews use incremental validation (full review for new artifact, consistency check for previous)
+- Architect reviews feasibility ONCE after Phase 1 only—prevents wasting time reviewing completeness of infeasible requirements
+- After advocate-driven revisions in Phase 1, skip architect re-review unless structural changes occurred (new constraints, changed requirement scope, modified NFR targets)
+- Phase 2 has NO architect review—Devil's Advocate handles both completeness and cross-artifact consistency via incremental mode
+- Advocate reviews in Phase 2 use incremental validation (full review for new design artifacts, consistency check for Phase 1 analysis artifacts)

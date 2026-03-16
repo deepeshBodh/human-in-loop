@@ -1,7 +1,7 @@
 {
   "name": "humaninloop",
   "version": "3.0.0",
-  "description": "Specification-driven development workflow: specify → techspec → plan → tasks → implement",
+  "description": "Specification-driven development workflow: specify → plan → tasks → implement",
   "author": {
     "name": "HumanInLoop",
     "url": "https://humaninloop.dev"
@@ -21,7 +21,6 @@
   "skills": "./skills/",
   "agents": [
     "./agents/devils-advocate.md",
-    "./agents/plan-architect.md",
     "./agents/principal-architect.md",
     "./agents/requirements-analyst.md",
     "./agents/task-architect.md",

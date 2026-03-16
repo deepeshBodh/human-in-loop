@@ -1,10 +1,10 @@
 # Traceability Patterns
 
-Cross-reference patterns, dependency chains, and completeness validation rules for the five technical requirement artifacts.
+Cross-reference patterns, dependency chains, and completeness validation rules for plan artifacts.
 
 ## The Traceability Web
 
-Every artifact connects to others. No artifact stands alone. The traceability web ensures that business intent is preserved through technical translation and that every technical decision traces to a business justification.
+Every artifact connects to others. No artifact stands alone. The traceability web ensures that business intent is preserved through technical translation and design, and that every technical decision traces to a business justification.
 
 ```
 Business Specifications (FR-XXX, user stories)
@@ -15,17 +15,23 @@ Business Specifications (FR-XXX, user stories)
 │          ← maps to → FR-XXX                   │
 │          ← constrained by → C-XXX             │
 │          ← qualified by → NFR-XXX             │
-│          ← depends on → INT-XXX               │
-│          ← handles → DS-XXX                   │
+│          ← shaped by → D-XXX                  │
 └─────────────────────────────────────────────┘
         │
         ▼
-  Design / Architecture (downstream)
+┌─────────────────────────────────────────────┐
+│          Design Artifacts                     │
+│          Entity ← traces to → TR-XXX          │
+│          Endpoint ← traces to → User Action   │
+│          Schema ← matches → Entity            │
+│          Integration ← documented in → API    │
+│          Sensitivity ← annotated on → Entity  │
+└─────────────────────────────────────────────┘
 ```
 
-## Mandatory Cross-References
+## Phase 1 Cross-References (Analysis Artifacts)
 
-### TR -> FR (Business Traceability)
+### TR → FR (Business Traceability)
 
 Every technical requirement MUST trace to at least one business functional requirement.
 
@@ -40,7 +46,7 @@ Every technical requirement MUST trace to at least one business functional requi
 
 **Reverse check:** Scan all FRs from the business specification. Each FR MUST appear as a source in at least one TR. If an FR has no corresponding TR, it was missed during translation.
 
-### TR -> C (Constraint Awareness)
+### TR → C (Constraint Awareness)
 
 Technical requirements SHOULD reference constraints that affect their implementation.
 
@@ -55,7 +61,7 @@ Technical requirements SHOULD reference constraints that affect their implementa
 
 **Why this matters:** When architects read a TR, they need to see which constraints apply immediately, not discover them later in a separate document.
 
-### TR -> NFR (Quality Binding)
+### TR → NFR (Quality Binding)
 
 Technical requirements SHOULD reference NFRs that set quality targets for their operation.
 
@@ -68,33 +74,30 @@ Technical requirements SHOULD reference NFRs that set quality targets for their 
 - NFR-004 (zero plaintext PII in error responses)
 ```
 
-### TR -> INT (Integration Dependency)
+### C → D (Constraint-Decision Link)
 
-Technical requirements that consume external systems MUST reference the integration entry.
+Constraints SHOULD reference the decisions they shaped. Decisions MUST reference the constraints that shaped them.
 
-**Pattern:**
+**Pattern (Constraint side):**
 ```markdown
-## TR-008: Payment Processing
+## C-001: Existing PostgreSQL Infrastructure
 
-**Dependencies:**
-- INT-001 (Stripe API for charge creation)
-- INT-002 (SendGrid for payment confirmation email)
+**Impact:**
+- Eliminates NoSQL options
+- Shapes D-001 (database choice)
 ```
 
-### TR -> DS (Data Handling)
-
-Technical requirements that create, read, update, or delete classified data SHOULD reference the data sensitivity entry.
-
-**Pattern:**
+**Pattern (Decision side):**
 ```markdown
-## TR-001: Authentication Flow
+## D-001: Primary Database
 
-**Dependencies:**
-- DS-002 (password hash -- restricted classification)
-- DS-001 (user email -- confidential classification)
+**Shaped By:**
+- C-001 (must use existing PostgreSQL cluster)
 ```
 
-### NFR -> Source (Justification)
+**Validation rule:** Every D-XXX entry MUST have a non-empty `Shaped By` field. Every C-XXX entry SHOULD reference at least one D-XXX in its Impact section.
+
+### NFR → Source (Justification)
 
 Every NFR MUST trace to a business source that justifies the target.
 
@@ -106,96 +109,113 @@ Every NFR MUST trace to a business source that justifies the target.
            stakeholder expectation of "instant feedback" in spec section 3.2
 ```
 
-**Validation rule:** No NFR without a source. Targets pulled from thin air are not requirements -- they are guesses.
+**Validation rule:** No NFR without a source. Targets pulled from thin air are not requirements — they are guesses.
 
-### INT -> TR (Usage Reference)
+## Phase 2 Cross-References (Design Artifacts)
 
-Every integration SHOULD be referenced by at least one TR.
+### Entity → FR (Requirement Traceability)
 
-**Pattern:**
-```markdown
-## INT-001: Stripe Payment API
-
-**Referenced By:**
-- TR-005 (payment processing flow)
-- TR-008 (refund handling)
-```
-
-**Validation rule:** An integration entry referenced by no TR is either premature (no requirement needs it yet) or indicates a missing TR.
-
-### DS -> TR (Handling Reference)
-
-Every data sensitivity entry SHOULD be referenced by at least one TR.
+Every entity MUST trace to at least one functional requirement.
 
 **Pattern:**
 ```markdown
-## DS-001: User Email
+## User
 
-**Referenced By:**
-- TR-001 (authentication flow)
-- TR-012 (notification preferences)
+**Description:** Represents a registered user account
+**Traceability:** FR-001, FR-003
 ```
 
-### INT -> DS (Data Flow Classification)
+**Validation rule:** Every entity MUST have a `Traceability` field with at least one FR-XXX reference.
 
-Integration data exchange SHOULD reference data sensitivity classifications.
+### Entity Attribute → Sensitivity (Data Classification)
+
+Every attribute handling PII or sensitive data MUST have a sensitivity annotation.
 
 **Pattern:**
 ```markdown
-## INT-001: Stripe Payment API
+### Attributes
 
-### Data Exchanged
-
-| Direction | Data | Classification |
-|-----------|------|---------------|
-| Outbound | Payment amount, customer ref | DS-003 (confidential) |
-| Inbound | Transaction ID, status | DS-004 (internal) |
+| Attribute | Type | Constraints | Sensitivity |
+|-----------|------|------------|-------------|
+| email | String(255) | Unique, required | Confidential — encrypt at rest, mask in logs |
+| password_hash | String(60) | Required | Restricted — encrypt at rest, never log |
+| display_name | String(100) | Required | Public |
 ```
+
+**Validation rule:** Every Confidential+ attribute MUST have a detailed sensitivity section with encryption, retention, access control, and audit requirements.
+
+### Endpoint → User Action (Action Coverage)
+
+Every user action from the specification SHOULD map to at least one API endpoint.
+
+**Pattern:** The user action "create account" maps to `POST /users`.
+
+**Validation rule:** List all user actions from spec.md user stories. Each SHOULD have a corresponding endpoint in the API contract.
+
+### Schema → Entity (Model Alignment)
+
+API request/response schemas MUST match data model entities.
+
+**Pattern:** The `UserResponse` schema fields must correspond to `User` entity attributes.
+
+**Validation rule:** For each response schema, verify that field names, types, and constraints match the corresponding entity definition.
+
+### Endpoint → Integration (External System Documentation)
+
+Endpoints that wrap external systems MUST include `x-integration` documentation.
+
+**Pattern:**
+```yaml
+/payments:
+  post:
+    x-integration:
+      system: "Stripe v2024-01"
+      criticality: "Critical"
+      failure_modes:
+        - failure: "Timeout"
+          detection: "HTTP timeout"
+          impact: "Payment not processed"
+          fallback: "Retry with exponential backoff"
+```
+
+**Validation rule:** Every endpoint whose implementation depends on an external system MUST have integration boundary documentation with failure modes and fallback strategies.
 
 ## Dependency Chains
 
 Some traceability relationships form chains that must be consistent end-to-end.
 
-### Business-to-Technical Chain
+### Full Traceability Chain
 
 ```
 FR-001 (business: "users can sign in")
   └── TR-001 (technical: authentication flow)
         ├── C-001 (constraint: must use existing identity provider)
+        ├── D-002 (decision: JWT with refresh tokens)
         ├── NFR-001 (quality: p95 < 200ms)
-        ├── INT-003 (integration: Auth0 OIDC)
-        │     └── DS-002 (data: password -- restricted)
-        └── DS-001 (data: email -- confidential)
+        └── Entity: User
+              ├── email (Confidential)
+              ├── password_hash (Restricted)
+              └── Endpoint: POST /auth/token
+                    └── x-integration: Auth0 (Critical)
 ```
 
-**Reading this chain:** Business requirement FR-001 is implemented by TR-001, which is constrained by C-001, must meet NFR-001 latency, depends on INT-003 for identity, and handles DS-001 and DS-002 classified data.
+**Reading this chain:** Business requirement FR-001 is implemented by TR-001, which is constrained by C-001, informed by decision D-002, must meet NFR-001 latency, produces the User entity with classified attributes, exposed via POST /auth/token which integrates with Auth0.
 
 ### Constraint Impact Chain
 
 ```
 C-002 (regulatory: GDPR Art. 17 right to erasure)
   ├── TR-015 (technical: data deletion workflow)
-  ├── DS-001 (data: must be deletable within 30 days)
-  ├── DS-003 (data: must be deletable within 30 days)
-  └── INT-001 (integration: must support deletion API)
+  ├── D-004 (decision: soft-delete with 30-day purge)
+  ├── Entity: User → email (retention: 30 days after closure)
+  └── Endpoint: DELETE /users/{id}
 ```
 
-**Reading this chain:** Regulatory constraint C-002 affects TR-015 implementation, requires DS-001 and DS-003 to have deletion procedures, and requires INT-001 to support data deletion.
-
-### Integration Failure Chain
-
-```
-INT-001 (integration: Stripe -- CRITICAL)
-  ├── TR-005 (dependent: payment processing)
-  │     └── FR-003 (business: "users can purchase")
-  └── Failure impact: FR-003 completely blocked
-```
-
-**Reading this chain:** If INT-001 fails, TR-005 cannot function, which means FR-003 is not satisfied. This chain justifies the "Critical" classification and the need for robust fallback strategies.
+**Reading this chain:** Regulatory constraint C-002 drives TR-015 and decision D-004, requires User.email to have a 30-day retention policy, and necessitates a DELETE endpoint.
 
 ## Completeness Validation
 
-### Forward Traceability (FR -> TR)
+### Forward Traceability (FR → TR)
 
 Check that every business requirement has technical coverage.
 
@@ -212,10 +232,10 @@ Check that every business requirement has technical coverage.
 |----|----------------------|--------|
 | FR-001 | TR-001, TR-002, TR-003 | Covered |
 | FR-002 | TR-004, TR-005 | Covered |
-| FR-003 | (none) | **GAP -- missing TR** |
+| FR-003 | (none) | **GAP — missing TR** |
 ```
 
-### Backward Traceability (TR -> FR)
+### Backward Traceability (TR → FR)
 
 Check that every technical requirement traces to a business source.
 
@@ -224,16 +244,14 @@ Check that every technical requirement traces to a business source.
 2. For each TR, verify Source field references valid FR(s)
 3. Flag any TR with no source (orphan)
 
-**Output format:**
-```markdown
-## Backward Traceability Check
+### Decision Traceability (D → C)
 
-| TR | Source FRs | Status |
-|----|-----------|--------|
-| TR-001 | FR-001 | Valid |
-| TR-002 | FR-001 | Valid |
-| TR-007 | (none) | **ORPHAN -- no business source** |
-```
+Check that every decision references the constraints that shaped it.
+
+**Procedure:**
+1. List all D-XXX entries
+2. For each, verify Shaped By field references valid C-XXX or NFR-XXX entries
+3. Flag any decision without constraint references
 
 ### NFR Measurability Check
 
@@ -244,79 +262,60 @@ Verify every NFR has all three required elements.
 2. For each, verify: target (numeric), measurement method, source
 3. Flag any NFR missing elements
 
-**Output format:**
-```markdown
-## NFR Measurability Check
+### Entity-to-FR Traceability
 
-| NFR | Has Target | Has Method | Has Source | Status |
-|-----|-----------|------------|-----------|--------|
-| NFR-001 | 200ms p95 | APM monitoring | FR-001 | Complete |
-| NFR-002 | 99.9% | (missing) | SLA doc | **INCOMPLETE -- no method** |
-| NFR-003 | (missing) | Load test | Growth plan | **INCOMPLETE -- no target** |
-```
-
-### Integration Failure Coverage Check
-
-Verify every integration has failure mode analysis.
+Check that every entity traces to business requirements.
 
 **Procedure:**
-1. List all INT-XXX entries
-2. For each, verify: failure modes documented, fallback for each mode
-3. Flag any integration with incomplete coverage
+1. List all entities in data-model.md
+2. For each, verify Traceability field references valid FR-XXX entries
+3. Flag any entity with no FR reference
 
-**Output format:**
-```markdown
-## Integration Failure Coverage
+### Data Sensitivity Coverage
 
-| INT | System | Failure Modes | Fallbacks | Status |
-|-----|--------|--------------|-----------|--------|
-| INT-001 | Stripe | 5 modes | 5 fallbacks | Complete |
-| INT-002 | SendGrid | 3 modes | 1 fallback | **INCOMPLETE -- 2 modes without fallback** |
-```
-
-### Data Classification Coverage Check
-
-Verify every data element handled by TRs is classified.
+Verify every entity attribute handling PII is classified.
 
 **Procedure:**
-1. Identify all data elements mentioned in TR acceptance criteria
-2. For each, verify a DS-XXX entry exists
-3. Flag unclassified data
+1. Identify all attributes in entity definitions
+2. For each attribute that could contain PII (email, phone, name, address, etc.), verify sensitivity annotation
+3. Flag unclassified sensitive data
 
-**Output format:**
-```markdown
-## Data Classification Coverage
+### Integration Coverage
 
-| Data Element | DS Entry | Classification | Status |
-|-------------|----------|---------------|--------|
-| User email | DS-001 | Confidential | Classified |
-| Session token | DS-006 | Restricted | Classified |
-| User avatar URL | (none) | (unclassified) | **GAP -- needs DS entry** |
-```
+Verify every external system dependency has failure mode documentation.
+
+**Procedure:**
+1. Identify all endpoints with x-integration in contracts/api.yaml
+2. For each, verify failure modes and fallback strategies documented
+3. Flag any integration without complete failure mode coverage
 
 ## Cross-Artifact Consistency Rules
 
 ### Rule 1: ID References Must Resolve
 
-Every cross-reference (TR-XXX, C-XXX, NFR-XXX, INT-XXX, DS-XXX) appearing in any artifact MUST correspond to an actual entry in the appropriate artifact file.
+Every cross-reference (TR-XXX, C-XXX, D-XXX, NFR-XXX) appearing in any artifact MUST correspond to an actual entry in the appropriate artifact file.
 
-**Violation example:** TR-005 references "INT-003" but integrations.md only has INT-001 and INT-002.
+**Violation example:** TR-005 references "C-003" but constraints-and-decisions.md only has C-001 and C-002.
 
 ### Rule 2: Bidirectional References Should Match
 
-If TR-005 lists INT-001 as a dependency, then INT-001 SHOULD list TR-005 in its "Referenced By" section. Mismatches indicate incomplete traceability.
+If TR-005 lists C-001 as a dependency, then C-001 SHOULD list TR-005 in its Impact section. Mismatches indicate incomplete traceability.
 
-### Rule 3: Classification Consistency
+### Rule 3: Schema-Entity Consistency
 
-If INT-001 says data exchanged references DS-003, then DS-003 SHOULD list INT-001 in its "Referenced By" section. The classification level in the integration table MUST match the level in the DS entry.
+API response schema fields MUST match entity attribute names and types. If the User entity has `display_name` (String), the UserResponse schema must also have `display_name` (string), not `displayName` or `name`.
 
 ### Rule 4: No Contradictory Constraints
 
-If C-001 says "must use existing PostgreSQL" and a TR says "must support any SQL database," there is a contradiction. Constraints restrict -- TRs must be compatible with all applicable constraints.
+If C-001 says "must use existing PostgreSQL" and a TR says "must support any SQL database," there is a contradiction. Constraints restrict — TRs must be compatible with all applicable constraints.
 
-### Rule 5: NFR Targets Must Be Achievable Under Constraints
+### Rule 5: NFR Targets Must Be Achievable Under Constraints and Decisions
 
-If NFR-001 sets p95 < 50ms but C-001 constrains to a legacy system known to have 100ms baseline latency, the combination is infeasible. Flag conflicts between NFRs and constraints.
+If NFR-001 sets p95 < 50ms but D-001 chose a synchronous external API call with 100ms baseline latency, the combination is infeasible. Flag conflicts between NFRs and design decisions.
+
+### Rule 6: Sensitivity-Response Alignment
+
+If an entity attribute is classified Restricted, it MUST NOT appear in standard API response schemas. Password hashes, SSNs, and payment card numbers should never be returned by the API.
 
 ## Traceability Matrix Template
 
@@ -325,11 +324,11 @@ For complex features, produce a summary matrix:
 ```markdown
 ## Traceability Matrix
 
-| FR | TRs | Constraints | NFRs | Integrations | Data |
-|----|-----|-------------|------|-------------|------|
-| FR-001 | TR-001, TR-002, TR-003 | C-001 | NFR-001, NFR-004 | INT-003 | DS-001, DS-002 |
-| FR-002 | TR-004, TR-005 | - | NFR-001 | INT-001 | DS-003 |
-| FR-003 | TR-006, TR-007, TR-008 | C-002 | NFR-002 | INT-001, INT-002 | DS-003, DS-004 |
+| FR | TRs | Constraints | Decisions | NFRs | Entities | Endpoints |
+|----|-----|-------------|-----------|------|----------|-----------|
+| FR-001 | TR-001, TR-002, TR-003 | C-001 | D-002 | NFR-001, NFR-004 | User | POST /auth/token |
+| FR-002 | TR-004, TR-005 | - | D-001 | NFR-001 | Order, Payment | POST /orders |
+| FR-003 | TR-006, TR-007, TR-008 | C-002 | D-004 | NFR-002 | User, Order | DELETE /users/{id} |
 ```
 
-This matrix provides a single view of the entire traceability web, making gaps immediately visible.
+This matrix provides a single view of the entire traceability web from business requirements through design, making gaps immediately visible.

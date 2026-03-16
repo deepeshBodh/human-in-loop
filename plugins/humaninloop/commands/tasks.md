@@ -60,7 +60,9 @@ AGENTS (independent, no workflow knowledge)
 specs/{feature-id}/
 ├── spec.md                          # Input (from specify workflow)
 ├── plan.md                          # Input (from plan workflow)
-├── research.md                      # Input (from plan workflow)
+├── requirements.md                  # Input (from plan workflow)
+├── constraints-and-decisions.md     # Input (from plan workflow)
+├── nfrs.md                          # Input (from plan workflow)
 ├── data-model.md                    # Input (from plan workflow)
 ├── contracts/                       # Input (from plan workflow)
 │   └── api.yaml
@@ -70,7 +72,8 @@ specs/{feature-id}/
     ├── context.md                   # Context (specify workflow)
     ├── plan-context.md              # Context (plan workflow)
     ├── tasks-context.md             # Context (this workflow)
-    ├── planner-report.md            # Task Architect output
+    ├── techanalyst-report.md        # Technical Analyst output (from plan)
+    ├── architect-report.md          # Task Architect output
     └── advocate-report.md           # Devil's Advocate output
 ```
 
@@ -170,8 +173,12 @@ Write to `specs/{feature-id}/.workflow/tasks-context.md` with these values:
 | `{{spec_path}}` | `specs/{feature-id}/spec.md` |
 | `{{spec_status}}` | `present` |
 | `{{plan_path}}` | `specs/{feature-id}/plan.md` |
-| `{{research_path}}` | `specs/{feature-id}/research.md` |
-| `{{research_status}}` | Status (present/missing) |
+| `{{requirements_path}}` | `specs/{feature-id}/requirements.md` |
+| `{{requirements_status}}` | Status (present/missing) |
+| `{{constraints_decisions_path}}` | `specs/{feature-id}/constraints-and-decisions.md` |
+| `{{constraints_decisions_status}}` | Status (present/missing) |
+| `{{nfrs_path}}` | `specs/{feature-id}/nfrs.md` |
+| `{{nfrs_status}}` | Status (present/missing) |
 | `{{datamodel_path}}` | `specs/{feature-id}/data-model.md` |
 | `{{datamodel_status}}` | Status (present/missing) |
 | `{{contracts_path}}` | `specs/{feature-id}/contracts/` |
@@ -180,7 +187,7 @@ Write to `specs/{feature-id}/.workflow/tasks-context.md` with these values:
 | `{{mapping_status}}` | `pending` |
 | `{{tasks_path}}` | `specs/{feature-id}/tasks.md` |
 | `{{tasks_status}}` | `pending` |
-| `{{architect_report_path}}` | `specs/{feature-id}/.workflow/planner-report.md` |
+| `{{architect_report_path}}` | `specs/{feature-id}/.workflow/architect-report.md` |
 | `{{advocate_report_path}}` | `specs/{feature-id}/.workflow/advocate-report.md` |
 | `{{supervisor_instructions}}` | See Phase 2 for initial instructions |
 | `{{clarification_log}}` | Empty on first iteration |
@@ -201,14 +208,15 @@ Create task mapping document from plan artifacts.
 **Read**:
 - Spec: `specs/{feature-id}/spec.md`
 - Plan: `specs/{feature-id}/plan.md`
-- Research: `specs/{feature-id}/research.md`
+- Constraints & Decisions: `specs/{feature-id}/constraints-and-decisions.md`
+- NFRs: `specs/{feature-id}/nfrs.md`
 - Data Model: `specs/{feature-id}/data-model.md`
 - Contracts: `specs/{feature-id}/contracts/`
 - Constitution: `.humaninloop/memory/constitution.md`
 
 **Write**:
 - Mapping: `specs/{feature-id}/task-mapping.md`
-- Report: `specs/{feature-id}/.workflow/planner-report.md`
+- Report: `specs/{feature-id}/.workflow/architect-report.md`
 
 **Use Skills**:
 - `patterns-vertical-tdd` (identify vertical slices)
@@ -239,7 +247,7 @@ Task(
 
 Confirm the agent created:
 - `specs/{feature-id}/task-mapping.md`
-- `specs/{feature-id}/.workflow/planner-report.md`
+- `specs/{feature-id}/.workflow/architect-report.md`
 
 If missing, report error and stop.
 
@@ -256,7 +264,7 @@ Review the task mapping for gaps and quality.
 - Spec: `specs/{feature-id}/spec.md`
 - Plan: `specs/{feature-id}/plan.md`
 - Task Mapping: `specs/{feature-id}/task-mapping.md`
-- Architect report: `specs/{feature-id}/.workflow/planner-report.md`
+- Architect report: `specs/{feature-id}/.workflow/architect-report.md`
 
 **Write**:
 - Report: `specs/{feature-id}/.workflow/advocate-report.md`
@@ -312,14 +320,15 @@ Create implementation task list from mapping.
 - Task Mapping: `specs/{feature-id}/task-mapping.md`
 - Spec: `specs/{feature-id}/spec.md`
 - Plan: `specs/{feature-id}/plan.md`
-- Research: `specs/{feature-id}/research.md`
+- Constraints & Decisions: `specs/{feature-id}/constraints-and-decisions.md`
+- NFRs: `specs/{feature-id}/nfrs.md`
 - Data Model: `specs/{feature-id}/data-model.md`
 - Contracts: `specs/{feature-id}/contracts/`
 - Constitution: `.humaninloop/memory/constitution.md`
 
 **Write**:
 - Tasks: `specs/{feature-id}/tasks.md`
-- Report: `specs/{feature-id}/.workflow/planner-report.md`
+- Report: `specs/{feature-id}/.workflow/architect-report.md`
 
 **Use Skills**:
 - `patterns-vertical-tdd` (TDD cycle structure)
@@ -363,7 +372,7 @@ Review the task list for completeness and TDD structure.
 - Task Mapping: `specs/{feature-id}/task-mapping.md`
 - Tasks: `specs/{feature-id}/tasks.md`
 - Spec: `specs/{feature-id}/spec.md`
-- Architect report: `specs/{feature-id}/.workflow/planner-report.md`
+- Architect report: `specs/{feature-id}/.workflow/architect-report.md`
 
 **Write**:
 - Report: `specs/{feature-id}/.workflow/advocate-report.md`
@@ -472,7 +481,7 @@ When advocate verdict is `needs-revision` or `critical-gaps`:
 
    **Write**:
    - Updated artifact: `specs/{feature-id}/{artifact}`
-   - Report: `specs/{feature-id}/.workflow/planner-report.md`
+   - Report: `specs/{feature-id}/.workflow/architect-report.md`
    ```
 
 4. **Increment iteration** in context frontmatter

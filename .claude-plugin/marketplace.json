@@ -11,7 +11,7 @@
     {
       "name": "humaninloop",
       "source": "./plugins/humaninloop",
-      "description": "Specification-driven development workflow: setup → specify → techspec → plan → tasks → implement"
+      "description": "Specification-driven development workflow: setup → specify → plan → tasks → implement"
     }
   ]
 }

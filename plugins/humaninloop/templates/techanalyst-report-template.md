@@ -25,29 +25,29 @@
 
 ## Key Outputs
 
-### Core Phase
-<!-- If phase == core -->
+### Analysis Phase
+<!-- If phase == analysis -->
 | Metric | Count |
 |--------|-------|
 | Technical Requirements (TRs) | {{tr_count}} |
 | Constraints | {{constraint_count}} |
+| Decisions | {{decision_count}} |
+| Non-Functional Requirements | {{nfr_count}} |
 | FR Coverage | {{fr_coverage}} |
 
 | TR ID | Source FR | Priority | Description |
 |-------|----------|----------|-------------|
 | {{tr_id}} | {{source_fr}} | {{priority}} | {{description}} |
 
-### Supplementary Phase
-<!-- If phase == supplementary -->
+### Design Phase
+<!-- If phase == design -->
 | Metric | Count |
 |--------|-------|
-| Non-Functional Requirements | {{nfr_count}} |
+| Entities | {{entity_count}} |
+| Relationships | {{relationship_count}} |
+| Endpoints | {{endpoint_count}} |
+| Data Classifications | {{classification_count}} |
 | Integration Points | {{integration_count}} |
-| Data Sensitivity Classifications | {{ds_count}} |
-
-| NFR ID | Category | Target | Measurement |
-|--------|----------|--------|-------------|
-| {{nfr_id}} | {{category}} | {{target}} | {{measurement}} |
 
 ---
 
