@@ -12,7 +12,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 #### Changed
 
-- **`hil-dag` install instructions switched to project-local** — All three docs (root README, plugin README, dag-operations SKILL.md) now use `uv add --dev` instead of `uv tool install` for project-scoped installation. Added `uv add --dev --upgrade` instructions for upgrading to the latest version
+- **`hil-dag` install instructions switched to project-local** — All docs (root README, plugin README, dag-operations SKILL.md) now use `uv add --dev` instead of `uv tool install` for project-scoped installation. Added `uv add --dev --upgrade` instructions for upgrading to the latest version
+- **DAG scripts support local installs** — All 7 dag-operations scripts and check-prerequisites.sh now resolve `hil-dag` via PATH or `uv run` fallback, with error messages showing `uv add --dev` instead of `uv tool install`
 
 ---
 

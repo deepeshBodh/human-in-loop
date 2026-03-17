@@ -71,7 +71,7 @@ Resolve paths and create the feature workspace. The Supervisor delegates environ
 ### 1. Verify hil-dag CLI and Resolve Project Root
 
 ```bash
-command -v hil-dag >/dev/null 2>&1 || { echo "ERROR: hil-dag CLI not found. Install: uv tool install 'humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain'"; exit 1; }
+command -v hil-dag >/dev/null 2>&1 || uv run hil-dag --help >/dev/null 2>&1 || { echo "ERROR: hil-dag CLI not found. Install: uv add --dev 'humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain'"; exit 1; }
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
 ${CLAUDE_PLUGIN_ROOT}/scripts/create-new-feature.sh --json "<feature description>"
 ```

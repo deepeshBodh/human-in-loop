@@ -90,14 +90,14 @@ check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
 
 # Check hil-dag CLI availability (required for DAG-based workflows: specify, implement)
 if $REQUIRE_HIL_DAG; then
-    if ! command -v hil-dag >/dev/null 2>&1; then
+    if ! command -v hil-dag >/dev/null 2>&1 && ! uv run hil-dag --help >/dev/null 2>&1; then
         echo "ERROR: hil-dag CLI not found." >&2
         echo "" >&2
         echo "The specify and implement workflows require hil-dag. Install with:" >&2
         echo "" >&2
-        echo "  uv tool install \"humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain\"" >&2
+        echo "  uv add --dev \"humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain\"" >&2
         echo "" >&2
-        echo "Then verify: hil-dag --help" >&2
+        echo "Then verify: uv run hil-dag --help" >&2
         exit 1
     fi
 fi

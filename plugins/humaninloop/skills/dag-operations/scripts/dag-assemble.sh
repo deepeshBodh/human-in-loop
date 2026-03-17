@@ -9,7 +9,13 @@ set -e
 # Usage (by capability tags — primary resolution):
 #   dag-assemble.sh <dag-path> <catalog-path> --capability-tags <t1> [<t2>...] [--node-type <type>] [--intent "<desc>"] [--workflow <wf>]
 
-command -v hil-dag >/dev/null 2>&1 || { echo '{"status":"error","message":"hil-dag not found. Install: uv tool install humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"}' >&2; exit 1; }
+if command -v hil-dag >/dev/null 2>&1; then
+    HIL_DAG=(hil-dag)
+elif uv run hil-dag --help >/dev/null 2>&1; then
+    HIL_DAG=(uv run hil-dag)
+else
+    echo '{"status":"error","message":"hil-dag not found. Install: uv add --dev humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"}' >&2; exit 1
+fi
 
 if [ "$#" -lt 3 ]; then
     echo '{"status":"error","message":"Usage: dag-assemble.sh <dag-path> <catalog-path> --node <id> | --capability-tags <t1> [<t2>...] [--node-type <type>] [--workflow <wf>]"}' >&2
@@ -20,7 +26,7 @@ DAG_PATH="$1"
 CATALOG_PATH="$2"
 shift 2
 
-CMD=(hil-dag assemble "$DAG_PATH" --catalog "$CATALOG_PATH")
+CMD=("${HIL_DAG[@]}" assemble "$DAG_PATH" --catalog "$CATALOG_PATH")
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
