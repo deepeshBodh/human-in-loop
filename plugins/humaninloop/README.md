@@ -15,21 +15,28 @@ The HumanInLoop plugin provides a comprehensive multi-agent workflow for specifi
 
 ## Installation
 
-Add the plugin to your Claude Code project:
+### 1. Add the marketplace and install the plugin
 
 ```bash
-claude-code plugins add humaninloop
+/plugin marketplace add deepeshBodh/human-in-loop
+/plugin install humaninloop
 ```
 
-## Prerequisites
+### 2. Install the `hil-dag` CLI (required for specify and implement)
 
-The `/humaninloop:specify` and `/humaninloop:implement` commands require the `hil-dag` CLI from the `humaninloop_brain` package:
+The `/humaninloop:specify` and `/humaninloop:implement` workflows use the `hil-dag` CLI for deterministic DAG operations. Install it once — it works across all your projects:
 
 ```bash
-cd humaninloop_brain && uv sync
+uv tool install "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
 ```
 
-This installs the `hil-dag` CLI used by the DAG Assembler agent for deterministic graph operations.
+Verify it works:
+
+```bash
+hil-dag --help
+```
+
+**Note:** The `/humaninloop:setup`, `/humaninloop:plan`, and `/humaninloop:tasks` commands do NOT require `hil-dag` — they work immediately after plugin installation.
 
 ## Getting Started
 
@@ -281,8 +288,9 @@ specs/<###-feature-name>/
     ├── context.md                 # Specify workflow context
     ├── analyst-report.md          # Requirements Analyst output
     ├── advocate-report.md         # Devil's Advocate output
-    ├── dags/                      # DAG history (specify + implement workflows)
-    │   └── strategy.json          # Single StrategyGraph with all passes
+    ├── dags/                      # DAG history (one file per workflow)
+    │   ├── specify-strategy.json  # Specify workflow StrategyGraph
+    │   └── implement-strategy.json # Implement workflow StrategyGraph
     ├── plan-context.md            # Plan workflow state
     ├── techanalyst-report.md      # Technical Analyst output
     ├── architect-report.md        # Principal Architect feasibility report

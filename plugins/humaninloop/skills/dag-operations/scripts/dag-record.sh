@@ -4,7 +4,7 @@ set -e
 # Targets the current pass by default, or a specific pass via optional argument
 # Usage: dag-record.sh <dag-path> <node-id> <status> <evidence-json> <trace-json> [--pass <pass-number>] [--verdict <verdict>]
 
-command -v hil-dag >/dev/null 2>&1 || { echo '{"status":"error","message":"hil-dag not found. Install: cd humaninloop_brain && uv sync"}' >&2; exit 1; }
+command -v hil-dag >/dev/null 2>&1 || { echo '{"status":"error","message":"hil-dag not found. Install: uv tool install humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"}' >&2; exit 1; }
 
 if [ "$#" -lt 5 ]; then
     echo '{"status":"error","message":"Usage: dag-record.sh <dag-path> <node-id> <status> <evidence-json> <trace-json> [--pass <pass-number>] [--verdict <verdict>]"}' >&2

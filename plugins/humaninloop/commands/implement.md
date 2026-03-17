@@ -72,7 +72,7 @@ Resolve paths, verify prerequisites, and create the implementation workspace. Th
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-${CLAUDE_PLUGIN_ROOT}/scripts/check-prerequisites.sh --json --require-tasks --include-tasks
+${CLAUDE_PLUGIN_ROOT}/scripts/check-prerequisites.sh --json --require-tasks --include-tasks --require-hil-dag
 ```
 
 Parse JSON output for `FEATURE_DIR` and `AVAILABLE_DOCS` list. All paths must be absolute.
@@ -132,7 +132,7 @@ Create/verify ignore files based on actual project setup:
 ### 5. Set DAG Paths
 
 ```
-dag_path = $PROJECT_ROOT/specs/{feature-id}/.workflow/dags/strategy.json
+dag_path = $PROJECT_ROOT/specs/{feature-id}/.workflow/dags/implement-strategy.json
 catalog_path = ${CLAUDE_PLUGIN_ROOT}/catalogs/implement-catalog.json
 feature_dir = {FEATURE_DIR}
 ```

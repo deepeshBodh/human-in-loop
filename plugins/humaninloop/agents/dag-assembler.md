@@ -40,7 +40,7 @@ Add or re-open a node in the current DAG pass, validate, and construct the domai
     "node_type": "task",
     "rationale": "Enriched input is ready; analyst should produce first draft"
   },
-  "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
+  "dag_path": "specs/001-feature/.workflow/dags/specify-strategy.json",
   "catalog_path": "${CLAUDE_PLUGIN_ROOT}/catalogs/specify-catalog.json",
   "feature_dir": "specs/001-feature",
   "parameters": {
@@ -108,7 +108,7 @@ Normal flow (verdict-driven):
 ```json
 {
   "action": "freeze-pass",
-  "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
+  "dag_path": "specs/001-feature/.workflow/dags/specify-strategy.json",
   "outcome": "completed",
   "analyst_response": {
     "node_id": "advocate-review",
@@ -124,7 +124,7 @@ Halt (emergency stop — no analyst_response):
 ```json
 {
   "action": "freeze-pass",
-  "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
+  "dag_path": "specs/001-feature/.workflow/dags/specify-strategy.json",
   "outcome": "halted",
   "detail": "Domain agent produced unusable output",
   "rationale": "Parse failure — normal flow cannot continue"
@@ -143,7 +143,7 @@ Halt (emergency stop — no analyst_response):
 ```json
 {
   "pass_frozen": true,
-  "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
+  "dag_path": "specs/001-feature/.workflow/dags/specify-strategy.json",
   "outcome": "completed",
   "outcome_detail": "advocate-verdict-needs-revision",
   "nodes_total": 3,
@@ -161,7 +161,7 @@ Deterministic gate (Assembler evaluates autonomously — no status or verdict fr
 ```json
 {
   "action": "update-status",
-  "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
+  "dag_path": "specs/001-feature/.workflow/dags/specify-strategy.json",
   "node_id": "constitution-gate"
 }
 ```
@@ -170,7 +170,7 @@ Decision node (Supervisor collected user input):
 ```json
 {
   "action": "update-status",
-  "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
+  "dag_path": "specs/001-feature/.workflow/dags/specify-strategy.json",
   "node_id": "human-clarification",
   "status": "decided",
   "answers": {"Q1": "Option A selected", "Q2": "Custom response"}
@@ -181,7 +181,7 @@ Milestone node (Assembler verifies prerequisites):
 ```json
 {
   "action": "update-status",
-  "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
+  "dag_path": "specs/001-feature/.workflow/dags/specify-strategy.json",
   "node_id": "spec-complete",
   "status": "achieved"
 }
@@ -438,7 +438,7 @@ All artifacts follow a consistent directory structure. Catalog contracts use log
 | raw-input | `{feature_dir}/.workflow/raw-input.md` |
 | constitution.md | `.humaninloop/memory/constitution.md` |
 | context.md | `{feature_dir}/.workflow/context.md` |
-| DAG (single file) | `{feature_dir}/.workflow/dags/strategy.json` |
+| DAG (single file) | `{feature_dir}/.workflow/dags/{workflow}-strategy.json` (e.g., `specify-strategy.json`, `implement-strategy.json`) |
 | tasks.md | `{feature_dir}/tasks.md` |
 | plan.md | `{feature_dir}/plan.md` |
 | data-model.md | `{feature_dir}/data-model.md` |
@@ -448,6 +448,14 @@ All artifacts follow a consistent directory structure. Catalog contracts use log
 | checkpoint-report.md | `{feature_dir}/.workflow/checkpoint-report.md` |
 | final-validation-report.md | `{feature_dir}/.workflow/final-validation-report.md` |
 | tasks-context.md | `{feature_dir}/.workflow/tasks-context.md` |
+
+## Tool Usage (CRITICAL)
+
+- **Read files with the `Read` tool** — ALWAYS use the `Read` tool for reading strategy.json, catalog JSON, context.md, tasks.md, reports, and all other files. Parse JSON content directly from the `Read` output — you are capable of parsing JSON without external tools.
+- **Write files with the `Write` or `Edit` tool** — use `Write` for new files (context.md creation), `Edit` for updating existing files (context.md updates).
+- **Bash ONLY for `hil-dag` CLI commands** — the only legitimate Bash usage is invoking dag-operations scripts (`dag-assemble.sh`, `dag-status.sh`, etc.). No other Bash commands.
+- **NEVER use `git show`, `git log`, `cat`, `head`, `tail`, `python3 -c`, `jq`, or piped commands** to read or parse files. These generate unnecessary permission prompts and are never needed. The `Read` tool reads any file; you parse the content directly.
+- **NEVER reconstruct history from git commits** — the strategy.json file contains ALL passes, nodes, edges, and history. Read the current file.
 
 ## Operational Rules
 

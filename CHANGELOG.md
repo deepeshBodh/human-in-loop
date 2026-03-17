@@ -6,6 +6,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [3.2.2] - 2026-03-17
+
+### humaninloop 3.2.2
+
+#### Fixed
+
+- **Cross-workflow DAG collision** — Specify and implement workflows now use separate DAG files (`specify-strategy.json`, `implement-strategy.json`) instead of sharing `strategy.json`. Fixes implement workflow failing with "Cannot add nodes to a completed graph" when a specify DAG already exists
+- **Agents using Bash for file reading** — Added Tool Usage guardrails to `dag-assembler` and `state-analyst` agents prohibiting `git show`, `cat`, `python3 -c`, and other Bash commands for file reading. Agents must use the `Read` tool, reducing unnecessary permission prompts
+- **Late `hil-dag` CLI detection** — Added `--require-hil-dag` flag to `check-prerequisites.sh` and early checks in specify/implement commands. Users now get a clear error with install instructions immediately instead of after 3-16 minutes of agent work
+- **Stale install instructions** — Updated all `hil-dag` installation references from `cd humaninloop_brain && uv sync` to `uv tool install` across README, dag-operations SKILL.md, and all 7 dag-operations scripts
+- **Stale agent/skill counts in root README** — Updated agent count from 9 to 10, skill count from 27 to 30, command count from 7 to 6 (active)
+- **`common.sh` missing `set -e`** — Added defensive error handling to sourced library script
+
+---
+
 ## [3.2.1] - 2026-03-17
 
 ### humaninloop 3.2.1

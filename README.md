@@ -345,7 +345,7 @@ Each command produces artifacts you review before the next step. You stay in con
 
 ## What's Included
 
-### 7 Commands
+### 6 Commands
 The full specify → plan → tasks → implement lifecycle.
 
 ### 30 Skills
@@ -372,7 +372,13 @@ See the [plugin documentation](./plugins/humaninloop/README.md) for full details
 /plugin install humaninloop
 ```
 
-### 3. Set up your project
+### 3. Install the `hil-dag` CLI (required for specify and implement)
+
+```bash
+uv tool install "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
+```
+
+### 4. Set up your project
 
 ```bash
 /humaninloop:setup
@@ -380,7 +386,7 @@ See the [plugin documentation](./plugins/humaninloop/README.md) for full details
 
 This creates your project constitution—the standards and conventions that guide all future specifications.
 
-### 4. Create your first spec
+### 5. Create your first spec
 
 ```bash
 /humaninloop:specify add user authentication with email and password
@@ -417,8 +423,8 @@ human-in-loop/
 ├── plugins/humaninloop/
 │   ├── .claude-plugin/plugin.json    # Plugin manifest
 │   ├── commands/                     # Slash command definitions
-│   ├── agents/                       # 9 specialized agent definitions
-│   ├── skills/                       # 27 model-invoked skills
+│   ├── agents/                       # 10 specialized agent definitions
+│   ├── skills/                       # 30 model-invoked skills
 │   ├── catalogs/                     # Node catalogs for DAG workflows
 │   ├── templates/                    # Workflow templates
 │   └── scripts/                      # Shell utilities

@@ -84,7 +84,7 @@ Produce a decision-ready briefing by reading and synthesizing the single DAG fil
   "workflow": "specify",
   "feature_id": "001-user-auth",
   "pass_number": 2,
-  "dag_path": "specs/001-user-auth/.workflow/dags/strategy.json",
+  "dag_path": "specs/001-user-auth/.workflow/dags/specify-strategy.json",
   "artifacts_dir": "specs/001-user-auth/"
 }
 ```
@@ -190,7 +190,7 @@ Read a domain agent's report from disk, extract structured summary, record analy
     "agent_type": "humaninloop:devils-advocate"
   },
   "pass_number": 1,
-  "dag_path": "specs/001-feature/.workflow/dags/strategy.json",
+  "dag_path": "specs/001-feature/.workflow/dags/specify-strategy.json",
   "feature_dir": "specs/001-feature"
 }
 ```
@@ -369,7 +369,7 @@ All artifacts follow a consistent directory structure. Catalog contracts use log
 | raw-input | `{feature_dir}/.workflow/raw-input.md` |
 | constitution.md | `.humaninloop/memory/constitution.md` |
 | context.md | `{feature_dir}/.workflow/context.md` |
-| DAG (single file) | `{feature_dir}/.workflow/dags/strategy.json` |
+| DAG (single file) | `{feature_dir}/.workflow/dags/{workflow}-strategy.json` (e.g., `specify-strategy.json`, `implement-strategy.json`) |
 | tasks.md | `{feature_dir}/tasks.md` |
 | plan.md | `{feature_dir}/plan.md` |
 | cycle-report.md | `{feature_dir}/.workflow/cycle-report.md` |
@@ -377,6 +377,13 @@ All artifacts follow a consistent directory structure. Catalog contracts use log
 | checkpoint-report.md | `{feature_dir}/.workflow/checkpoint-report.md` |
 | final-validation-report.md | `{feature_dir}/.workflow/final-validation-report.md` |
 | tasks-context.md | `{feature_dir}/.workflow/tasks-context.md` |
+
+## Tool Usage (CRITICAL)
+
+- **Read files with the `Read` tool** — ALWAYS use the `Read` tool for reading strategy.json, catalog JSON, reports, tasks.md, and all other files. Parse JSON content directly from the `Read` output — you are capable of parsing JSON without external tools.
+- **Bash ONLY for `hil-dag record`** — the only legitimate Bash usage is invoking the `dag-record.sh` script. No other Bash commands.
+- **NEVER use `git show`, `git log`, `cat`, `head`, `tail`, `python3 -c`, `jq`, or piped commands** to read or parse files. These generate unnecessary permission prompts and are never needed. The `Read` tool reads any file; you parse the content directly.
+- **NEVER reconstruct history from git commits** — the strategy.json file contains ALL passes, nodes, edges, and history. Read the current file.
 
 ## Skill Boundary
 

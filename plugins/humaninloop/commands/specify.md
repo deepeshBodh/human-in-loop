@@ -66,14 +66,17 @@ The Supervisor has **zero direct CLI usage**. All `hil-dag` operations are deleg
 
 ## Initial Setup
 
-Resolve paths and create the feature workspace. The Supervisor delegates environment concerns to subagents — constitution verification is handled by the DAG Assembler's invariant auto-resolution (INV-002 + `carry_forward`), and `hil-dag` CLI availability is each subagent's own responsibility.
+Resolve paths and create the feature workspace. The Supervisor delegates environment concerns to subagents — constitution verification is handled by the DAG Assembler's invariant auto-resolution (INV-002 + `carry_forward`), and `hil-dag` CLI availability is verified upfront.
 
-### 1. Resolve Project Root and Create Feature Directory
+### 1. Verify hil-dag CLI and Resolve Project Root
 
 ```bash
+command -v hil-dag >/dev/null 2>&1 || { echo "ERROR: hil-dag CLI not found. Install: uv tool install 'humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain'"; exit 1; }
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
 ${CLAUDE_PLUGIN_ROOT}/scripts/create-new-feature.sh --json "<feature description>"
 ```
+
+If `hil-dag` is not found, stop immediately and tell the user how to install it. Do NOT proceed with the workflow.
 
 Parse JSON output for `BRANCH_NAME`, `SPEC_FILE`, `FEATURE_NUM`. Use `BRANCH_NAME` as `{feature-id}`.
 
@@ -89,7 +92,7 @@ Create initial `context.md` from `${CLAUDE_PLUGIN_ROOT}/templates/context-templa
 
 **All paths passed to subagents MUST be absolute paths rooted at `$PROJECT_ROOT`.**
 
-Set `dag_path = $PROJECT_ROOT/specs/{feature-id}/.workflow/dags/strategy.json`
+Set `dag_path = $PROJECT_ROOT/specs/{feature-id}/.workflow/dags/specify-strategy.json`
 
 ---
 
