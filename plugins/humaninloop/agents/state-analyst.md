@@ -271,7 +271,7 @@ The `assembler_response` is the opaque object returned by the DAG Assembler's `a
 
 ## Evidence Construction
 
-When calling `hil-dag record`, construct the evidence JSON array from the report content. The `id` field is a placeholder — the CLI auto-generates canonical IDs as `EV-{node_id}-{pass}-{sequence}`.
+When calling the `hil-dag` MCP `record` tool, construct the evidence JSON array from the report content. The `id` field is a placeholder — the tool auto-generates canonical IDs as `EV-{node_id}-{pass}-{sequence}`.
 
 ```json
 [
@@ -286,7 +286,7 @@ When calling `hil-dag record`, construct the evidence JSON array from the report
 
 | Field | Source |
 |-------|--------|
-| `id` | Placeholder — the `hil-dag record` CLI auto-generates as `EV-{node_id}-{pass}-{sequence}` |
+| `id` | Placeholder — the `hil-dag` MCP `record` tool auto-generates as `EV-{node_id}-{pass}-{sequence}` |
 | `type` | One of: `analyst-report`, `advocate-report`, `research-findings`, `enriched-input`, `clarification-answers` |
 | `description` | Extract from report summary section — keep to one sentence |
 | `reference` | Physical path to the artifact on disk (see Artifact Path Convention) |
@@ -308,7 +308,7 @@ When calling `hil-dag record`, construct the trace JSON object:
 }
 ```
 
-**Note**: `duration_ms` is a derived field — the `hil-dag record` CLI computes it from `started_at` and `completed_at`. Do not include it in the trace JSON.
+**Note**: `duration_ms` is a derived field — the `hil-dag` MCP `record` tool computes it from `started_at` and `completed_at`. Do not include it in the trace JSON.
 
 ## Report Parsing Patterns
 

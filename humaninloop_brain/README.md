@@ -9,12 +9,12 @@ User invokes command (goal declaration)
         |
 Supervisor reads catalog + invariants + history
         |
-DAG Assembler calls hil-dag CLI  <-- this package
+DAG Assembler calls hil-dag MCP tools  <-- this package
         |
 Supervisor executes DAG via specialist subagents
 ```
 
-The package provides five layers:
+The package provides six layers:
 
 | Layer | Module | Purpose |
 |-------|--------|---------|
@@ -22,15 +22,15 @@ The package provides five layers:
 | **Graph** | `graph/` | NetworkX-backed loader, subgraph views, topological sort, acyclicity guard, edge inference |
 | **Validators** | `validators/` | 9-step structural validator, invariant checker, contract checker |
 | **Lifecycle** | `passes/` | Pass creation, node assembly, status updates, freeze, save/load |
-| **CLI** | `cli/` | `hil-dag` command with 7 subcommands producing JSON output |
+| **MCP** | `mcp/` | Transport-agnostic operations + FastMCP server (7 tools over stdio) |
+| **CLI** | `cli/` | Thin CLI adapter (argparse → `op_*()` → print JSON) |
 
 ## Quick Start
 
 ```bash
 cd humaninloop_brain
 uv sync
-uv run pytest          # 381 tests, ~97% coverage
-uv run hil-dag --help
+uv run pytest          # 399 tests, ~95% coverage
 ```
 
 ## CLI Reference
@@ -228,15 +228,19 @@ humaninloop_brain/
 │   │   └── contracts.py   # Artifact contract checker
 │   ├── passes/
 │   │   └── lifecycle.py   # Pass lifecycle management
+│   ├── mcp/
+│   │   ├── operations.py  # Transport-agnostic op_*() functions
+│   │   └── server.py      # FastMCP server (7 tools over stdio)
 │   └── cli/
-│       └── main.py        # hil-dag CLI entry point
+│       └── main.py        # Thin CLI adapter
 └── tests/
     ├── fixtures/          # 8 JSON test fixtures
     ├── test_entities/     # 108 tests
     ├── test_graph/        # 41 tests
     ├── test_validators/   # 38 tests
     ├── test_passes/       # 44 tests
-    └── test_cli/          # 150 tests (unit + subprocess + E2E)
+    ├── test_cli/          # 150 tests (unit + in-process + E2E)
+    └── test_mcp/          # 18 tests (tool discovery + invocation)
 ```
 
 ## Related
@@ -244,4 +248,4 @@ humaninloop_brain/
 - **ADR-007**: [DAG-First Infrastructure](../docs/decisions/007-dag-first-infrastructure.md)
 - **Architecture docs**: `docs/architecture/dag-*.md` (5 synthesis documents)
 - **Context harness**: [human-in-loop-context-harness](https://github.com/deepeshBodh/human-in-loop-context-harness) (patterns borrowed from)
-- **Plugin skill**: `plugins/humaninloop/skills/dag-operations/` (shell wrappers for agents)
+- **Plugin agents**: `plugins/humaninloop/agents/dag-assembler.md`, `state-analyst.md` (consume MCP tools)
