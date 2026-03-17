@@ -6,6 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [3.2.3] - 2026-03-17
+
+### humaninloop 3.2.3
+
+#### Changed
+
+- **`hil-dag` install instructions switched to project-local** — All three docs (root README, plugin README, dag-operations SKILL.md) now use `uv add --dev` instead of `uv tool install` for project-scoped installation. Added `uv add --dev --upgrade` instructions for upgrading to the latest version
+
+---
+
 ## [3.2.2] - 2026-03-17
 
 ### humaninloop 3.2.2

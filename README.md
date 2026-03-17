@@ -375,7 +375,13 @@ See the [plugin documentation](./plugins/humaninloop/README.md) for full details
 ### 3. Install the `hil-dag` CLI (required for specify and implement)
 
 ```bash
-uv tool install "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
+uv add --dev "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
+```
+
+**To upgrade to the latest version:**
+
+```bash
+uv add --dev --upgrade "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
 ```
 
 ### 4. Set up your project
