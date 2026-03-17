@@ -245,7 +245,7 @@ The final task of each cycle MUST be a verification task that:
 
 **CRITICAL**: The verification task is what makes vertical TDD actually vertical. Without it, the slice stops at the mock boundary and real integration issues go undetected.
 
-The testing-agent will determine whether to auto-approve (CLI + 100% pass) or present a human checkpoint (GUI/SUBJECTIVE or any failures).
+The qa-engineer will determine whether to auto-approve (CLI + 100% pass) or present a human checkpoint (GUI/SUBJECTIVE or any failures).
 
 Example:
 ```markdown
@@ -271,12 +271,12 @@ When generating verification tasks (typically TN.4 at the end of each cycle), us
   - **Capture**: {console, screenshot, logs} (optional)
 ```
 
-The testing-agent will **classify the task at runtime** based on the Action and Assert content:
+The qa-engineer will **classify the task at runtime** based on the Action and Assert content:
 - **CLI**: Backtick commands + measurable asserts → may auto-approve
 - **GUI**: UI actions, screenshot captures → human checkpoint
 - **SUBJECTIVE**: Qualitative terms (`looks`, `feels`) → human checkpoint
 
-**You do NOT need to decide** whether a task needs human verification. Focus on writing clear, specific verification steps. The testing-agent handles the "when to involve human" decision.
+**You do NOT need to decide** whether a task needs human verification. Focus on writing clear, specific verification steps. The qa-engineer handles the "when to involve human" decision.
 
 ### Field Reference
 
@@ -334,7 +334,7 @@ The testing-agent will **classify the task at runtime** based on the Action and 
 
 ### Legacy Format Support
 
-For backward compatibility, the testing-agent also accepts:
+For backward compatibility, the qa-engineer also accepts:
 - `**TEST:VERIFY**` - Treated as unified TEST:
 - `**TEST:CONTRACT**` - Treated as unified TEST:
 - `**HUMAN VERIFICATION**` - Treated as unified TEST: (maps Setup/Action/Verify fields)

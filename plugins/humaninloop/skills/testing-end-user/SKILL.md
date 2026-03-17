@@ -1,6 +1,6 @@
 ---
 name: testing-end-user
-description: This skill MUST be invoked when the user says "TEST:", "TEST:VERIFY", "TEST:CONTRACT", "execute verification", "run test task", or "verification test". SHOULD also invoke when encountering tasks with Setup/Action/Assert markers or testing against real infrastructure.
+description: This skill MUST be invoked when the user says "TEST:", "TEST:VERIFY", "TEST:CONTRACT", "execute verification", "run test task", or "verification test". SHOULD also invoke when the user says "Setup/Action/Assert", "verify against infrastructure", or "capture evidence".
 ---
 
 # End-User Verification Testing

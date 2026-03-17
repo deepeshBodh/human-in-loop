@@ -294,7 +294,7 @@ If output exceeds 50 lines:
 {last 25 lines}
 ```
 
-Full log: `/tmp/claude/testing-agent-T{N}.{X}-output.log`
+Full log: `/tmp/claude/qa-engineer-T{N}.{X}-output.log`
 ```
 
 ### Large Tables

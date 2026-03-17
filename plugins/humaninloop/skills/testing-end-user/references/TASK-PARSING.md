@@ -265,7 +265,7 @@ When parsing `**HUMAN VERIFICATION**` tasks, map fields to unified format:
 | `Setup:` | `**Setup**:` |
 | `Action:` | `**Action**:` |
 | `Verify:` | `**Assert**:` |
-| `**Human confirms**:` | (ignored - testing-agent handles) |
+| `**Human confirms**:` | (ignored - qa-engineer handles) |
 
 ### Example Legacy Task
 

@@ -20,7 +20,7 @@ If you're skipping a step because you "know" the result, you're not verifying â€
 
 ### "The checkpoint will catch it"
 
-The checkpoint evaluates structured data from your report and the testing-agent's verification. It cannot catch problems you didn't report or tests you didn't write.
+The checkpoint evaluates structured data from your report and the qa-engineer's verification. It cannot catch problems you didn't report or tests you didn't write.
 
 ### "Just this once"
 

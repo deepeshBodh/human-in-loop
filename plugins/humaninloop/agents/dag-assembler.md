@@ -333,7 +333,7 @@ Update `context.md` with supervisor_instructions for cycle/fix mode, then point 
 
 **Agent prompt**: `"Read your instructions from: {feature_dir}/.workflow/context.md"`
 
-### For verify-cycle (testing-agent)
+### For verify-cycle (qa-engineer)
 
 Update `context.md` with supervisor_instructions for verification, then point the agent at it:
 

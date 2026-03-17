@@ -313,7 +313,7 @@ Update context status to `completed`. Output a summary using DAG vocabulary and 
 | Produce briefings | State Analyst | `briefing` (cycle-aware for implement workflow) |
 | Update agent node status | State Analyst | `hil-dag record` inside `parse-and-recommend` |
 | Execute TDD cycles | Staff Engineer | Dispatched by Supervisor with cycle task list |
-| Run quality gates | Testing Agent | Dispatched by Supervisor for verification |
+| Run quality gates | QA Engineer | Dispatched by Supervisor for verification |
 
 ### Important Notes
 

@@ -180,7 +180,7 @@ Execute the implementation plan using DAG-based workflow execution with TDD disc
 1. State Analyst produces implementation briefing from DAG history, catalog, and strategy skills
 2. Supervisor makes assembly decision; DAG Assembler validates and builds graph node
 3. Staff Engineer executes cycle tasks through strict red/green/refactor TDD discipline
-4. Testing Agent verifies implementation with quality gates (lint, build, tests) and TEST: task execution
+4. QA Engineer verifies implementation with quality gates (lint, build, tests) and TEST: task execution
 5. State Analyst parses reports, records status + evidence + trace via `hil-dag record`
 6. Loop through cycles until all tasks complete, then run final-validation gate
 7. Fix pass if final-validation fails (scoped to specific failures), escalate after 3 retries
@@ -233,7 +233,7 @@ Execute the implementation plan using DAG-based workflow execution with TDD disc
 | **DAG Assembler** | Pure graph mechanics: translates Supervisor decisions into validated DAG mutations via the `hil-dag` CLI. Constructs prompts for domain agents from catalog contracts. Uses skill: `dag-operations` |
 | **State Analyst** | Reads DAG history, parses domain agent reports, and produces structured briefings for the Supervisor. Records analysis results atomically via `hil-dag record`. Uses skills: `dag-operations`, `strategy-core`, `strategy-implementation` |
 | **Staff Engineer** | Implementation specialist who writes code through strict TDD discipline (red/green/refactor). Executes cycle task lists, handles retry and fix modes. Uses skills: `executing-tdd-cycle`, `brownfield-integration` |
-| **Testing Agent** | Collaborative QA partner that executes `TEST:` verification tasks, classifies them at runtime (CLI/GUI/SUBJECTIVE), captures evidence, and decides whether to auto-approve or present human checkpoints. Uses skill: `testing-end-user` |
+| **QA Engineer** | Senior QA engineer who treats verification as an engineering discipline. Executes `TEST:` verification tasks, classifies them at runtime (CLI/GUI/SUBJECTIVE), captures evidence, and decides whether to auto-approve or present human checkpoints. Uses skill: `testing-end-user` |
 
 ### Design Workflow Agent
 
@@ -288,7 +288,7 @@ specs/<###-feature-name>/
     ├── architect-report.md        # Principal Architect feasibility report
     ├── tasks-context.md           # Tasks workflow state
     ├── cycle-report.md            # Staff Engineer cycle output (implement)
-    ├── verification-report.md     # Testing Agent verification output (implement)
+    ├── verification-report.md     # QA Engineer verification output (implement)
     ├── checkpoint-report.md       # Cycle checkpoint evaluation (implement)
     └── final-validation-report.md # Final validation gate result (implement)
 ```
@@ -346,7 +346,7 @@ Use the unified `TEST:` format for all verification tasks:
   - **Capture**: {console, screenshot, logs} (optional)
 ```
 
-The testing-agent classifies tasks at runtime (CLI/GUI/SUBJECTIVE) and decides whether to auto-approve or present a human checkpoint. Legacy formats (`TEST:VERIFY`, `TEST:CONTRACT`, `HUMAN VERIFICATION`) are still supported.
+The qa-engineer classifies tasks at runtime (CLI/GUI/SUBJECTIVE) and decides whether to auto-approve or present a human checkpoint. Legacy formats (`TEST:VERIFY`, `TEST:CONTRACT`, `HUMAN VERIFICATION`) are still supported.
 
 Action modifiers: `(background)`, `(timeout Ns)`, `(in {path})`
 

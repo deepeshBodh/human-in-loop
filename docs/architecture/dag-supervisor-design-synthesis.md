@@ -114,7 +114,7 @@ The DAG-first execution architecture (see `dag-first-execution-synthesis.md`) es
 |---|---|---|---|---|
 | **Supervisor** | (main thread) | Core DAG mechanics + strategy skills | Structured I/O with DAG-ops | Session-scoped |
 | **DAG Operations** | State Briefer, DAG Assembler | Role, inputs, outputs, operational rules | Structured with Supervisor, NL with domain agents | Persistent identity, role-defined |
-| **Domain** | Analyst, Advocate, Plan Architect, Task Architect, Technical Analyst, UI Designer, Testing Agent, Principal Architect | Persona, expertise, skills, values | Natural language (ADR-005) | Persistent identity, persona-defined |
+| **Domain** | Analyst, Advocate, Plan Architect, Task Architect, Technical Analyst, UI Designer, QA Engineer, Principal Architect | Persona, expertise, skills, values | Natural language (ADR-005) | Persistent identity, persona-defined |
 
 ### Supervisor Decision Loop
 

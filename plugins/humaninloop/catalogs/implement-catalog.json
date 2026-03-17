@@ -51,8 +51,8 @@
       "type": "task",
       "name": "Verify Implementation Cycle",
       "description": "Run TEST: tasks, quality gates (lint, build, tests), and produce verification report",
-      "agent_type": "humaninloop:testing-agent",
-      "agent": "testing-agent",
+      "agent_type": "humaninloop:qa-engineer",
+      "agent": "qa-engineer",
       "skill": null,
       "contract": {
         "consumes": [

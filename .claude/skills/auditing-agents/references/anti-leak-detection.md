@@ -67,7 +67,7 @@ Agent bodies MUST NOT hardcode output file paths or directory structures.
 Agent bodies MUST NOT reference other specific agents or assume awareness of who runs before or after.
 
 **Keywords to search for:**
-- Names of other agents: "Devil's Advocate", "requirements analyst", "plan architect", "testing agent"
+- Names of other agents: "Devil's Advocate", "requirements analyst", "plan architect", "QA engineer"
 - "re-invoke [agent-name]"
 - "Ready for [agent-name] review"
 

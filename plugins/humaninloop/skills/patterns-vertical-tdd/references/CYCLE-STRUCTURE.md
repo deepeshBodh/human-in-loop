@@ -225,7 +225,7 @@ Use the `**TEST:**` marker for all verification tasks:
   - **Capture**: {console, screenshot, logs} (optional)
 ```
 
-The testing-agent **classifies tasks at runtime** and decides whether to auto-approve or present a human checkpoint:
+The qa-engineer **classifies tasks at runtime** and decides whether to auto-approve or present a human checkpoint:
 
 | Classification | Criteria | Execution |
 |----------------|----------|-----------|
@@ -329,7 +329,7 @@ Mocked tests verify that code does what the tests say. Real verification ensures
 
 ### Legacy Format Support
 
-For backward compatibility, the testing-agent accepts these legacy markers (internally mapped to TEST:):
+For backward compatibility, the qa-engineer accepts these legacy markers (internally mapped to TEST:):
 - `**TEST:VERIFY**`
 - `**TEST:CONTRACT**`
 - `**HUMAN VERIFICATION**` (maps Setup/Action/Verify fields)

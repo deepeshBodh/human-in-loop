@@ -6,6 +6,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [3.2.1] - 2026-03-17
+
+### humaninloop 3.2.1
+
+#### Changed
+
+- **Renamed `testing-agent` to `qa-engineer`** — Restructured as a persona agent following the same conventions as `requirements-analyst` and `principal-architect`. Model upgraded from sonnet to opus. Procedural content moved to skill, agent now focuses on identity, judgment, and quality standards.
+- **Promoted `qa-engineer` to persona agent category** in AGENT-GUIDELINES.md (previously classified as executor agent)
+- **Updated all references** across plugin.json, implement-catalog.json, dag-assembler, task-architect, README, AGENT-GUIDELINES, and 6 skill reference files
+
+#### Fixed
+
+- **testing-end-user skill SHOULD clause** — Updated from "when encountering" to RFC 2119 compliant "when the user says" format with quoted trigger phrases
+
+---
+
 ## [3.2.0] - 2026-03-16
 
 **BREAKING CHANGE**: `/humaninloop:implement` migrated to DAG-based architecture with Supervisor + DAG Assembler + State Analyst pattern.

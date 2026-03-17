@@ -45,6 +45,7 @@ A **persona agent** is the primary agent type. It:
 **humaninloop persona agents:**
 - `requirements-analyst` — Senior analyst who transforms ambiguity into clarity
 - `principal-architect` — Senior technical leader who establishes governance standards
+- `qa-engineer` — Senior QA engineer who treats verification as an engineering discipline
 
 All new agents SHOULD be persona agents unless there is a clear reason for another type.
 
@@ -70,7 +71,7 @@ An **executor agent** performs concrete tasks and captures evidence. It:
 - Produces structured evidence for human review
 
 **humaninloop executor agents:**
-- `testing-agent` — QA partner that executes verification tasks and captures evidence
+- (none currently — qa-engineer was promoted to persona agent)
 
 Executor agents SHOULD still have a clear identity but the persona is lighter than persona or reviewer agents.
 
@@ -616,7 +617,7 @@ Verify the persona holds under pressure. Less critical than skill delegation but
 |------------|------------|---------|
 | Persona | Maintains quality standards under pressure | Requirements analyst asked to "just write something quick" |
 | Reviewer | Refuses to rubber-stamp weak artifacts | Devil's advocate given a spec with subtle gaps |
-| Executor | Follows evidence capture rules, escalates when required | Testing agent given ambiguous pass/fail criteria |
+| Executor | Follows evidence capture rules, escalates when required | QA engineer given ambiguous pass/fail criteria |
 
 ### 6.4 Anti-Leak Verification
 

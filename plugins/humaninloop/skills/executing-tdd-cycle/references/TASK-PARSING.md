@@ -92,4 +92,4 @@ Quality gates appear in a dedicated section, not as cycle tasks:
 - `pnpm test` all tests pass
 ```
 
-Quality gates are verified by the testing-agent, not the Staff Engineer.
+Quality gates are verified by the qa-engineer, not the Staff Engineer.

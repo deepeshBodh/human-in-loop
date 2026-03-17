@@ -327,7 +327,7 @@ Each command produces artifacts you review before the next step. You stay in con
 │  │       │                                                   │       │
 │  │       ▼ (if TEST: marker)                                │       │
 │  │  ┌─────────────────┐                                     │       │
-│  │  │  Testing Agent  │ ──▶ auto-approve or human checkpoint│       │
+│  │  │   QA Engineer   │ ──▶ auto-approve or human checkpoint│       │
 │  │  └─────────────────┘                                     │       │
 │  └──────────────────────────────────────────────────────────┘       │
 │                                                                     │
@@ -337,7 +337,7 @@ Each command produces artifacts you review before the next step. You stay in con
 **Output**: Implemented code + marked tasks
 
 **Agents**:
-- **Testing Agent** — Executes verification tasks and captures evidence; auto-approves or presents checkpoints
+- **QA Engineer** — Executes verification tasks and captures evidence; auto-approves or presents checkpoints
 
 </details>
 
@@ -348,11 +348,11 @@ Each command produces artifacts you review before the next step. You stay in con
 ### 7 Commands
 The full specify → plan → tasks → implement lifecycle.
 
-### 27 Skills
+### 30 Skills
 Claude automatically invokes these when relevant—authoring requirements, technical specifications, analyzing codebases, designing APIs, running verification tests, managing GitHub issues, DAG operations, workflow strategy, and more.
 
-### 9 Specialized Agents
-Focused responsibilities: requirements analyst, technical analyst, devil's advocate, principal architect, task architect, testing agent, UI designer, DAG assembler, state analyst.
+### 10 Specialized Agents
+Focused responsibilities: requirements analyst, technical analyst, devil's advocate, principal architect, task architect, staff engineer, QA engineer, UI designer, DAG assembler, state analyst.
 
 See the [plugin documentation](./plugins/humaninloop/README.md) for full details.
 

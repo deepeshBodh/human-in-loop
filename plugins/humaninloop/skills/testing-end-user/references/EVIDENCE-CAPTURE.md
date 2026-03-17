@@ -24,17 +24,17 @@ This document defines how to capture, store, and manage evidence during test exe
 Capture both stdout and stderr from all commands:
 
 ```bash
-command 2>&1 | tee /tmp/claude/testing-agent-{task}-output.log
+command 2>&1 | tee /tmp/claude/qa-engineer-{task}-output.log
 ```
 
 ### Structured Storage
 
 ```
 /tmp/claude/
-├── testing-agent-T2.4-setup.log      # Setup command output
-├── testing-agent-T2.4-action-1.log   # First action output
-├── testing-agent-T2.4-action-2.log   # Second action output
-└── testing-agent-T2.4-pids.txt       # Background process PIDs
+├── qa-engineer-T2.4-setup.log      # Setup command output
+├── qa-engineer-T2.4-action-1.log   # First action output
+├── qa-engineer-T2.4-action-2.log   # Second action output
+└── qa-engineer-T2.4-pids.txt       # Background process PIDs
 ```
 
 ### Capture Format
@@ -65,8 +65,8 @@ For actions with `(background)` modifier:
 
 ```bash
 # Start process and capture PID
-{command} > /tmp/claude/testing-agent-{task}-bg-{n}.log 2>&1 &
-echo $! >> /tmp/claude/testing-agent-{task}-pids.txt
+{command} > /tmp/claude/qa-engineer-{task}-bg-{n}.log 2>&1 &
+echo $! >> /tmp/claude/qa-engineer-{task}-pids.txt
 ```
 
 ### Tracking PIDs
@@ -82,7 +82,7 @@ PID file format (`-pids.txt`):
 To check background process output for assertions:
 
 ```bash
-tail -n 100 /tmp/claude/testing-agent-{task}-bg-{n}.log
+tail -n 100 /tmp/claude/qa-engineer-{task}-bg-{n}.log
 ```
 
 ### Cleanup
@@ -93,11 +93,11 @@ After test completion (pass or fail):
 # Kill all tracked processes
 while read pid cmd; do
   kill $pid 2>/dev/null
-done < /tmp/claude/testing-agent-{task}-pids.txt
+done < /tmp/claude/qa-engineer-{task}-pids.txt
 
 # Remove temp files
-rm -f /tmp/claude/testing-agent-{task}-*.log
-rm -f /tmp/claude/testing-agent-{task}-pids.txt
+rm -f /tmp/claude/qa-engineer-{task}-*.log
+rm -f /tmp/claude/qa-engineer-{task}-pids.txt
 ```
 
 ## Timeout Handling
@@ -150,9 +150,9 @@ fi
 
 | Platform | Command |
 |----------|---------|
-| macOS | `screencapture -x /tmp/claude/testing-agent-{task}-screenshot.png` |
-| Linux (X11) | `import -window root /tmp/claude/testing-agent-{task}-screenshot.png` |
-| Linux (GNOME) | `gnome-screenshot -f /tmp/claude/testing-agent-{task}-screenshot.png` |
+| macOS | `screencapture -x /tmp/claude/qa-engineer-{task}-screenshot.png` |
+| Linux (X11) | `import -window root /tmp/claude/qa-engineer-{task}-screenshot.png` |
+| Linux (GNOME) | `gnome-screenshot -f /tmp/claude/qa-engineer-{task}-screenshot.png` |
 
 ### Graceful Fallback
 
@@ -168,7 +168,7 @@ If screenshot capture fails:
 For `**Capture**: logs(/var/log/app.log)`:
 
 ```bash
-tail -n 500 /var/log/app.log > /tmp/claude/testing-agent-{task}-applog.log
+tail -n 500 /var/log/app.log > /tmp/claude/qa-engineer-{task}-applog.log
 ```
 
 ### Log Rotation Awareness
@@ -177,10 +177,10 @@ If log file might rotate during test:
 
 ```bash
 # Capture at start
-cp /var/log/app.log /tmp/claude/testing-agent-{task}-applog-start.log
+cp /var/log/app.log /tmp/claude/qa-engineer-{task}-applog-start.log
 
 # Capture at end
-tail -n 500 /var/log/app.log > /tmp/claude/testing-agent-{task}-applog-end.log
+tail -n 500 /var/log/app.log > /tmp/claude/qa-engineer-{task}-applog-end.log
 ```
 
 ## File State Capture
@@ -244,7 +244,7 @@ Track from first setup command to final assert evaluation.
       "command": "dart run bin/watcher.dart",
       "type": "background",
       "pid": 12345,
-      "log_file": "/tmp/claude/testing-agent-T2.4-bg-1.log"
+      "log_file": "/tmp/claude/qa-engineer-T2.4-bg-1.log"
     },
     {
       "command": "touch /tmp/watcher-test/test.jsonl",
@@ -261,8 +261,8 @@ Track from first setup command to final assert evaluation.
     }
   ],
   "files": {
-    "console": "/tmp/claude/testing-agent-T2.4-output.log",
-    "pids": "/tmp/claude/testing-agent-T2.4-pids.txt"
+    "console": "/tmp/claude/qa-engineer-T2.4-output.log",
+    "pids": "/tmp/claude/qa-engineer-T2.4-pids.txt"
   }
 }
 ```
