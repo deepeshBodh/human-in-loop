@@ -238,15 +238,9 @@ class _ToolError(Exception):
 # ---------------------------------------------------------------------------
 
 
-async def main():
-    """Run the MCP server over stdio."""
-    await mcp.run_async(transport="stdio")
-
-
 def main_sync():
     """Synchronous entry point for the hil-dag binary."""
-    import asyncio
-    asyncio.run(main())
+    mcp.run(transport="stdio")
 
 
 if __name__ == "__main__":
