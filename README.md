@@ -374,14 +374,6 @@ See the [plugin documentation](./plugins/humaninloop/README.md) for full details
 
 ### 3. Install the `hil-dag` CLI (required for specify and implement)
 
-**Python projects** — add as a dev dependency:
-
-```bash
-uv add --dev "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
-```
-
-**Non-Python projects** (Node.js, Ruby, etc.) — install as a global tool:
-
 ```bash
 uv tool install "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
 ```
@@ -389,10 +381,6 @@ uv tool install "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in
 **To upgrade to the latest version:**
 
 ```bash
-# Python project
-uv add --dev --upgrade "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
-
-# Non-Python project
 uv tool install --force "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
 ```
 

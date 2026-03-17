@@ -12,8 +12,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 #### Changed
 
-- **`hil-dag` install instructions cover Python and non-Python projects** — All docs (root README, plugin README, dag-operations SKILL.md) now show both `uv add --dev` (Python projects) and `uv tool install` (non-Python projects like Node.js, Ruby, etc.), with corresponding upgrade instructions
-- **DAG scripts support both install methods** — All 7 dag-operations scripts and check-prerequisites.sh now resolve `hil-dag` via PATH or `uv run` fallback. Error messages show both install options
+- **`hil-dag` install instructions include upgrade path** — All docs (root README, plugin README, dag-operations SKILL.md) now show `uv tool install --force` for upgrading to the latest version
+- **DAG scripts support `uv run` fallback** — All 7 dag-operations scripts and check-prerequisites.sh now resolve `hil-dag` via PATH or `uv run` fallback for projects with a local dev dependency
 
 ---
 

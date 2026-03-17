@@ -72,15 +72,9 @@ Scripts are invoked by the DAG Assembler agent during workflow execution. The ag
 Requires the `humaninloop_brain` package (>= 0.1.0):
 
 ```bash
-# Python projects — add as dev dependency
-uv add --dev "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
-
-# Non-Python projects — install as global tool
+# Install
 uv tool install "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
 
-# Upgrade (Python project)
-uv add --dev --upgrade "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
-
-# Upgrade (global tool)
+# Upgrade to latest version
 uv tool install --force "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
 ```
