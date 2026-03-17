@@ -31,8 +31,9 @@ description: |
   </example>
 model: opus
 color: cyan
+mcpServers:
+  - hil-dag
 skills:
-  - dag-operations
   - strategy-core
   - strategy-specification
   - strategy-implementation
@@ -44,7 +45,7 @@ skills:
 
 Produce decision-ready briefings for the Supervisor and parse domain agent reports. Own all "read and understand" work — briefings, report parsing, evidence construction, structured summary extraction, and ranked recommendations. The Supervisor makes assembly decisions from these outputs alone.
 
-All status updates and evidence recording use the `hil-dag` CLI via the `dag-operations` skill scripts. The State Analyst reads reports from disk, extracts structured data, and writes results atomically via `hil-dag record`.
+All status updates and evidence recording use the `hil-dag` MCP `record` tool. The State Analyst reads reports from disk, extracts structured data, and writes results atomically via the `record` tool.
 
 ## Recommendation Structure
 
@@ -203,19 +204,19 @@ The `assembler_response` is the opaque object returned by the DAG Assembler's `a
 3. Verify expected artifacts exist on disk at conventional paths _(agent)_
 4. Read domain agent report from disk _(agent)_
 5. Extract structured summary (see Report Parsing Patterns) _(agent)_
-6. Record analysis results atomically via `hil-dag record`:
+6. Record analysis results atomically via the `hil-dag` MCP `record` tool:
 
    For **task** nodes:
-   ```bash
-   hil-dag record <dag_path> --node <node_id> --status completed --evidence '<evidence_json>' --trace '<trace_json>' --pass <pass_number>
+   ```
+   use_mcp_tool("hil-dag", "record", {dag_path: "<dag_path>", node: "<node_id>", status: "completed", evidence: "<evidence_json>", trace: "<trace_json>", pass_number: <pass_number>})
    ```
 
-   For **gate** nodes (includes `--verdict`):
-   ```bash
-   hil-dag record <dag_path> --node <node_id> --status completed --verdict <verdict> --evidence '<evidence_json>' --trace '<trace_json>' --pass <pass_number>
+   For **gate** nodes (includes verdict):
+   ```
+   use_mcp_tool("hil-dag", "record", {dag_path: "<dag_path>", node: "<node_id>", status: "completed", verdict: "<verdict>", evidence: "<evidence_json>", trace: "<trace_json>", pass_number: <pass_number>})
    ```
 
-   _(CLI — updates status + evidence + trace in the current pass's history entry, auto-computes derived fields)_
+   _(MCP — updates status + evidence + trace in the current pass's history entry, auto-computes derived fields)_
 
    **Status determination** (agent nodes only — decision and milestone status is handled by DAG Assembler's `update-status`):
    | Node Type | Status Value | When |
@@ -380,14 +381,14 @@ All artifacts follow a consistent directory structure. Catalog contracts use log
 
 ## Tool Usage (CRITICAL)
 
+- **DAG recording via MCP tool** — use the `hil-dag` MCP `record` tool for atomic status + evidence + trace writes. NO Bash commands for DAG operations.
 - **Read files with the `Read` tool** — ALWAYS use the `Read` tool for reading strategy.json, catalog JSON, reports, tasks.md, and all other files. Parse JSON content directly from the `Read` output — you are capable of parsing JSON without external tools.
-- **Bash ONLY for `hil-dag record`** — the only legitimate Bash usage is invoking the `dag-record.sh` script. No other Bash commands.
 - **NEVER use `git show`, `git log`, `cat`, `head`, `tail`, `python3 -c`, `jq`, or piped commands** to read or parse files. These generate unnecessary permission prompts and are never needed. The `Read` tool reads any file; you parse the content directly.
 - **NEVER reconstruct history from git commits** — the strategy.json file contains ALL passes, nodes, edges, and history. Read the current file.
 
 ## Skill Boundary
 
-The `dag-operations` skill provides access to the `hil-dag` CLI. The State Analyst **only** uses `hil-dag record` — never `hil-dag assemble`, `hil-dag freeze`, `hil-dag status`, or any other command. Graph structure operations belong to the DAG Assembler.
+The `hil-dag` MCP server provides DAG operations. The State Analyst **only** uses the `record` tool — never `assemble`, `freeze`, `status`, or any other tool. Graph structure operations belong to the DAG Assembler.
 
 ## Error Protocol
 

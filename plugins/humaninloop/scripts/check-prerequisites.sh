@@ -12,7 +12,6 @@
 #   --require-tasks     Require tasks.md to exist (for implementation phase)
 #   --include-tasks     Include tasks.md in AVAILABLE_DOCS list
 #   --paths-only        Only output path variables (no validation)
-#   --require-hil-dag   Require hil-dag CLI to be installed (for DAG-based workflows)
 #   --help, -h          Show help message
 #
 # OUTPUTS:
@@ -27,8 +26,6 @@ JSON_MODE=false
 REQUIRE_TASKS=false
 INCLUDE_TASKS=false
 PATHS_ONLY=false
-REQUIRE_HIL_DAG=false
-
 for arg in "$@"; do
     case "$arg" in
         --json)
@@ -43,9 +40,6 @@ for arg in "$@"; do
         --paths-only)
             PATHS_ONLY=true
             ;;
-        --require-hil-dag)
-            REQUIRE_HIL_DAG=true
-            ;;
         --help|-h)
             cat << 'EOF'
 Usage: check-prerequisites.sh [OPTIONS]
@@ -57,7 +51,6 @@ OPTIONS:
   --require-tasks     Require tasks.md to exist (for implementation phase)
   --include-tasks     Include tasks.md in AVAILABLE_DOCS list
   --paths-only        Only output path variables (no prerequisite validation)
-  --require-hil-dag   Require hil-dag CLI to be installed (for DAG-based workflows)
   --help, -h          Show this help message
 
 EXAMPLES:
@@ -87,20 +80,6 @@ source "$SCRIPT_DIR/common.sh"
 # Get feature paths and validate branch
 eval $(get_feature_paths)
 check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
-
-# Check hil-dag CLI availability (required for DAG-based workflows: specify, implement)
-if $REQUIRE_HIL_DAG; then
-    if ! command -v hil-dag >/dev/null 2>&1 && ! uv run hil-dag --help >/dev/null 2>&1; then
-        echo "ERROR: hil-dag CLI not found." >&2
-        echo "" >&2
-        echo "The specify and implement workflows require hil-dag. Install with:" >&2
-        echo "" >&2
-        echo "  uv tool install \"humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain\"" >&2
-        echo "" >&2
-        echo "Then verify: hil-dag --help" >&2
-        exit 1
-    fi
-fi
 
 # If paths-only mode, output paths and exit (support JSON + paths-only combined)
 if $PATHS_ONLY; then

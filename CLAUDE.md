@@ -20,7 +20,7 @@ These guidelines derive from the project constitution. RFC 2119 keywords (MUST, 
 
 - Use `gh` CLI for all GitHub-related tasks (viewing repos, issues, PRs, etc.)
 - Deterministic logic (graph operations, structural validation) MUST live in `humaninloop_brain`, not in agent prompts
-- The `hil-dag` CLI MUST be the sole write gate for StrategyGraph JSON -- agents MUST NOT write JSON directly
+- The `hil-dag` MCP server MUST be the sole write gate for StrategyGraph JSON -- agents MUST NOT write JSON directly
 
 ### Key Principles
 
@@ -30,7 +30,7 @@ These guidelines derive from the project constitution. RFC 2119 keywords (MUST, 
 | II | **Testing** | pytest required; `humaninloop_brain` >= 90% coverage (blocking CI gate); 381+ tests |
 | III | **Error Handling** | Structured JSON output with `checks`/`summary` fields; exit codes 0/1/2; `FrozenEntryError`; `ValidationViolation` |
 | IV | **Observability** | JSON to stdout, parseable by `jq`; StrategyGraph JSON as primary workflow observability artifact |
-| V | **Structured Output** | All 7 `hil-dag` CLI subcommands follow `checks`/`summary` JSON schema |
+| V | **Structured Output** | All 7 `hil-dag` MCP tools follow `checks`/`summary` JSON schema |
 | VI | **ADR Discipline** | Architectural decisions documented in `docs/decisions/` (8 ADRs) |
 | VII | **Skill Structure** | `SKILL.md` required; progressive disclosure with bundled reference files; kebab-case with category prefix |
 | VIII | **Conventional Commits** | `type(scope): description` format; pre-commit hook + CI enforcement |
@@ -77,7 +77,9 @@ validators     (imports from: entities, graph)
     |
   passes       (imports from: entities, graph)
     |
-   cli         (imports from: entities, graph, validators, passes)
+   mcp         (imports from: entities, graph, validators, passes)
+    |
+   cli         (imports from: mcp)
 ```
 
 No module MUST import from a layer below it in this hierarchy.
@@ -146,7 +148,7 @@ When amending `.humaninloop/memory/constitution.md`:
 | Test Coverage | humaninloop_brain | >= 90% | `cd humaninloop_brain && uv run pytest --cov --cov-fail-under=90` | CI automated, blocking |
 | Python Syntax | humaninloop_brain | Valid Python | `find src/humaninloop_brain -name '*.py' -print0 \| xargs -0 uv run python -m py_compile` | CI automated |
 | Shell Syntax | Plugin scripts | Valid Bash | `find plugins/humaninloop -name '*.sh' -print0 \| xargs -0 -n1 bash -n` | CI automated |
-| JSON Schema | CLI output | Valid structured output | `hil-dag validate <input> \| jq .` | Tests |
+| JSON Schema | MCP tool output | Valid structured output | MCP tool invocation returns structured JSON | Tests |
 | Commit Format | All | Conventional Commits | Pre-commit hook + CI `commit-lint` job | CI automated + pre-commit |
 | ADR Presence | Architectural changes | ADR exists | Manual review of `docs/decisions/` | Code review |
 | Secret Scanning | All | No secrets in code | `git secrets --scan` | GAP-003: not yet configured |

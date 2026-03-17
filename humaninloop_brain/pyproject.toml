@@ -10,10 +10,11 @@ requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.0",
     "networkx>=3.0",
+    "mcp>=1.0",
 ]
 
 [project.scripts]
-hil-dag = "humaninloop_brain.cli.main:main"
+hil-dag = "humaninloop_brain.mcp.server:main_sync"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/humaninloop_brain"]

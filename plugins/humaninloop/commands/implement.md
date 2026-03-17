@@ -66,13 +66,13 @@ The Supervisor has **zero direct CLI usage**. All `hil-dag` operations are deleg
 
 ## Initial Setup
 
-Resolve paths, verify prerequisites, and create the implementation workspace. The Supervisor delegates environment concerns to subagents — tasks-complete verification is handled by the DAG Assembler's invariant auto-resolution (INV-002 + `carry_forward`), and `hil-dag` CLI availability is each subagent's own responsibility.
+Resolve paths, verify prerequisites, and create the implementation workspace. The Supervisor delegates environment concerns to subagents — tasks-complete verification is handled by the DAG Assembler's invariant auto-resolution (INV-002 + `carry_forward`), and `hil-dag` MCP tools availability is each subagent's own responsibility.
 
 ### 1. Run Prerequisites Check
 
 ```bash
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-${CLAUDE_PLUGIN_ROOT}/scripts/check-prerequisites.sh --json --require-tasks --include-tasks --require-hil-dag
+${CLAUDE_PLUGIN_ROOT}/scripts/check-prerequisites.sh --json --require-tasks --include-tasks
 ```
 
 Parse JSON output for `FEATURE_DIR` and `AVAILABLE_DOCS` list. All paths must be absolute.
