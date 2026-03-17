@@ -24,22 +24,35 @@ The HumanInLoop plugin provides a comprehensive multi-agent workflow for specifi
 
 ### 2. Install the `hil-dag` CLI (required for specify and implement)
 
-The `/humaninloop:specify` and `/humaninloop:implement` workflows use the `hil-dag` CLI for deterministic DAG operations. Add it as a dev dependency in your project:
+The `/humaninloop:specify` and `/humaninloop:implement` workflows use the `hil-dag` CLI for deterministic DAG operations.
+
+**Python projects** — add as a dev dependency:
 
 ```bash
 uv add --dev "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
 ```
 
+**Non-Python projects** (Node.js, Ruby, etc.) — install as a global tool:
+
+```bash
+uv tool install "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
+```
+
 **To upgrade to the latest version:**
 
 ```bash
+# Python project
 uv add --dev --upgrade "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
+
+# Non-Python project
+uv tool install --force "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
 ```
 
 Verify it works:
 
 ```bash
-uv run hil-dag --help
+hil-dag --help          # global tool install
+uv run hil-dag --help   # Python project dev dependency
 ```
 
 **Note:** The `/humaninloop:setup`, `/humaninloop:plan`, and `/humaninloop:tasks` commands do NOT require `hil-dag` — they work immediately after plugin installation.

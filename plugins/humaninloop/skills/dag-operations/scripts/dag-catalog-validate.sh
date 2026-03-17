@@ -8,7 +8,7 @@ if command -v hil-dag >/dev/null 2>&1; then
 elif uv run hil-dag --help >/dev/null 2>&1; then
     HIL_DAG=(uv run hil-dag)
 else
-    echo '{"status":"error","message":"hil-dag not found. Install: uv add --dev humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"}' >&2; exit 1
+    echo '{"status":"error","message":"hil-dag not found. Install: uv add --dev (Python) or uv tool install (non-Python) humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"}' >&2; exit 1
 fi
 
 if [ "$#" -ne 1 ]; then

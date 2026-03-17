@@ -95,9 +95,13 @@ if $REQUIRE_HIL_DAG; then
         echo "" >&2
         echo "The specify and implement workflows require hil-dag. Install with:" >&2
         echo "" >&2
+        echo "  # Python projects" >&2
         echo "  uv add --dev \"humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain\"" >&2
         echo "" >&2
-        echo "Then verify: uv run hil-dag --help" >&2
+        echo "  # Non-Python projects (Node.js, Ruby, etc.)" >&2
+        echo "  uv tool install \"humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain\"" >&2
+        echo "" >&2
+        echo "Then verify: hil-dag --help" >&2
         exit 1
     fi
 fi
