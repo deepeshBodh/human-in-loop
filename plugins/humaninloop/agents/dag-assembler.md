@@ -303,6 +303,111 @@ No agent prompt. Return skill invocation details:
 
 The Supervisor invokes the Skill tool directly with these arguments.
 
+### For execute-cycle (staff-engineer agent)
+
+Update `context.md` with supervisor_instructions for cycle/fix mode, then point the agent at it:
+
+**Context update** — write to `{feature_dir}/.workflow/context.md` supervisor_instructions section:
+```markdown
+{if cycle mode: Execute Cycle {N} tasks from tasks.md.}
+{if fix mode: Fix mode — address specific failures from final-validation report.}
+{if retry: Retry attempt {attempt} — address failures from checkpoint report.}
+
+**Cycle**: {cycle_number} (or "fix")
+**Attempt**: {attempt_number}
+**Task list**: {task IDs for this cycle, e.g., T3.1, T3.2, T3.3, T3.4}
+
+**Read**:
+- Tasks: `{feature_dir}/tasks.md`
+- Plan: `{feature_dir}/plan.md`
+{if data-model.md exists: - Data model: `{feature_dir}/data-model.md`}
+{if contracts/ exists: - Contracts: `{feature_dir}/contracts/`}
+{if checkpoint-report.md exists (retry): - Checkpoint report: `{feature_dir}/.workflow/checkpoint-report.md`}
+{if final-validation-report.md exists (fix mode): - Validation report: `{feature_dir}/.workflow/final-validation-report.md`}
+{if previous cycle-report.md exists: - Previous cycle report: `{feature_dir}/.workflow/cycle-report.md`}
+
+**Write**:
+- Updated tasks: `{feature_dir}/tasks.md`
+- Cycle report: `{feature_dir}/.workflow/cycle-report.md`
+```
+
+**Agent prompt**: `"Read your instructions from: {feature_dir}/.workflow/context.md"`
+
+### For verify-cycle (testing-agent)
+
+Update `context.md` with supervisor_instructions for verification, then point the agent at it:
+
+**Context update** — write to `{feature_dir}/.workflow/context.md` supervisor_instructions section:
+```markdown
+Verify implementation cycle {N}. Execute TEST: tasks and quality gates.
+
+**Read**:
+- Tasks: `{feature_dir}/tasks.md` (identify TEST: tasks for this cycle)
+- Cycle report: `{feature_dir}/.workflow/cycle-report.md`
+
+**Quality gates** (from tasks.md ## Quality Gates section):
+{quality gate commands, e.g., "pnpm lint", "pnpm build", "pnpm test"}
+
+**Write**:
+- Verification report: `{feature_dir}/.workflow/verification-report.md`
+```
+
+**Agent prompt**: `"Read your instructions from: {feature_dir}/.workflow/context.md"`
+
+### For tasks-complete (deterministic gate)
+
+No agent prompt. Return gate check details for the Assembler to evaluate in `update-status`:
+
+```json
+{
+  "gate_type": "deterministic",
+  "check_type": "frontmatter-check",
+  "check_path": "{feature_dir}/.workflow/tasks-context.md",
+  "check_field": "status",
+  "check_value": "completed",
+  "check_description": "Verify tasks workflow status is completed"
+}
+```
+
+The Supervisor tells the Assembler to `update-status` this gate. The Assembler reads the frontmatter and evaluates the condition.
+
+### For cycle-checkpoint (deterministic gate)
+
+No agent prompt. Return gate check details for the Assembler to evaluate in `update-status`:
+
+```json
+{
+  "gate_type": "deterministic",
+  "check_type": "multi-artifact-check",
+  "checks": [
+    {"path": "{feature_dir}/.workflow/cycle-report.md", "field": "checkpoint_criteria_met", "expected": true},
+    {"path": "{feature_dir}/.workflow/verification-report.md", "section": "quality_gates", "expected": "all pass"}
+  ],
+  "check_description": "Verify all cycle tasks complete and verification passed"
+}
+```
+
+The Assembler reads both artifacts, evaluates the structured data, and produces `checkpoint-report.md` with the verdict.
+
+### For final-validation (deterministic gate)
+
+No agent prompt. Return gate check details for the Assembler to evaluate in `update-status`:
+
+```json
+{
+  "gate_type": "deterministic",
+  "check_type": "multi-artifact-check",
+  "checks": [
+    {"path": "{feature_dir}/tasks.md", "check": "all tasks marked [x]"},
+    {"path": "{feature_dir}/.workflow/verification-report.md", "section": "quality_gates", "expected": "all pass"},
+    {"path": "{feature_dir}/tasks.md", "check": "traceability — all user stories have implementing cycles"}
+  ],
+  "check_description": "Verify full test suite passes, all tasks complete, traceability coverage"
+}
+```
+
+The Assembler evaluates all checks and produces `final-validation-report.md` with the verdict.
+
 ### For constitution-gate (no agent)
 
 No agent prompt. Return gate check details for the Assembler to evaluate in `update-status`:
@@ -334,6 +439,15 @@ All artifacts follow a consistent directory structure. Catalog contracts use log
 | constitution.md | `.humaninloop/memory/constitution.md` |
 | context.md | `{feature_dir}/.workflow/context.md` |
 | DAG (single file) | `{feature_dir}/.workflow/dags/strategy.json` |
+| tasks.md | `{feature_dir}/tasks.md` |
+| plan.md | `{feature_dir}/plan.md` |
+| data-model.md | `{feature_dir}/data-model.md` |
+| contracts/ | `{feature_dir}/contracts/` |
+| cycle-report.md | `{feature_dir}/.workflow/cycle-report.md` |
+| verification-report.md | `{feature_dir}/.workflow/verification-report.md` |
+| checkpoint-report.md | `{feature_dir}/.workflow/checkpoint-report.md` |
+| final-validation-report.md | `{feature_dir}/.workflow/final-validation-report.md` |
+| tasks-context.md | `{feature_dir}/.workflow/tasks-context.md` |
 
 ## Operational Rules
 

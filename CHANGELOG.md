@@ -6,6 +6,52 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [3.2.0] - 2026-03-16
+
+**BREAKING CHANGE**: `/humaninloop:implement` migrated to DAG-based architecture with Supervisor + DAG Assembler + State Analyst pattern.
+
+### humaninloop 3.2.0
+
+#### Breaking Changes
+
+- **Implement command architecture** — `/humaninloop:implement` now uses DAG-based workflow execution with the same Supervisor + DAG Assembler + State Analyst infrastructure as `/humaninloop:specify`. The old sequential parse-and-execute architecture is replaced.
+
+#### New Agents
+
+- **Staff Engineer** — Implementation specialist who writes code through strict TDD discipline (red/green/refactor). Executes cycle task lists, handles retry after checkpoint failure, and fix mode after final-validation failure. Uses skills: `executing-tdd-cycle`, `brownfield-integration`
+
+#### New Skills
+
+- **`executing-tdd-cycle`** — TDD red/green/refactor discipline for cycle execution, task parsing, retry handling, fix mode, and cycle report generation
+- **`brownfield-integration`** — EXTEND/MODIFY semantics, read-before-write checklist, interface preservation, and conflict detection for existing codebases
+- **`strategy-implementation`** — Implementation-workflow patterns (cycle sequencing, execute-then-verify, targeted retry, escalation) consumed by the State Analyst for briefings
+
+#### New Catalogs
+
+- **`implement-catalog.json`** — Node catalog defining available nodes, edge constraints, and system invariants for the implement DAG-based workflow
+
+#### Updated Agents
+
+- **DAG Assembler** — Extended with NL prompt construction patterns for implement workflow nodes (execute-cycle, verify-cycle, cycle-checkpoint, final-validation, tasks-complete gate)
+- **State Analyst** — Extended with implement workflow report parsing patterns (cycle-report.md, verification-report.md) and cycle awareness for implementation briefings
+- **Staff Engineer** — Fixed coupling leaks (sibling awareness, sequencing knowledge, artifact path assumptions)
+
+#### Updated Skills
+
+- **`testing-end-user`** — Added quality gate execution sequence and report format for implementation cycle verification
+- **`patterns-vertical-tdd`** — Updated cycle structure and slice identification for implement workflow integration
+- **`brownfield-integration`** — Added RFC 2119 description format, foundational principle, rationalization table, and loophole closures
+- **`executing-tdd-cycle`** — Added RFC 2119 description format, removed specific agent names from When NOT to Use, added loophole closures
+- **`strategy-implementation`** — Restructured with all required sections (Overview, When to Use, When NOT to Use, Common Mistakes), RFC 2119 description format, removed specific agent names
+- **`authoring-technical-requirements`** — Added loophole closures
+
+#### Documentation
+
+- README updated with DAG-based implement workflow description and all implement workflow agents
+- ROADMAP updated to reflect 10 agents, 30 skills, and DAG-based implement workflow
+
+---
+
 ## [3.1.1] - 2026-03-16
 
 ### humaninloop 3.1.1

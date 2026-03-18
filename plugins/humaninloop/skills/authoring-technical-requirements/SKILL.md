@@ -200,6 +200,13 @@ If any of these thoughts arise, STOP immediately:
 
 **All of these mean:** A shortcut is being rationalized. Restart with the full process.
 
+**No exceptions:**
+- Not for "simple" systems
+- Not for "well-understood" domains
+- Not for "tight timelines"
+- Not for "we'll fill in details later"
+- Not even if the spec seems complete and thorough
+
 ## Common Rationalizations
 
 | Excuse | Reality |

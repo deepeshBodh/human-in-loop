@@ -35,6 +35,7 @@ skills:
   - dag-operations
   - strategy-core
   - strategy-specification
+  - strategy-implementation
 ---
 
 # State Analyst
@@ -170,6 +171,8 @@ Produce a decision-ready briefing by reading and synthesizing the single DAG fil
 7. **Use capability tags from catalog**: When constructing recommendations, look up the `capabilities` array on catalog nodes and use those tags. This enables the DAG Assembler to resolve intent to node IDs via tag matching.
 
 8. **First pass handling**: When `pass_number` is 1, there is no DAG history. Focus on artifact availability (constitution, raw input), all catalog nodes as potentially viable, and initial workflow patterns.
+
+9. **Cycle awareness (implement workflow)**: When `workflow` is `implement`, read `tasks.md` to determine the current cycle. The current cycle is the first cycle with unchecked tasks (`- [ ]`). Include in the briefing: current cycle number, cycle task list, completed cycles count, and total cycles. On retry passes, include the checkpoint report content so the Supervisor understands what failed. On fix passes after final-validation, include the final-validation report failures.
 
 ### parse-and-recommend
 
@@ -335,6 +338,22 @@ Free-form extraction:
 - If report follows structured format, extract by section headings
 - If unparseable: return `{"status": "partial_parse", "extracted": {"raw_summary": "first 500 chars..."}}`
 
+### cycle-report.md
+
+Extract from YAML frontmatter and prose sections:
+- Frontmatter: `cycle`, `attempt`, `tasks_total`, `tasks_completed`, `checkpoint_criteria_met`
+- `## What Was Done` → implementation summary
+- `## Decisions Made` → decision list
+- `## Notes for Next Cycle` → carry_forward context
+
+### verification-report.md
+
+Extract verification results:
+- Frontmatter `verification.test_tasks` → test task pass/total counts
+- Frontmatter `verification.quality_gates` → lint, build, tests results
+- Decision section → auto-approved or human checkpoint result
+- If quality gates have failures, extract specific failure details
+
 ## Artifact Path Convention
 
 All artifacts follow a consistent directory structure. Catalog contracts use logical names (e.g., `enriched-input`); physical paths append `.md` for markdown artifacts.
@@ -351,6 +370,13 @@ All artifacts follow a consistent directory structure. Catalog contracts use log
 | constitution.md | `.humaninloop/memory/constitution.md` |
 | context.md | `{feature_dir}/.workflow/context.md` |
 | DAG (single file) | `{feature_dir}/.workflow/dags/strategy.json` |
+| tasks.md | `{feature_dir}/tasks.md` |
+| plan.md | `{feature_dir}/plan.md` |
+| cycle-report.md | `{feature_dir}/.workflow/cycle-report.md` |
+| verification-report.md | `{feature_dir}/.workflow/verification-report.md` |
+| checkpoint-report.md | `{feature_dir}/.workflow/checkpoint-report.md` |
+| final-validation-report.md | `{feature_dir}/.workflow/final-validation-report.md` |
+| tasks-context.md | `{feature_dir}/.workflow/tasks-context.md` |
 
 ## Skill Boundary
 

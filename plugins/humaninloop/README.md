@@ -11,6 +11,7 @@ The HumanInLoop plugin provides a comprehensive multi-agent workflow for specifi
 - **Specify** - Create feature specifications with integrated quality validation
 - **Plan** - Translate business specifications into technical requirements, then design data models and API contracts
 - **Tasks** - Generate actionable implementation tasks with dependency tracking and brownfield markers
+- **Implement** - Execute implementation with DAG-based TDD discipline and cycle management
 
 ## Installation
 
@@ -22,7 +23,7 @@ claude-code plugins add humaninloop
 
 ## Prerequisites
 
-The `/humaninloop:specify` command requires the `hil-dag` CLI from the `humaninloop_brain` package:
+The `/humaninloop:specify` and `/humaninloop:implement` commands require the `hil-dag` CLI from the `humaninloop_brain` package:
 
 ```bash
 cd humaninloop_brain && uv sync
@@ -167,7 +168,7 @@ Generate implementation tasks from an existing plan.
 
 ### `/humaninloop:implement`
 
-Execute the implementation plan by processing all tasks defined in tasks.md.
+Execute the implementation plan using DAG-based workflow execution with TDD discipline.
 
 ```
 /humaninloop:implement
@@ -175,22 +176,23 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 
 **Requires:** `tasks.md` to exist (run tasks workflow first)
 
-**Workflow:**
-1. **Entry Gate**: Verify tasks workflow completed successfully
-2. **Project Setup**: Create/verify ignore files for tech stack
-3. **Parse Structure**: Extract cycles, tasks, dependencies from tasks.md
-4. **Execute Foundation**: Complete foundation cycles sequentially (C1 → C2 → C3)
-5. **Execute Features**: Run feature cycles (parallel where marked `[P]`)
-6. **Verify Checkpoints**: Validate each cycle's checkpoint criteria
-7. **Quality Gates**: Run lint, build, tests after each cycle
+**Workflow (DAG-based execution):**
+1. State Analyst produces implementation briefing from DAG history, catalog, and strategy skills
+2. Supervisor makes assembly decision; DAG Assembler validates and builds graph node
+3. Staff Engineer executes cycle tasks through strict red/green/refactor TDD discipline
+4. Testing Agent verifies implementation with quality gates (lint, build, tests) and TEST: task execution
+5. State Analyst parses reports, records status + evidence + trace via `hil-dag record`
+6. Loop through cycles until all tasks complete, then run final-validation gate
+7. Fix pass if final-validation fails (scoped to specific failures), escalate after 3 retries
 
 **Features:**
-- **Cycle-based execution**: Foundation cycles sequential, feature cycles can parallelize
-- **TDD discipline**: Each cycle starts with failing test (TN.1), then implements
-- **Checkpoint verification**: Validates done criteria between cycles
-- **Brownfield support**: Handles `[EXTEND]` and `[MODIFY]` markers
+- **DAG-based execution**: Same Supervisor + DAG Assembler + State Analyst architecture as specify
+- **TDD discipline**: Each cycle follows test-first ordering via Staff Engineer
+- **Execute-then-verify**: Every execution cycle paired with independent verification
+- **Targeted retry**: Checkpoint failures trace to specific tasks, not full re-implementation
+- **Brownfield support**: Handles `[EXTEND]` and `[MODIFY]` markers via brownfield-integration skill
 - **Progress tracking**: Marks tasks complete (`[x]`) in tasks.md
-- **User-controlled git**: Does not run git commands - leaves version control to user
+- **Escalation**: Mandatory user escalation after 3 retry attempts
 
 ## Workflow Architecture
 
@@ -228,6 +230,9 @@ Execute the implementation plan by processing all tasks defined in tasks.md.
 
 | Agent | Purpose |
 |-------|---------|
+| **DAG Assembler** | Pure graph mechanics: translates Supervisor decisions into validated DAG mutations via the `hil-dag` CLI. Constructs prompts for domain agents from catalog contracts. Uses skill: `dag-operations` |
+| **State Analyst** | Reads DAG history, parses domain agent reports, and produces structured briefings for the Supervisor. Records analysis results atomically via `hil-dag record`. Uses skills: `dag-operations`, `strategy-core`, `strategy-implementation` |
+| **Staff Engineer** | Implementation specialist who writes code through strict TDD discipline (red/green/refactor). Executes cycle task lists, handles retry and fix modes. Uses skills: `executing-tdd-cycle`, `brownfield-integration` |
 | **Testing Agent** | Collaborative QA partner that executes `TEST:` verification tasks, classifies them at runtime (CLI/GUI/SUBJECTIVE), captures evidence, and decides whether to auto-approve or present human checkpoints. Uses skill: `testing-end-user` |
 
 ### Design Workflow Agent
@@ -276,13 +281,16 @@ specs/<###-feature-name>/
     ├── context.md                 # Specify workflow context
     ├── analyst-report.md          # Requirements Analyst output
     ├── advocate-report.md         # Devil's Advocate output
-    ├── dags/                      # DAG pass history (specify workflow)
-    │   ├── pass-001.json          # First pass DAG
-    │   └── pass-NNN.json         # Subsequent passes
+    ├── dags/                      # DAG history (specify + implement workflows)
+    │   └── strategy.json          # Single StrategyGraph with all passes
     ├── plan-context.md            # Plan workflow state
     ├── techanalyst-report.md      # Technical Analyst output
     ├── architect-report.md        # Principal Architect feasibility report
-    └── tasks-context.md           # Tasks workflow state
+    ├── tasks-context.md           # Tasks workflow state
+    ├── cycle-report.md            # Staff Engineer cycle output (implement)
+    ├── verification-report.md     # Testing Agent verification output (implement)
+    ├── checkpoint-report.md       # Cycle checkpoint evaluation (implement)
+    └── final-validation-report.md # Final validation gate result (implement)
 ```
 
 ## Specification Format

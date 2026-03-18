@@ -1,0 +1,212 @@
+{
+  "catalog_version": "2.0.0",
+  "workflow": "implement",
+  "nodes": [
+    {
+      "node_id": "tasks-complete",
+      "type": "gate",
+      "name": "Tasks Workflow Complete",
+      "description": "Verify that the tasks workflow completed successfully before implementation begins",
+      "agent_type": null,
+      "agent": null,
+      "skill": null,
+      "contract": {
+        "consumes": [
+          {"artifact": "tasks.md", "required": true},
+          {"artifact": "tasks-context.md", "required": true}
+        ],
+        "produces": ["tasks.md"]
+      },
+      "valid_statuses": ["pending", "passed", "failed"],
+      "verdict_field": "verdict",
+      "verdict_values": ["ready", "critical-gaps"],
+      "capabilities": ["tasks-verification", "workflow-prerequisite"],
+      "carry_forward": true,
+      "gate_type": "deterministic"
+    },
+    {
+      "node_id": "execute-cycle",
+      "type": "task",
+      "name": "Execute Implementation Cycle",
+      "description": "Implement code for the current cycle via TDD red/green/refactor discipline",
+      "agent_type": "humaninloop:staff-engineer",
+      "agent": "staff-engineer",
+      "skill": null,
+      "contract": {
+        "consumes": [
+          {"artifact": "tasks.md", "required": true},
+          {"artifact": "plan.md", "required": true},
+          {"artifact": "data-model.md", "required": false},
+          {"artifact": "contracts/", "required": false},
+          {"artifact": "checkpoint-report.md", "required": false, "note": "present on retry passes"},
+          {"artifact": "final-validation-report.md", "required": false, "note": "present on fix passes"}
+        ],
+        "produces": ["cycle-report.md", "tasks.md"]
+      },
+      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"],
+      "capabilities": ["tdd-implementation", "cycle-execution", "fix-mode"]
+    },
+    {
+      "node_id": "verify-cycle",
+      "type": "task",
+      "name": "Verify Implementation Cycle",
+      "description": "Run TEST: tasks, quality gates (lint, build, tests), and produce verification report",
+      "agent_type": "humaninloop:testing-agent",
+      "agent": "testing-agent",
+      "skill": null,
+      "contract": {
+        "consumes": [
+          {"artifact": "tasks.md", "required": true},
+          {"artifact": "cycle-report.md", "required": true}
+        ],
+        "produces": ["verification-report.md"]
+      },
+      "valid_statuses": ["pending", "in-progress", "completed", "skipped", "halted"],
+      "capabilities": ["test-verification", "quality-gate-execution"]
+    },
+    {
+      "node_id": "cycle-checkpoint",
+      "type": "gate",
+      "name": "Cycle Checkpoint",
+      "description": "Evaluate whether all cycle tasks are complete and verification passed",
+      "agent_type": null,
+      "agent": null,
+      "skill": null,
+      "contract": {
+        "consumes": [
+          {"artifact": "cycle-report.md", "required": true},
+          {"artifact": "verification-report.md", "required": true}
+        ],
+        "produces": ["checkpoint-report.md"]
+      },
+      "valid_statuses": ["pending", "passed", "failed"],
+      "verdict_field": "verdict",
+      "verdict_values": ["ready", "needs-revision"],
+      "capabilities": ["cycle-validation", "checkpoint-evaluation"],
+      "carry_forward": false,
+      "gate_type": "deterministic"
+    },
+    {
+      "node_id": "user-clarification",
+      "type": "decision",
+      "name": "User Clarification",
+      "description": "Collect user input when Staff Engineer flags ambiguity or uncertainty",
+      "agent_type": null,
+      "agent": null,
+      "skill": null,
+      "contract": {
+        "consumes": [
+          {"artifact": "cycle-report.md", "required": true}
+        ],
+        "produces": ["clarification-answers"]
+      },
+      "valid_statuses": ["pending", "decided"],
+      "capabilities": ["user-clarification", "ambiguity-resolution"]
+    },
+    {
+      "node_id": "final-validation",
+      "type": "gate",
+      "name": "Final Validation",
+      "description": "Verify full test suite passes, traceability coverage, and constitution alignment",
+      "agent_type": null,
+      "agent": null,
+      "skill": null,
+      "contract": {
+        "consumes": [
+          {"artifact": "cycle-report.md", "required": true},
+          {"artifact": "verification-report.md", "required": true},
+          {"artifact": "tasks.md", "required": true}
+        ],
+        "produces": ["final-validation-report.md"]
+      },
+      "valid_statuses": ["pending", "passed", "failed"],
+      "verdict_field": "verdict",
+      "verdict_values": ["ready", "needs-revision"],
+      "capabilities": ["final-validation", "traceability-check", "full-suite-validation"],
+      "carry_forward": false,
+      "gate_type": "deterministic"
+    },
+    {
+      "node_id": "implementation-complete",
+      "type": "milestone",
+      "name": "Implementation Complete",
+      "description": "Marks the implementation as validated and complete",
+      "agent_type": null,
+      "agent": null,
+      "skill": null,
+      "contract": {
+        "consumes": [
+          {"artifact": "final-validation-report.md", "required": true}
+        ],
+        "produces": []
+      },
+      "valid_statuses": ["pending", "achieved"],
+      "note": "Consumes only final-validation-report.md to ensure edge inference routes through the final-validation gate, satisfying INV-001",
+      "capabilities": ["milestone-tracking"]
+    }
+  ],
+  "edge_constraints": {
+    "depends_on": {
+      "valid_sources": ["task", "gate", "decision", "milestone"],
+      "valid_targets": ["task", "gate", "decision", "milestone"],
+      "note": "General execution ordering — must form a DAG"
+    },
+    "produces": {
+      "valid_sources": ["task"],
+      "valid_targets": ["task", "gate"],
+      "note": "Artifact flow — source produces what target consumes"
+    },
+    "validates": {
+      "valid_sources": ["gate"],
+      "valid_targets": ["task"],
+      "note": "Review relationship — gate evaluates task output"
+    },
+    "constrained_by": {
+      "valid_sources": ["task", "gate", "decision"],
+      "valid_targets": ["gate"],
+      "note": "Boundary enforcement — work must satisfy gate constraint"
+    },
+    "informed_by": {
+      "valid_sources": ["task", "gate", "decision"],
+      "valid_targets": ["task", "gate", "decision"],
+      "note": "Context flow — not a hard dependency, may cross pass boundaries"
+    },
+    "triggered_by": {
+      "valid_sources": ["task", "gate", "decision", "milestone"],
+      "valid_targets": ["task", "gate", "decision", "milestone"],
+      "note": "Cross-pass trigger — links a node in a new pass to the gate verdict that triggered revision"
+    }
+  },
+  "invariants": [
+    {
+      "id": "INV-001",
+      "rule": "Every execute-cycle output must pass through cycle-checkpoint and final-validation before milestone can be achieved",
+      "enforcement": "assembly-time",
+      "severity": "error"
+    },
+    {
+      "id": "INV-002",
+      "rule": "tasks-complete gate must pass before any execute-cycle node",
+      "enforcement": "assembly-time",
+      "severity": "error"
+    },
+    {
+      "id": "INV-003",
+      "rule": "verify-cycle must follow execute-cycle within the same pass",
+      "enforcement": "assembly-time",
+      "severity": "error"
+    },
+    {
+      "id": "INV-004",
+      "rule": "Maximum 3 retry attempts per cycle or fix pass before mandatory user escalation",
+      "enforcement": "runtime",
+      "severity": "error"
+    },
+    {
+      "id": "INV-005",
+      "rule": "depends-on edges must form a DAG (no cycles)",
+      "enforcement": "assembly-time",
+      "severity": "error"
+    }
+  ]
+}
