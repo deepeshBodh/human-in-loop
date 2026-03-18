@@ -348,8 +348,8 @@ Each command produces artifacts you review before the next step. You stay in con
 ### 6 Commands
 The full specify → plan → tasks → implement lifecycle.
 
-### 30 Skills
-Claude automatically invokes these when relevant—authoring requirements, technical specifications, analyzing codebases, designing APIs, running verification tests, managing GitHub issues, DAG operations, workflow strategy, and more.
+### 29 Skills
+Claude automatically invokes these when relevant—authoring requirements, technical specifications, analyzing codebases, designing APIs, running verification tests, managing GitHub issues, workflow strategy, and more.
 
 ### 10 Specialized Agents
 Focused responsibilities: requirements analyst, technical analyst, devil's advocate, principal architect, task architect, staff engineer, QA engineer, UI designer, DAG assembler, state analyst.
@@ -372,10 +372,22 @@ See the [plugin documentation](./plugins/humaninloop/README.md) for full details
 /plugin install humaninloop
 ```
 
-### 3. Install the `hil-dag` CLI (required for specify and implement)
+### 3. Install and configure the `hil-dag` MCP server (required for specify and implement)
 
 ```bash
 uv tool install "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
+```
+
+Then configure the MCP server in your Claude Code settings (`.claude/settings.json`):
+
+```json
+{
+  "mcpServers": {
+    "hil-dag": {
+      "command": "hil-dag"
+    }
+  }
+}
 ```
 
 **To upgrade to the latest version:**
@@ -424,13 +436,14 @@ human-in-loop/
 │   │   ├── graph/                    # NetworkX graph operations
 │   │   ├── validators/               # Structural + contract validators
 │   │   ├── passes/                   # Pass lifecycle management
-│   │   └── cli/                      # hil-dag CLI (7 subcommands)
-│   └── tests/                        # 381 tests, 97% coverage
+│   │   ├── mcp/                      # MCP server + transport-agnostic operations
+│   │   └── cli/                      # CLI adapter (delegates to mcp/operations)
+│   └── tests/                        # 399 tests, ~95% coverage
 ├── plugins/humaninloop/
 │   ├── .claude-plugin/plugin.json    # Plugin manifest
 │   ├── commands/                     # Slash command definitions
 │   ├── agents/                       # 10 specialized agent definitions
-│   ├── skills/                       # 30 model-invoked skills
+│   ├── skills/                       # 29 model-invoked skills
 │   ├── catalogs/                     # Node catalogs for DAG workflows
 │   ├── templates/                    # Workflow templates
 │   └── scripts/                      # Shell utilities

@@ -66,17 +66,23 @@ The Supervisor has **zero direct CLI usage**. All `hil-dag` operations are deleg
 
 ## Initial Setup
 
-Resolve paths and create the feature workspace. The Supervisor delegates environment concerns to subagents — constitution verification is handled by the DAG Assembler's invariant auto-resolution (INV-002 + `carry_forward`), and `hil-dag` CLI availability is verified upfront.
+Resolve paths and create the feature workspace. The Supervisor delegates environment concerns to subagents — constitution verification is handled by the DAG Assembler's invariant auto-resolution (INV-002 + `carry_forward`), and `hil-dag` MCP tools availability is verified by the subagents.
 
-### 1. Verify hil-dag CLI and Resolve Project Root
+### 1. Resolve Project Root
 
 ```bash
-command -v hil-dag >/dev/null 2>&1 || uv run hil-dag --help >/dev/null 2>&1 || { echo "ERROR: hil-dag CLI not found. Install: uv tool install 'humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain'"; exit 1; }
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
 ${CLAUDE_PLUGIN_ROOT}/scripts/create-new-feature.sh --json "<feature description>"
 ```
 
-If `hil-dag` is not found, stop immediately and tell the user how to install it. Do NOT proceed with the workflow.
+Verify `hil-dag` MCP tools are available (the DAG Assembler and State Analyst agents connect to the `hil-dag` MCP server). If MCP tools are not reachable, instruct the user to install humaninloop-brain and configure the MCP server:
+```
+uv tool install "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
+```
+Then add to `.claude/settings.json`:
+```json
+{"mcpServers": {"hil-dag": {"command": "hil-dag"}}}
+```
 
 Parse JSON output for `BRANCH_NAME`, `SPEC_FILE`, `FEATURE_NUM`. Use `BRANCH_NAME` as `{feature-id}`.
 

@@ -6,6 +6,30 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [3.3.0] - 2026-03-17
+
+### humaninloop 3.3.0
+
+#### Added
+
+- **MCP server for `hil-dag`** — The `hil-dag` binary now starts a FastMCP server over stdio, exposing 7 tools (`assemble`, `validate`, `sort`, `status`, `record`, `freeze`, `catalog_validate`). Agents call these directly via structured MCP tool calls instead of shell scripts
+- **Transport-agnostic operations layer** — New `mcp/operations.py` module with 7 `op_*()` functions that both the MCP server and CLI adapter share. Business logic is fully decoupled from transport
+- **MCP server tests** — 18 new tests for tool discovery, invocation, error handling, and parameter validation (399 total tests, ~95% coverage)
+
+#### Changed
+
+- **Agent prompts use MCP tools** — `dag-assembler` and `state-analyst` agents now use `use_mcp_tool("hil-dag", ...)` calls instead of Bash shell scripts. Frontmatter changed from `skills: dag-operations` to `mcpServers: hil-dag`
+- **CLI is now a thin adapter** — `cli/main.py` reduced from 657 to 221 lines; delegates all logic to `mcp/operations.py`
+- **`hil-dag` entry point changed** — `pyproject.toml` entry point now points to `mcp.server:main_sync` (MCP server) instead of `cli.main:main` (CLI)
+- **`check-prerequisites.sh`** — Removed `--require-hil-dag` flag (MCP server availability is verified by subagents)
+- **`specify.md` and `implement.md`** — Removed CLI availability checks; added MCP server configuration instructions
+
+#### Removed
+
+- **`dag-operations` skill** — Deleted `plugins/humaninloop/skills/dag-operations/` (SKILL.md + 7 shell scripts: `dag-assemble.sh`, `dag-validate.sh`, `dag-sort.sh`, `dag-status.sh`, `dag-record.sh`, `dag-freeze.sh`, `dag-catalog-validate.sh`). Replaced by direct MCP tool calls
+
+---
+
 ## [3.2.3] - 2026-03-17
 
 ### humaninloop 3.2.3

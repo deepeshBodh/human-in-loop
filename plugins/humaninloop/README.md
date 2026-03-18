@@ -22,24 +22,30 @@ The HumanInLoop plugin provides a comprehensive multi-agent workflow for specifi
 /plugin install humaninloop
 ```
 
-### 2. Install the `hil-dag` CLI (required for specify and implement)
+### 2. Install and configure the `hil-dag` MCP server (required for specify and implement)
 
-The `/humaninloop:specify` and `/humaninloop:implement` workflows use the `hil-dag` CLI for deterministic DAG operations:
+The `/humaninloop:specify` and `/humaninloop:implement` workflows use the `hil-dag` MCP server for deterministic DAG operations:
 
 ```bash
 uv tool install "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
+```
+
+Then configure the MCP server in your Claude Code settings (`.claude/settings.json`):
+
+```json
+{
+  "mcpServers": {
+    "hil-dag": {
+      "command": "hil-dag"
+    }
+  }
+}
 ```
 
 **To upgrade to the latest version:**
 
 ```bash
 uv tool install --force "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
-```
-
-Verify it works:
-
-```bash
-hil-dag --help
 ```
 
 **Note:** The `/humaninloop:setup`, `/humaninloop:plan`, and `/humaninloop:tasks` commands do NOT require `hil-dag` — they work immediately after plugin installation.
@@ -219,8 +225,8 @@ Execute the implementation plan using DAG-based workflow execution with TDD disc
 
 | Agent | Purpose |
 |-------|---------|
-| **DAG Assembler** | Pure graph mechanics: translates Supervisor decisions into validated DAG mutations via the `hil-dag` CLI. Constructs prompts for domain agents from catalog contracts. Uses skill: `dag-operations` |
-| **State Analyst** | Reads DAG history, parses domain agent reports, and produces structured briefings and summaries for the Supervisor. Records analysis results atomically via `hil-dag record`. Uses skill: `dag-operations` |
+| **DAG Assembler** | Pure graph mechanics: translates Supervisor decisions into validated DAG mutations via `hil-dag` MCP tools. Constructs prompts for domain agents from catalog contracts. MCP server: `hil-dag` |
+| **State Analyst** | Reads DAG history, parses domain agent reports, and produces structured briefings and summaries for the Supervisor. Records analysis results atomically via `hil-dag` MCP `record` tool. MCP server: `hil-dag` |
 | **Requirements Analyst** | Transforms feature requests into precise specifications with user stories, requirements, and acceptance criteria |
 | **Devil's Advocate** | Adversarial reviewer who stress-tests specs, finds gaps, challenges assumptions, and generates clarifying questions |
 
@@ -243,8 +249,8 @@ Execute the implementation plan using DAG-based workflow execution with TDD disc
 
 | Agent | Purpose |
 |-------|---------|
-| **DAG Assembler** | Pure graph mechanics: translates Supervisor decisions into validated DAG mutations via the `hil-dag` CLI. Constructs prompts for domain agents from catalog contracts. Uses skill: `dag-operations` |
-| **State Analyst** | Reads DAG history, parses domain agent reports, and produces structured briefings for the Supervisor. Records analysis results atomically via `hil-dag record`. Uses skills: `dag-operations`, `strategy-core`, `strategy-implementation` |
+| **DAG Assembler** | Pure graph mechanics: translates Supervisor decisions into validated DAG mutations via `hil-dag` MCP tools. Constructs prompts for domain agents from catalog contracts. MCP server: `hil-dag` |
+| **State Analyst** | Reads DAG history, parses domain agent reports, and produces structured briefings for the Supervisor. Records analysis results atomically via `hil-dag` MCP `record` tool. MCP server: `hil-dag`. Skills: `strategy-core`, `strategy-implementation` |
 | **Staff Engineer** | Implementation specialist who writes code through strict TDD discipline (red/green/refactor). Executes cycle task lists, handles retry and fix modes. Uses skills: `executing-tdd-cycle`, `brownfield-integration` |
 | **QA Engineer** | Senior QA engineer who treats verification as an engineering discipline. Executes `TEST:` verification tasks, classifies them at runtime (CLI/GUI/SUBJECTIVE), captures evidence, and decides whether to auto-approve or present human checkpoints. Uses skill: `testing-end-user` |
 

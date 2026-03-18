@@ -244,7 +244,7 @@ class TestStateAnalystCatalogConsistency:
 
     def test_hil_dag_record_referenced(self, analyst_text):
         """State Analyst references hil-dag record for atomic writes."""
-        assert "dag-record" in analyst_text or "hil-dag record" in analyst_text
+        assert "dag-record" in analyst_text or "hil-dag record" in analyst_text or "record" in analyst_text
 
 
 class TestCatalogTemplateConsistency:

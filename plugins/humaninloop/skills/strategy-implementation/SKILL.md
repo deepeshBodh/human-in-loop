@@ -20,7 +20,7 @@ Workflow-specific patterns for implementation workflows. Provides heuristics for
 ## When NOT to Use
 
 - **Specification workflows** — Use `humaninloop:strategy-specification` instead
-- **Graph operations** — Use `humaninloop:dag-operations` instead
+- **Graph operations** — Use `hil-dag` MCP tools instead
 - **Executing implementation tasks** — Use `humaninloop:executing-tdd-cycle` instead
 - **Running quality gates** — Use `humaninloop:testing-end-user` instead
 
