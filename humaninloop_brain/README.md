@@ -9,7 +9,7 @@ User invokes command (goal declaration)
         |
 Supervisor reads catalog + invariants + history
         |
-DAG Assembler calls hil-dag MCP tools  <-- this package
+State Analyst calls hil-dag MCP tools  <-- this package
         |
 Supervisor executes DAG via specialist subagents
 ```
@@ -30,7 +30,7 @@ The package provides six layers:
 ```bash
 cd humaninloop_brain
 uv sync
-uv run pytest          # 399 tests, ~95% coverage
+uv run pytest          # 403 tests, ~95% coverage
 ```
 
 ## CLI Reference
@@ -248,4 +248,4 @@ humaninloop_brain/
 - **ADR-007**: [DAG-First Infrastructure](../docs/decisions/007-dag-first-infrastructure.md)
 - **Architecture docs**: `docs/architecture/dag-*.md` (5 synthesis documents)
 - **Context harness**: [human-in-loop-context-harness](https://github.com/deepeshBodh/human-in-loop-context-harness) (patterns borrowed from)
-- **Plugin agents**: `plugins/humaninloop/agents/dag-assembler.md`, `state-analyst.md` (consume MCP tools)
+- **Plugin agent**: `plugins/humaninloop/agents/state-analyst.md` (consumes all MCP tools)

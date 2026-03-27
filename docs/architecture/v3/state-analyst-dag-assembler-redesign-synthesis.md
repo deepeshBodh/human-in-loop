@@ -4,6 +4,8 @@
 >
 > **Depends on**: [`goal-oriented-supervisor-synthesis.md`](goal-oriented-supervisor-synthesis.md)
 >
+> **Superseded by**: [`analysis-merge-state-analyst-dag-assembler.md`](analysis-merge-state-analyst-dag-assembler.md) — The two-agent design described here was replaced by absorbing the DAG Assembler into the State Analyst.
+>
 > **Related**: [`dag-first-execution-synthesis.md`](../dag-first-execution-synthesis.md), [`dag-strategy-skills-synthesis.md`](../dag-strategy-skills-synthesis.md)
 
 ## Problem Statement

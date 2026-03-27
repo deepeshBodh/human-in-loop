@@ -1,6 +1,6 @@
 {
   "name": "humaninloop",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "Specification-driven development workflow: specify → plan → tasks → implement",
   "author": {
     "name": "HumanInLoop",
@@ -28,7 +28,6 @@
     "./agents/technical-analyst.md",
     "./agents/qa-engineer.md",
     "./agents/ui-designer.md",
-    "./agents/state-analyst.md",
-    "./agents/dag-assembler.md"
+    "./agents/state-analyst.md"
   ]
 }

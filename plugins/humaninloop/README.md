@@ -116,10 +116,9 @@ Create a feature specification with integrated quality validation.
 **Workflow (DAG-based execution):**
 1. Generate short name from description (2-4 words, e.g., `user-auth`)
 2. Create feature branch and directory using `create-new-feature.sh` script
-3. State Analyst produces workflow briefing from DAG history, catalog, and strategy skills
-4. Supervisor makes assembly decision; DAG Assembler validates and builds graph node
-5. Domain agents execute (Requirements Analyst produces spec, Devil's Advocate reviews)
-6. State Analyst parses agent reports, records status + evidence + trace via `hil-dag record`
+3. State Analyst produces briefing, auto-selects top recommendation, and assembles node via `hil-dag` MCP tools
+4. Domain agents execute (Requirements Analyst produces spec, Devil's Advocate reviews)
+5. State Analyst parses agent reports, records results, and advances workflow (assemble next node or freeze pass)
 7. Loop until advocate verdict is `ready` or user accepts current state
 
 **Branch Format:** `###-short-name` (e.g., `001-user-auth`)
@@ -196,16 +195,15 @@ Execute the implementation plan using DAG-based workflow execution with TDD disc
 **Requires:** `tasks.md` to exist (run tasks workflow first)
 
 **Workflow (DAG-based execution):**
-1. State Analyst produces implementation briefing from DAG history, catalog, and strategy skills
-2. Supervisor makes assembly decision; DAG Assembler validates and builds graph node
-3. Staff Engineer executes cycle tasks through strict red/green/refactor TDD discipline
-4. QA Engineer verifies implementation with quality gates (lint, build, tests) and TEST: task execution
-5. State Analyst parses reports, records status + evidence + trace via `hil-dag record`
+1. State Analyst produces briefing, auto-selects top recommendation, and assembles node via `hil-dag` MCP tools
+2. Staff Engineer executes cycle tasks through strict red/green/refactor TDD discipline
+3. QA Engineer verifies implementation with quality gates (lint, build, tests) and TEST: task execution
+4. State Analyst parses reports, records results, and advances workflow (assemble next node or freeze pass)
 6. Loop through cycles until all tasks complete, then run final-validation gate
 7. Fix pass if final-validation fails (scoped to specific failures), escalate after 3 retries
 
 **Features:**
-- **DAG-based execution**: Same Supervisor + DAG Assembler + State Analyst architecture as specify
+- **DAG-based execution**: Same Supervisor + State Analyst architecture as specify
 - **TDD discipline**: Each cycle follows test-first ordering via Staff Engineer
 - **Execute-then-verify**: Every execution cycle paired with independent verification
 - **Targeted retry**: Checkpoint failures trace to specific tasks, not full re-implementation
@@ -225,8 +223,7 @@ Execute the implementation plan using DAG-based workflow execution with TDD disc
 
 | Agent | Purpose |
 |-------|---------|
-| **DAG Assembler** | Pure graph mechanics: translates Supervisor decisions into validated DAG mutations via `hil-dag` MCP tools. Constructs prompts for domain agents from catalog contracts. MCP server: `hil-dag` |
-| **State Analyst** | Reads DAG history, parses domain agent reports, and produces structured briefings and summaries for the Supervisor. Records analysis results atomically via `hil-dag` MCP `record` tool. MCP server: `hil-dag` |
+| **State Analyst** | Strategic analysis + graph mechanics: produces briefings, assembles nodes, freezes passes, parses reports, and constructs domain agent prompts via `hil-dag` MCP tools. Skills: `strategy-core`, `strategy-specification` |
 | **Requirements Analyst** | Transforms feature requests into precise specifications with user stories, requirements, and acceptance criteria |
 | **Devil's Advocate** | Adversarial reviewer who stress-tests specs, finds gaps, challenges assumptions, and generates clarifying questions |
 
@@ -249,8 +246,7 @@ Execute the implementation plan using DAG-based workflow execution with TDD disc
 
 | Agent | Purpose |
 |-------|---------|
-| **DAG Assembler** | Pure graph mechanics: translates Supervisor decisions into validated DAG mutations via `hil-dag` MCP tools. Constructs prompts for domain agents from catalog contracts. MCP server: `hil-dag` |
-| **State Analyst** | Reads DAG history, parses domain agent reports, and produces structured briefings for the Supervisor. Records analysis results atomically via `hil-dag` MCP `record` tool. MCP server: `hil-dag`. Skills: `strategy-core`, `strategy-implementation` |
+| **State Analyst** | Strategic analysis + graph mechanics: produces briefings, assembles nodes, freezes passes, parses reports, and constructs domain agent prompts via `hil-dag` MCP tools. Skills: `strategy-core`, `strategy-implementation` |
 | **Staff Engineer** | Implementation specialist who writes code through strict TDD discipline (red/green/refactor). Executes cycle task lists, handles retry and fix modes. Uses skills: `executing-tdd-cycle`, `brownfield-integration` |
 | **QA Engineer** | Senior QA engineer who treats verification as an engineering discipline. Executes `TEST:` verification tasks, classifies them at runtime (CLI/GUI/SUBJECTIVE), captures evidence, and decides whether to auto-approve or present human checkpoints. Uses skill: `testing-end-user` |
 

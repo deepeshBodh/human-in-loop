@@ -2,6 +2,8 @@
 
 > **Supersedes**: [`dag-first-execution-synthesis.md`](../dag-first-execution-synthesis.md), [`dag-supervisor-design-synthesis.md`](../dag-supervisor-design-synthesis.md), [`dag-specialist-subagents-v2-synthesis.md`](../dag-specialist-subagents-v2-synthesis.md)
 >
+> **Partially superseded by**: [`analysis-merge-state-analyst-dag-assembler.md`](analysis-merge-state-analyst-dag-assembler.md) — The DAG Assembler agent described in this document was absorbed into the State Analyst. References to the DAG Assembler as a separate agent are historical. See `plugins/humaninloop/agents/state-analyst.md` for the current combined agent.
+>
 > **Synthesized from**:
 > - [`goal-oriented-supervisor-synthesis.md`](goal-oriented-supervisor-synthesis.md)
 > - [`state-analyst-dag-assembler-redesign-synthesis.md`](state-analyst-dag-assembler-redesign-synthesis.md)

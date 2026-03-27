@@ -73,14 +73,11 @@ Each command produces artifacts you review before the next step. You stay in con
 │  └──────┬───────┘                                                   │
 │         │  ┌──────────────────┐     ┌──────────────────┐            │
 │         ├─▶│  State Analyst   │────▶│  briefing +      │            │
-│         │  └──────────────────┘     │  recommendations │            │
-│         │                           └────────┬─────────┘            │
-│         │                                    │                      │
-│         │  ┌──────────────────┐              │                      │
-│         ├─▶│  DAG Assembler   │◄─────────────┘                      │
-│         │  └──────┬───────────┘  (assembly decisions)               │
-│         │         │                                                 │
-│         │         ▼                                                 │
+│         │  │  (analysis +     │     │  assembly +      │            │
+│         │  │   graph ops)     │     │  recommendations │            │
+│         │  └──────┬───────────┘     └────────┬─────────┘            │
+│         │         │                          │                      │
+│         │         ▼                          ▼                      │
 │         │  ┌──────────────────┐     ┌───────────────────┐           │
 │         │  │   Requirements   │────▶│   Devil's         │           │
 │         │  │   Analyst        │     │   Advocate        │           │
@@ -102,8 +99,7 @@ Each command produces artifacts you review before the next step. You stay in con
 **Output**: `specs/{feature}/spec.md` + StrategyGraph JSON
 
 **Agents**:
-- **DAG Assembler** — Pure graph mechanics; translates Supervisor decisions into validated DAG mutations
-- **State Analyst** — Reads DAG state and parses domain agent reports into structured briefings
+- **State Analyst** — Strategic analysis + graph mechanics; produces briefings, assembles nodes, freezes passes, and constructs domain agent prompts
 - **Requirements Analyst** — Transforms feature requests into structured specs; no implementation details
 - **Devil's Advocate** — Reviews for gaps and ambiguity; asks clarifying questions
 
@@ -351,8 +347,8 @@ The full specify → plan → tasks → implement lifecycle.
 ### 29 Skills
 Claude automatically invokes these when relevant—authoring requirements, technical specifications, analyzing codebases, designing APIs, running verification tests, managing GitHub issues, workflow strategy, and more.
 
-### 10 Specialized Agents
-Focused responsibilities: requirements analyst, technical analyst, devil's advocate, principal architect, task architect, staff engineer, QA engineer, UI designer, DAG assembler, state analyst.
+### 9 Specialized Agents
+Focused responsibilities: requirements analyst, technical analyst, devil's advocate, principal architect, task architect, staff engineer, QA engineer, UI designer, state analyst.
 
 See the [plugin documentation](./plugins/humaninloop/README.md) for full details.
 
@@ -438,11 +434,11 @@ human-in-loop/
 │   │   ├── passes/                   # Pass lifecycle management
 │   │   ├── mcp/                      # MCP server + transport-agnostic operations
 │   │   └── cli/                      # CLI adapter (delegates to mcp/operations)
-│   └── tests/                        # 399 tests, ~95% coverage
+│   └── tests/                        # 403 tests, ~95% coverage
 ├── plugins/humaninloop/
 │   ├── .claude-plugin/plugin.json    # Plugin manifest
 │   ├── commands/                     # Slash command definitions
-│   ├── agents/                       # 10 specialized agent definitions
+│   ├── agents/                       # 9 specialized agent definitions
 │   ├── skills/                       # 29 model-invoked skills
 │   ├── catalogs/                     # Node catalogs for DAG workflows
 │   ├── templates/                    # Workflow templates

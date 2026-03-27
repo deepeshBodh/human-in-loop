@@ -6,6 +6,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [3.3.1] - 2026-03-28
+
+### humaninloop 3.3.1
+
+#### Changed
+
+- **Absorb DAG Assembler into State Analyst** — The DAG Assembler agent has been eliminated. Its functionality (node assembly, pass freezing, status updates, NL prompt construction) is now owned by the State Analyst. This reduces the per-node execution flow from 6 Supervisor round-trips to 2 and simplifies the architecture from three-agent (Supervisor + DAG Assembler + State Analyst) to two-agent (Supervisor + State Analyst)
+- **New action vocabulary** — State Analyst now exposes 4 combined actions (`brief-and-assemble`, `parse-and-advance`, `update-and-advance`, `re-brief`) replacing the previous 5 actions split across two agents
+- **Auto-select top recommendation** — State Analyst auto-selects its top-ranked recommendation and assembles the node in one call. Supervisor can override via `re-brief` with `override_recommendation`
+- **Supervisor commands simplified** — `specify.md` and `implement.md` now use "Two Outbound Verbs" (Ask the Analyst + Dispatch the agent) instead of three
+- **Agent count** — 10 agents reduced to 9
+
+#### Removed
+
+- **`dag-assembler.md`** — Agent definition deleted; all functionality absorbed into `state-analyst.md`
+
+---
+
 ## [3.3.0] - 2026-03-17
 
 ### humaninloop 3.3.0
