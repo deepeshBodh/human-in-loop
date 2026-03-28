@@ -6,6 +6,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/), and this pro
 
 ---
 
+## [3.3.2] - 2026-03-28
+
+### humaninloop 3.3.2
+
+#### Added
+
+- **HTTP API for DAG visualization** (`hil-api` entry point) — Read-only FastAPI server with `GET /dags` (list all DAGs) and `GET /dags/{feature}/{dag_name}` (full DAG detail with kanban view). Runs on port 8100, serves the same JSON files the MCP server writes
+- **FastAPI and uvicorn dependencies** — New transport layer for web UI consumption alongside existing MCP/stdio transport
+- **15 new API tests** — Endpoint coverage for DAG listing, detail retrieval, kanban grouping, error handling (418 total tests)
+
+---
+
 ## [3.3.1] - 2026-03-28
 
 ### humaninloop 3.3.1

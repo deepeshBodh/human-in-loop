@@ -22,7 +22,7 @@ The package provides six layers:
 | **Graph** | `graph/` | NetworkX-backed loader, subgraph views, topological sort, acyclicity guard, edge inference |
 | **Validators** | `validators/` | 9-step structural validator, invariant checker, contract checker |
 | **Lifecycle** | `passes/` | Pass creation, node assembly, status updates, freeze, save/load |
-| **MCP** | `mcp/` | Transport-agnostic operations + FastMCP server (7 tools over stdio) |
+| **MCP** | `mcp/` | Transport-agnostic operations + FastMCP server (7 tools over stdio) + FastAPI HTTP server (read-only DAG endpoints) |
 | **CLI** | `cli/` | Thin CLI adapter (argparse → `op_*()` → print JSON) |
 
 ## Quick Start
@@ -30,7 +30,7 @@ The package provides six layers:
 ```bash
 cd humaninloop_brain
 uv sync
-uv run pytest          # 403 tests, ~95% coverage
+uv run pytest          # 418 tests, ~95% coverage
 ```
 
 ## CLI Reference
@@ -230,7 +230,8 @@ humaninloop_brain/
 │   │   └── lifecycle.py   # Pass lifecycle management
 │   ├── mcp/
 │   │   ├── operations.py  # Transport-agnostic op_*() functions
-│   │   └── server.py      # FastMCP server (7 tools over stdio)
+│   │   ├── server.py      # FastMCP server (7 tools over stdio)
+│   │   └── api.py         # FastAPI HTTP server (read-only DAG endpoints)
 │   └── cli/
 │       └── main.py        # Thin CLI adapter
 └── tests/
@@ -240,7 +241,7 @@ humaninloop_brain/
     ├── test_validators/   # 38 tests
     ├── test_passes/       # 44 tests
     ├── test_cli/          # 150 tests (unit + in-process + E2E)
-    └── test_mcp/          # 18 tests (tool discovery + invocation)
+    └── test_mcp/          # 33 tests (tool discovery + invocation + HTTP API)
 ```
 
 ## Related
