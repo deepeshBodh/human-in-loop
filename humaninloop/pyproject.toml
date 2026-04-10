@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "humaninloop"
-version = "0.1.0"
+version = "0.2.0"
 description = "CLI tool for installing and managing humaninloop workflows"
 requires-python = ">=3.11"
 license = "MIT"

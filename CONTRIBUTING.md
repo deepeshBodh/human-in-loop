@@ -1,116 +1,54 @@
-# Contributing to HumanInLoop Marketplace
+# Contributing to HumanInLoop
 
-Thank you for your interest in contributing a plugin to the HumanInLoop marketplace!
+Thank you for your interest in contributing to HumanInLoop!
 
-## Submitting a Plugin
+## Project Structure
 
-### 1. Create Your Plugin
+HumanInLoop has two packages:
 
-Use the humaninloop plugin as a starting point:
+- **`humaninloop/`** — CLI tool (`uvx humaninloop init`). Contains scaffolded content (agents, skills, commands, templates) and CLI commands.
+- **`humaninloop_brain/`** — DAG engine. Deterministic graph infrastructure with Pydantic models, NetworkX operations, and MCP server.
 
-```bash
-cp -r plugins/humaninloop plugins/your-plugin-name
-```
+## Adding Agents, Skills, Commands, or Templates
 
-Then update the values in your copied plugin.
-
-### 2. Required Files
-
-Your plugin must include:
+Content lives in `humaninloop/src/humaninloop/scaffolds/`:
 
 ```
-your-plugin-name/
-├── .claude-plugin/
-│   └── plugin.json      # REQUIRED: Plugin manifest
-├── commands/            # Slash commands (optional)
-│   └── *.md
-├── agents/              # Subagents (optional)
-│   └── *.md
-├── check-modules/       # Validation check modules (optional)
-│   └── *.md
-├── scripts/             # Shell scripts (optional)
-│   └── *.sh
-├── templates/           # Workflow templates (optional)
-│   └── *.md
-├── skills/              # Agent skills (optional)
-│   └── skill-name/
-│       └── SKILL.md
-├── hooks/               # Hooks (optional)
-│   └── hooks.json
-├── README.md            # REQUIRED: Plugin documentation
-└── LICENSE              # RECOMMENDED: License file
+scaffolds/
+├── agents/          # Agent .md definitions
+├── skills/          # Skill directories (SKILL.md + references/)
+├── commands/        # Slash command .md files
+├── templates/       # Workflow templates
+├── catalogs/        # DAG node catalogs
+└── scripts/         # Shell utilities
 ```
 
-### 3. Plugin Manifest (`plugin.json`)
+### Guidelines
 
-```json
-{
-  "name": "your-plugin-name",
-  "version": "1.0.0",
-  "description": "Brief description of what your plugin does",
-  "author": {
-    "name": "Your Name",
-    "url": "https://yoursite.com"
-  },
-  "license": "MIT",
-  "keywords": ["relevant", "keywords"],
-  "commands": "./commands/",
-  "agents": "./agents/",
-  "checkModules": "./check-modules/"
-}
-```
+- Agents: Follow [AGENT-GUIDELINES.md](./docs/AGENT-GUIDELINES.md)
+- Skills: Follow [SKILL-GUIDELINES.md](./docs/SKILL-GUIDELINES.md)
+- Test your changes: run `uvx humaninloop init` in a scratch directory to verify
 
-Note: Only include `commands`, `agents`, and `checkModules` fields if your plugin uses them.
+## Contributing to humaninloop_brain
 
-### 4. Submit a Pull Request
+The DAG engine has strict architectural constraints:
 
-1. Fork this repository
-2. Add your plugin to the `plugins/` directory
-3. Add an entry to `.claude-plugin/marketplace.json`:
+- **Layer dependency rule**: entities -> graph -> validators -> passes -> mcp -> cli (no upward imports)
+- **Test coverage**: >= 90% required (CI gate)
+- **All tests must pass**: `cd humaninloop_brain && uv run pytest --tb=short`
 
-```json
-{
-  "name": "your-plugin-name",
-  "description": "Brief description",
-  "source": "./plugins/your-plugin-name",
-  "category": "category-name",
-  "version": "1.0.0",
-  "author": {
-    "name": "Your Name"
-  }
-}
-```
+## Feature Contributions
 
-4. Submit a pull request
+1. **Open an issue** describing the proposed feature
+2. **Discuss** the approach before implementing
+3. **Create a spec** using `/humaninloop:specify` if the feature is significant
+4. **Submit PR** referencing the issue and spec
 
-## Plugin Guidelines
+## Bug Fixes
 
-### Naming
-
-- Use kebab-case: `my-plugin-name`
-- Be descriptive but concise
-- Avoid generic names like `utils` or `helpers`
-
-### Categories
-
-Use one of these categories:
-- `workflow` - Multi-step development workflows
-- `development` - Dev tools, linting, formatting
-- `productivity` - Workflow automation
-- `documentation` - Doc generation, READMEs
-- `testing` - Test runners, coverage
-- `deployment` - CI/CD, deployment helpers
-- `configuration` - Project setup and configuration
-- `examples` - Example/demo plugins
-
-### Quality Checklist
-
-- [ ] Plugin has a clear, single purpose
-- [ ] README explains what the plugin does and how to use it
-- [ ] All commands have descriptions in frontmatter
-- [ ] No hardcoded paths (use `${CLAUDE_PLUGIN_ROOT}`)
-- [ ] Scripts are executable (`chmod +x`)
-- [ ] License file included
+1. **Open an issue** describing the bug (unless trivial)
+2. **Submit PR** with fix, referencing the issue
+3. **Include test case** if applicable
 
 ## Commit Conventions
 
@@ -120,8 +58,6 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/):
 type(scope): description
 ```
 
-### Types
-
 | Type | Description |
 |------|-------------|
 | `feat` | New feature |
@@ -129,35 +65,20 @@ type(scope): description
 | `docs` | Documentation only |
 | `refactor` | Code change that neither fixes a bug nor adds a feature |
 | `chore` | Maintenance tasks |
+| `test` | Adding or updating tests |
+| `ci` | CI/CD changes |
 
 ### Scope
 
-Use the plugin name as scope when applicable:
-- `feat(humaninloop): add /tasks command`
-- `fix(constitution): correct agent reference`
+Use the affected area as scope:
+- `feat(humaninloop): add new skill for X`
+- `fix(brain): correct topological sort edge case`
 - `docs: update README`
-
-## Contributing to the humaninloop Plugin
-
-For contributions to the `humaninloop` plugin:
-
-### Feature Contributions
-
-1. **Open an issue** describing the proposed feature
-2. **Discuss** the approach before implementing
-3. **Create a spec** using `/humaninloop:specify` if the feature is significant
-4. **Submit PR** referencing the issue and spec
-
-### Bug Fixes
-
-1. **Open an issue** describing the bug (unless trivial)
-2. **Submit PR** with fix, referencing the issue
-3. **Include test case** if applicable
 
 ## Documentation
 
-- [docs/claude-plugin-documentation.md](./docs/claude-plugin-documentation.md) - Claude Code plugin technical reference
 - [docs/decisions/](./docs/decisions/) - Architecture Decision Records
+- [docs/analysis-cli-distribution-model.md](./docs/analysis-cli-distribution-model.md) - CLI distribution architecture
 - [CHANGELOG.md](./CHANGELOG.md) - Release history
 - [ROADMAP.md](./ROADMAP.md) - Planned features
 

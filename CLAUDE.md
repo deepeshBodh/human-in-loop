@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This repository contains the HumanInLoop (HIL) project -- a deterministic DAG infrastructure for Claude Code plugin workflows, built around the `humaninloop_brain` Python package and a Claude Code plugin marketplace.
+This repository contains the HumanInLoop (HIL) project -- a deterministic DAG infrastructure for Claude Code workflows, built around two Python packages: `humaninloop` (CLI distribution) and `humaninloop_brain` (DAG engine).
 
-**Governed codebase**: `humaninloop_brain/` -- Python package providing deterministic DAG infrastructure for workflow execution. The plugin marketplace (agents, commands, skills, templates in `plugins/`) is the consumption layer.
+**Governed codebase**: `humaninloop_brain/` -- Python package providing deterministic DAG infrastructure for workflow execution. The CLI package (`humaninloop/`) scaffolds agents, skills, commands, and templates into user projects via `uvx humaninloop init`.
 
 ## Constitution
 
@@ -98,7 +98,7 @@ No module MUST import from a layer below it in this hierarchy.
 | Coverage Tool | pytest-cov | >= 5.0 |
 | Commit Linting | conventional-pre-commit | v4.0.0 |
 | Shell Linting | shellcheck-py | v0.10.0.1 |
-| Plugin Architecture | Claude Code Plugin System | N/A |
+| CLI Distribution | `uvx humaninloop` | 0.2.0 |
 | Primary Content | Markdown | N/A |
 | Version Control | Git | N/A |
 | GitHub Integration | `gh` CLI | N/A |
@@ -147,7 +147,7 @@ When amending `.humaninloop/memory/constitution.md`:
 | Python Tests | humaninloop_brain | All 381+ tests pass | `cd humaninloop_brain && uv run pytest --tb=short` | CI automated |
 | Test Coverage | humaninloop_brain | >= 90% | `cd humaninloop_brain && uv run pytest --cov --cov-fail-under=90` | CI automated, blocking |
 | Python Syntax | humaninloop_brain | Valid Python | `find src/humaninloop_brain -name '*.py' -print0 \| xargs -0 uv run python -m py_compile` | CI automated |
-| Shell Syntax | Plugin scripts | Valid Bash | `find plugins/humaninloop -name '*.sh' -print0 \| xargs -0 -n1 bash -n` | CI automated |
+| Shell Syntax | Scaffold scripts | Valid Bash | `find humaninloop/src/humaninloop/scaffolds -name '*.sh' -print0 \| xargs -0 -n1 bash -n` | CI automated |
 | JSON Schema | MCP tool output | Valid structured output | MCP tool invocation returns structured JSON | Tests |
 | Commit Format | All | Conventional Commits | Pre-commit hook + CI `commit-lint` job | CI automated + pre-commit |
 | ADR Presence | Architectural changes | ADR exists | Manual review of `docs/decisions/` | Code review |
@@ -156,7 +156,7 @@ When amending `.humaninloop/memory/constitution.md`:
 ## Documentation
 
 - **[.humaninloop/memory/constitution.md](.humaninloop/memory/constitution.md)**: Project constitution - governance principles and enforcement (v3.0.0).
-- **[docs/claude-plugin-documentation.md](docs/claude-plugin-documentation.md)**: Claude Code plugin development reference.
+- **[docs/analysis-cli-distribution-model.md](docs/analysis-cli-distribution-model.md)**: CLI distribution model architecture and decisions.
 - **[docs/agent-skills-documentation.md](docs/agent-skills-documentation.md)**: Agent Skills technical reference.
 - **[docs/decisions/](docs/decisions/)**: Architecture Decision Records (8 ADRs).
 - **[docs/architecture/](docs/architecture/)**: DAG-first architecture synthesis documents.
@@ -164,12 +164,13 @@ When amending `.humaninloop/memory/constitution.md`:
 - **[docs/AGENT-GUIDELINES.md](docs/AGENT-GUIDELINES.md)**: Agent creation guidelines — persona design, coupling detection, compliance.
 - **[docs/SKILL-GUIDELINES.md](docs/SKILL-GUIDELINES.md)**: Skill creation guidelines — structure, testing, anti-rationalization.
 
-## Adding New Plugins
+## Adding Content
 
-1. Create plugin directory under `plugins/`
-2. Add `.claude-plugin/plugin.json` manifest
-3. Add commands, agents, and skills as needed
-4. Add entry to `.claude-plugin/marketplace.json`
-5. Submit PR
+New agents, skills, commands, and templates go in `humaninloop/src/humaninloop/scaffolds/`:
+
+1. Add files to the appropriate subdirectory (`agents/`, `skills/`, `commands/`, `templates/`)
+2. Follow existing conventions (see AGENT-GUIDELINES.md, SKILL-GUIDELINES.md)
+3. Test with `uvx humaninloop init` in a scratch directory
+4. Submit PR
 
 <!-- Constitution sync: v3.0.0 | Last synced: 2026-02-19 -->

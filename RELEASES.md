@@ -1,29 +1,23 @@
 # Release Philosophy
 
-This document defines the release strategy for the HumanInLoop Marketplace during active development.
+This document defines the release strategy for HumanInLoop during active development.
 
 ## Versioning Strategy
 
-### Marketplace Releases
-
-The marketplace uses a **unified release tag** (e.g., `v0.2.0`) that bundles all plugin changes since the last release.
+HumanInLoop uses a **unified release tag** (e.g., `v0.2.0`) that covers both packages.
 
 - **Major (X.0.0)**: Breaking changes to core APIs, fundamental workflow changes
-- **Minor (0.X.0)**: New features, new commands, new plugins, significant enhancements
+- **Minor (0.X.0)**: New features, new commands, significant enhancements
 - **Patch (0.0.X)**: Bug fixes, documentation updates, minor improvements
 
-### Plugin Versioning
+### Package Versions
 
-Each plugin maintains its **own version** in `plugin.json`. A marketplace release may include:
+| Package | Version source | Description |
+|---------|---------------|-------------|
+| `humaninloop` | `humaninloop/pyproject.toml` | CLI tool — user-facing |
+| `humaninloop-brain` | `humaninloop_brain/pyproject.toml` | DAG engine — library |
 
-- Updates to multiple plugins at different versions
-- One plugin at a major version while another is at a minor version
-- This is intentional—plugins evolve independently
-
-Example:
-```
-humaninloop: 0.7.0
-```
+Packages may version independently but release tags cover the whole repo.
 
 ## Release Frequency
 
@@ -35,73 +29,42 @@ humaninloop: 0.7.0
 
 Typical triggers for a new release:
 - Completing a new command or workflow stage
-- Adding a new plugin
+- Adding new agents or skills
 - Fixing bugs affecting usability
 - Significant documentation improvements
 
-## Release Notes Structure
-
-Follow this format for release notes:
-
-```markdown
-## plugin-name X.Y.Z
-
-### New Features
-- **Feature name** with brief description
-
-### New Commands
-- `/plugin:command` - What it does
-
-### New Agents
-- `agent-name` - What it handles
-
-### New Check Modules
-- `module-name` - What it validates
-
-### New Templates
-- `template-name.md`
-
-### Fixes
-- Description of what was fixed
-
-### Breaking Changes
-- Only if applicable; describe migration path
-```
-
-Group by plugin, then by change type within each plugin.
-
 ## Creating a Release
 
-1. **Ensure versions are updated** in each modified plugin's `plugin.json`
-2. **Commit with release message**:
+1. **Update version** in `humaninloop/pyproject.toml` and `humaninloop/src/humaninloop/__init__.py`
+2. **Update CHANGELOG.md** with release notes
+3. **Commit with release message**:
    ```bash
-   git commit -m "Release vX.Y.Z: Brief description of main changes"
+   git commit -m "chore(humaninloop): prepare release X.Y.Z"
    ```
-3. **Create the release**:
+4. **Create the release**:
    ```bash
    gh release create vX.Y.Z --title "vX.Y.Z" --notes "$(cat <<'EOF'
-   ## plugin-name X.Y.Z
+   ## humaninloop X.Y.Z
 
-   ### New Features
+   ### Changes
    - ...
 
    ---
 
    ## Installation
 
-   \`\`\`bash
-   /plugin marketplace add deepeshBodh/human-in-loop
-   /plugin install humaninloop
-   \`\`\`
+   ```bash
+   uvx humaninloop init
+   ```
    EOF
    )"
    ```
 
-4. **Always include installation instructions** at the bottom of release notes
+5. **Always include installation instructions** at the bottom of release notes
 
 ## Pre-1.0 Expectations
 
-While the marketplace is pre-1.0:
+While HumanInLoop is pre-1.0:
 
 - APIs and command interfaces may change between minor versions
 - Frequent iteration is expected and encouraged

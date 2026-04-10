@@ -1,18 +1,18 @@
 # Roadmap
 
-This document outlines the vision and planned evolution of the HumanInLoop plugin.
+This document outlines the vision and planned evolution of HumanInLoop.
 
 ## Vision
 
 **Plan with humans. Build with AI. Ship sustainably.**
 
-The humaninloop plugin enforces specification-driven development—ensuring architectural decisions are made by humans before AI writes code. Stop vibe coding. Ship software that lasts.
+HumanInLoop enforces specification-driven development—ensuring architectural decisions are made by humans before AI writes code. Stop vibe coding. Ship software that lasts.
 
 ---
 
-## Current State (v3.3.1)
+## Current State (v0.2.0)
 
-The core specify → plan → tasks → implement workflow is complete and functional. Both the specify and implement workflows use v3 StrategyGraph-based execution with single-DAG iteration, deterministic graph infrastructure (`humaninloop_brain`), and a two-agent architecture (Supervisor + State Analyst). DAG operations are exposed via the `hil-dag` MCP server.
+The core specify → plan → tasks → implement workflow is complete and functional. Distribution has migrated from a plugin marketplace to a CLI model (`uvx humaninloop init`). Both the specify and implement workflows use v3 StrategyGraph-based execution with single-DAG iteration, deterministic graph infrastructure (`humaninloop_brain`), and a two-agent architecture (Supervisor + State Analyst). DAG operations are exposed via the `hil-dag` MCP server.
 
 **6 Commands** for the full development lifecycle:
 - `/humaninloop:setup` - Initialize your project constitution (brownfield-aware)
