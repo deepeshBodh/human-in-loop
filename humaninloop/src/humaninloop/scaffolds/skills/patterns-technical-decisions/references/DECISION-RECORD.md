@@ -1,0 +1,214 @@
+# Decision Record Reference
+
+Full ADR format, consequence documentation, dependency tracking, and constitution alignment.
+
+## Decision Record Format
+
+Each significant decision should follow this structure:
+
+```markdown
+## Decision: [Concise title]
+
+### Status
+
+[Proposed | Accepted | Deprecated | Superseded by DR-XXX]
+
+### Context
+
+[What is the situation that requires a decision? What forces are at play?]
+
+### Decision
+
+[What is the change being proposed or implemented?]
+
+### Rationale
+
+[Why was this decision made? Connect to specific evaluation criteria.]
+
+### Alternatives Considered
+
+[What other options were evaluated? Why were they rejected?]
+
+### Consequences
+
+[What are the implications of this decision?]
+- Positive: [Benefits]
+- Negative: [Costs, trade-offs]
+- Neutral: [Changes that are neither good nor bad]
+```
+
+## constraints-and-decisions.md Structure
+
+Organize decisions in constraints-and-decisions.md:
+
+```markdown
+# Constraints and Decisions: {feature_id}
+
+> Technical constraints and decisions for the planning phase.
+> Generated during plan workflow.
+
+---
+
+## Summary
+
+| ID | Decision | Choice | Rationale |
+|----|----------|--------|-----------|
+| D-001 | Authentication | JWT with refresh | Stateless, scalable |
+| D-002 | Session storage | PostgreSQL | Existing stack |
+| D-003 | Password hashing | bcrypt | Industry standard |
+
+---
+
+## D-001: Authentication Mechanism
+
+[Full decision record]
+
+---
+
+## D-002: Session Storage
+
+[Full decision record]
+
+---
+
+## Dependencies
+
+| Decision | Depends On | Impacts |
+|----------|------------|---------|
+| D1 | - | Token refresh endpoint |
+| D2 | D1 | Session table schema |
+
+---
+
+## Open Questions
+
+[Empty if all resolved, otherwise list items for escalation]
+```
+
+## RFC 2119 Keywords
+
+Use RFC 2119 keywords for constraints:
+
+| Keyword | Meaning | Use When |
+|---------|---------|----------|
+| **MUST** | Absolute requirement | Non-negotiable constraint |
+| **MUST NOT** | Absolute prohibition | Hard constraint |
+| **SHOULD** | Recommended | Preferred but exceptions allowed |
+| **SHOULD NOT** | Discouraged | Avoid but not prohibited |
+| **MAY** | Optional | Implementation choice |
+
+**Examples:**
+- "The system MUST use HTTPS for all authentication endpoints"
+- "Sessions SHOULD expire after 24 hours of inactivity"
+- "The API MAY support rate limiting in future versions"
+
+## Rationale Best Practices
+
+### Good Rationale
+
+```markdown
+### Rationale
+
+We chose JWT with refresh tokens because:
+1. **Stateless authentication** aligns with our microservices architecture (no shared session store)
+2. **Team familiarity** - 3 of 4 engineers have production JWT experience
+3. **Ecosystem support** - jsonwebtoken is a well-maintained, audited library
+4. **Constitution alignment** - follows "prefer proven over novel" principle
+
+The trade-off of token revocation complexity is acceptable because:
+- User logout can use short token expiry (15 min)
+- Compromised token detection happens at gateway level
+```
+
+### Bad Rationale
+
+```markdown
+### Rationale
+
+JWT is the best option. It's modern and everyone uses it.
+```
+
+## Consequence Documentation
+
+### Positive Consequences
+
+```markdown
+### Positive Consequences
+
+- Horizontal scaling without session synchronization
+- Reduced database load for auth checks
+- Mobile apps can use same auth mechanism
+- Enables future SSO integration
+```
+
+### Negative Consequences
+
+```markdown
+### Negative Consequences
+
+- Token revocation requires additional infrastructure (blacklist)
+- Slightly larger request size (token in header)
+- Must handle token refresh flow in all clients
+- Token expiry requires careful tuning
+```
+
+### Neutral Consequences
+
+```markdown
+### Neutral Consequences
+
+- Auth middleware will parse tokens instead of sessions
+- User model needs tokenVersion field for revocation
+- Frontend will store tokens in httpOnly cookies
+```
+
+## Dependency Documentation
+
+Track how decisions relate:
+
+```markdown
+## Decision Dependencies
+
+| Decision | Depends On | Reason |
+|----------|------------|--------|
+| D2: Session storage | D1: Auth mechanism | JWT choice eliminates server sessions |
+| D3: Token storage | D1: Auth mechanism | JWT determines how tokens are handled |
+| D5: Refresh endpoint | D1: Auth mechanism | JWT requires refresh token flow |
+
+## Impact Chain
+
+D1 (JWT auth)
+  → D2 (No server sessions)
+  → D3 (Token in httpOnly cookie)
+  → D5 (Refresh endpoint required)
+  → API contract includes /auth/refresh
+```
+
+## Constitution Alignment
+
+Document how decisions align with project principles:
+
+```markdown
+### Constitution Alignment
+
+| Principle | Alignment | Notes |
+|-----------|-----------|-------|
+| "Prefer proven over novel" | Aligned | JWT is industry standard |
+| "Team can maintain it" | Aligned | 3/4 engineers familiar |
+| "Avoid vendor lock-in" | Aligned | Standard JWT, not proprietary |
+
+**Deviation from principle**: None required.
+```
+
+If deviating from a principle:
+
+```markdown
+### Constitution Alignment
+
+**Deviation required**: This decision deviates from "prefer existing stack" because:
+- Existing stack uses cookie sessions (incompatible with mobile)
+- Mobile app requirement mandates stateless auth
+- Migration path: Gradual rollout with feature flag
+
+**Justification accepted by**: [Escalated to user, approved in iteration 2]
+```

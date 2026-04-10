@@ -1,0 +1,536 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "codebase-inventory-schema.json",
+  "title": "Codebase Inventory Schema",
+  "description": "Schema for the codebase discovery agent output. Captures existing entities, endpoints, features, vocabulary, and collision risks for brownfield support.",
+  "type": "object",
+  "required": ["meta", "project_info"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "Metadata about the discovery run",
+      "required": ["discovered_at", "agent_model", "bounds", "stats"],
+      "properties": {
+        "discovered_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when discovery was run"
+        },
+        "agent_model": {
+          "type": "string",
+          "enum": ["sonnet", "opus", "haiku"],
+          "description": "Model used for discovery"
+        },
+        "feature_id": {
+          "type": "string",
+          "description": "Feature ID this discovery was run for"
+        },
+        "bounds": {
+          "type": "object",
+          "description": "Exploration bounds used",
+          "properties": {
+            "max_files": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Maximum files to read"
+            },
+            "max_depth": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Maximum directory depth"
+            },
+            "timeout_sec": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Timeout in seconds"
+            },
+            "focus_paths": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Paths prioritized for scanning"
+            },
+            "ignore_paths": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Paths excluded from scanning"
+            }
+          }
+        },
+        "stats": {
+          "type": "object",
+          "description": "Discovery statistics",
+          "properties": {
+            "files_scanned": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "directories_visited": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "entities_found": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "endpoints_found": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "features_identified": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "collision_risks_detected": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "discovery_duration_sec": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": ["completed", "partial", "failed", "timeout"],
+          "description": "Discovery completion status"
+        }
+      }
+    },
+
+    "project_info": {
+      "type": "object",
+      "description": "High-level project information",
+      "properties": {
+        "languages": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Programming languages detected (e.g., ['python', 'typescript'])"
+        },
+        "frameworks": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Frameworks detected (e.g., ['fastapi', 'react'])"
+        },
+        "architecture_pattern": {
+          "type": "string",
+          "enum": ["monolith", "monolith_layered", "microservices", "serverless", "hybrid", "unknown"],
+          "description": "Detected architecture pattern"
+        },
+        "package_managers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Package managers in use (e.g., ['pip', 'npm'])"
+        },
+        "database_types": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Database types detected (e.g., ['postgresql', 'redis'])"
+        },
+        "project_type": {
+          "type": "string",
+          "enum": ["api", "web_app", "cli", "library", "full_stack", "unknown"],
+          "description": "Type of project"
+        }
+      }
+    },
+
+    "dependencies": {
+      "type": "object",
+      "description": "Dependencies by package manager",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string",
+          "description": "Version string"
+        }
+      },
+      "examples": [{
+        "python": { "fastapi": "0.100.0", "sqlalchemy": "2.0.0" },
+        "node": { "react": "18.2.0", "axios": "1.4.0" }
+      }]
+    },
+
+    "entities": {
+      "type": "array",
+      "description": "Existing entities/models in the codebase",
+      "items": {
+        "type": "object",
+        "required": ["name", "file_path"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Entity name (e.g., 'User', 'Task')"
+          },
+          "file_path": {
+            "type": "string",
+            "description": "Path to the file defining this entity"
+          },
+          "line_number": {
+            "type": "integer",
+            "description": "Line number where entity is defined"
+          },
+          "fields": {
+            "type": "array",
+            "description": "Entity fields/attributes",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "type": { "type": "string" },
+                "required": { "type": "boolean" },
+                "description": { "type": "string" }
+              },
+              "required": ["name"]
+            }
+          },
+          "relationships": {
+            "type": "array",
+            "description": "Relationships to other entities",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["has_one", "has_many", "belongs_to", "many_to_many"]
+                },
+                "target": {
+                  "type": "string",
+                  "description": "Target entity name"
+                },
+                "foreign_key": {
+                  "type": "string",
+                  "description": "Foreign key field name"
+                }
+              },
+              "required": ["type", "target"]
+            }
+          },
+          "domain_terms": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Alternative domain terms for this entity"
+          },
+          "table_name": {
+            "type": "string",
+            "description": "Database table name if applicable"
+          },
+          "entity_type": {
+            "type": "string",
+            "enum": ["model", "schema", "type", "interface", "enum", "value_object"],
+            "description": "Type of entity definition"
+          }
+        }
+      }
+    },
+
+    "endpoints": {
+      "type": "array",
+      "description": "Existing API endpoints in the codebase",
+      "items": {
+        "type": "object",
+        "required": ["method", "path", "file_path"],
+        "properties": {
+          "method": {
+            "type": "string",
+            "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+            "description": "HTTP method"
+          },
+          "path": {
+            "type": "string",
+            "description": "URL path (e.g., '/api/users')"
+          },
+          "file_path": {
+            "type": "string",
+            "description": "Path to file defining this endpoint"
+          },
+          "line_number": {
+            "type": "integer",
+            "description": "Line number where endpoint is defined"
+          },
+          "handler": {
+            "type": "string",
+            "description": "Handler function/method name"
+          },
+          "related_entity": {
+            "type": "string",
+            "description": "Primary entity this endpoint operates on"
+          },
+          "auth_required": {
+            "type": "boolean",
+            "description": "Whether authentication is required"
+          },
+          "request_body": {
+            "type": "string",
+            "description": "Request body schema/type if applicable"
+          },
+          "response_type": {
+            "type": "string",
+            "description": "Response type/schema"
+          },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "API tags/categories"
+          }
+        }
+      }
+    },
+
+    "existing_features": {
+      "type": "array",
+      "description": "High-level features identified in the codebase",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Feature name (e.g., 'User Authentication')"
+          },
+          "description": {
+            "type": "string",
+            "description": "Brief description of the feature"
+          },
+          "components": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "File paths or patterns comprising this feature"
+          },
+          "entities_involved": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Entity names used by this feature"
+          },
+          "endpoints_involved": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Endpoint paths used by this feature"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["complete", "partial", "deprecated"],
+            "description": "Feature implementation status"
+          }
+        }
+      }
+    },
+
+    "domain_vocabulary": {
+      "type": "object",
+      "description": "Domain vocabulary mappings found in the codebase",
+      "properties": {
+        "terms": {
+          "type": "object",
+          "description": "Term to definition mappings",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "definition": { "type": "string" },
+              "source": { "type": "string" },
+              "aliases": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        },
+        "entity_mappings": {
+          "type": "object",
+          "description": "Maps alternative terms to canonical entity names",
+          "additionalProperties": { "type": "string" },
+          "examples": [{
+            "Customer": "User",
+            "Account": "User",
+            "Todo": "Task",
+            "Ticket": "Task"
+          }]
+        }
+      }
+    },
+
+    "conventions": {
+      "type": "object",
+      "description": "Coding conventions detected in the codebase",
+      "properties": {
+        "naming": {
+          "type": "object",
+          "properties": {
+            "files": {
+              "type": "string",
+              "enum": ["snake_case", "kebab-case", "camelCase", "PascalCase", "mixed"],
+              "description": "File naming convention"
+            },
+            "classes": {
+              "type": "string",
+              "enum": ["PascalCase", "camelCase", "snake_case", "mixed"]
+            },
+            "functions": {
+              "type": "string",
+              "enum": ["snake_case", "camelCase", "mixed"]
+            },
+            "variables": {
+              "type": "string",
+              "enum": ["snake_case", "camelCase", "mixed"]
+            },
+            "constants": {
+              "type": "string",
+              "enum": ["UPPER_SNAKE_CASE", "camelCase", "mixed"]
+            }
+          }
+        },
+        "structure": {
+          "type": "object",
+          "description": "Project structure conventions",
+          "properties": {
+            "models_location": {
+              "type": "string",
+              "description": "Where models/entities are stored"
+            },
+            "routes_location": {
+              "type": "string",
+              "description": "Where routes/endpoints are defined"
+            },
+            "services_location": {
+              "type": "string",
+              "description": "Where business logic services are stored"
+            },
+            "tests_location": {
+              "type": "string",
+              "description": "Where tests are stored"
+            },
+            "config_location": {
+              "type": "string",
+              "description": "Where configuration files are stored"
+            }
+          }
+        },
+        "api_patterns": {
+          "type": "object",
+          "description": "API design patterns detected",
+          "properties": {
+            "base_path": {
+              "type": "string",
+              "description": "API base path (e.g., '/api', '/api/v1')"
+            },
+            "versioning": {
+              "type": "string",
+              "enum": ["none", "url_path", "header", "query_param"],
+              "description": "API versioning strategy"
+            },
+            "auth_mechanism": {
+              "type": "string",
+              "enum": ["none", "jwt", "session", "api_key", "oauth2", "basic"],
+              "description": "Authentication mechanism"
+            },
+            "error_format": {
+              "type": "string",
+              "description": "Error response format pattern"
+            }
+          }
+        }
+      }
+    },
+
+    "collision_risks": {
+      "type": "array",
+      "description": "Potential collisions between spec and existing codebase",
+      "items": {
+        "type": "object",
+        "required": ["type", "existing_item", "compatibility", "recommended_action"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["entity", "endpoint", "table", "feature"],
+            "description": "Type of collision"
+          },
+          "spec_item": {
+            "type": "string",
+            "description": "Item from spec that may collide"
+          },
+          "existing_item": {
+            "type": "string",
+            "description": "Existing item in codebase"
+          },
+          "existing_path": {
+            "type": "string",
+            "description": "Path to existing item"
+          },
+          "compatibility": {
+            "type": "string",
+            "enum": ["compatible_extend", "compatible_reuse", "conflict", "semantic_conflict", "exact_match"],
+            "description": "Compatibility assessment"
+          },
+          "recommended_action": {
+            "type": "string",
+            "enum": ["auto_extend", "auto_reuse", "escalate", "rename", "version", "skip"],
+            "description": "Recommended resolution action"
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": ["low", "medium", "high"],
+            "description": "Risk level of the collision"
+          },
+          "details": {
+            "type": "string",
+            "description": "Detailed explanation of the collision"
+          },
+          "resolution_options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "action": { "type": "string" },
+                "description": { "type": "string" }
+              }
+            },
+            "description": "Available resolution options for user"
+          }
+        }
+      }
+    },
+
+    "warnings": {
+      "type": "array",
+      "description": "Warnings and inconsistencies detected",
+      "items": {
+        "type": "object",
+        "required": ["type", "description"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "inconsistent_pattern",
+              "deprecated_dependency",
+              "missing_tests",
+              "security_concern",
+              "naming_inconsistency",
+              "orphaned_file",
+              "circular_dependency",
+              "other"
+            ],
+            "description": "Warning type"
+          },
+          "description": {
+            "type": "string",
+            "description": "Warning description"
+          },
+          "affected_files": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Files affected by this warning"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["info", "warning", "error"],
+            "description": "Warning severity"
+          },
+          "recommendation": {
+            "type": "string",
+            "description": "Recommended action"
+          }
+        }
+      }
+    }
+  }
+}
