@@ -13,12 +13,12 @@ import pytest
 
 # Root of the repository (4 levels up from this test file)
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-PLUGIN_ROOT = REPO_ROOT / "plugins" / "humaninloop"
+PLUGIN_ROOT = REPO_ROOT / "humaninloop" / "src" / "humaninloop" / "scaffolds"
 BRAIN_ROOT = REPO_ROOT / "humaninloop_brain"
 
 # Three copies of the catalog
 CATALOG_PATHS = [
-    PLUGIN_ROOT / "catalogs" / "specify-catalog.json",
+    PLUGIN_ROOT / "catalogs" / "specify-catalog.json",  # scaffolds copy
     BRAIN_ROOT / "catalogs" / "specify-catalog.json",
     BRAIN_ROOT / "tests" / "fixtures" / "specify-catalog.json",
 ]

@@ -33,16 +33,16 @@ jobs:
           find src/humaninloop_brain -name '*.py' -print0 \
             | xargs -0 uv run python -m py_compile
 
-      - name: Python syntax check (legacy validators)
+      - name: Python syntax check (scaffold validators)
         working-directory: .
         run: |
-          find plugins/humaninloop/skills -name '*.py' -print0 \
+          find humaninloop/src/humaninloop/scaffolds -name '*.py' -print0 \
             | xargs -0 python3 -m py_compile
 
       - name: Shell syntax check
         working-directory: .
         run: |
-          find plugins/humaninloop -name '*.sh' -print0 \
+          find humaninloop/src/humaninloop/scaffolds -name '*.sh' -print0 \
             | xargs -0 -n1 bash -n
 
       - name: Run tests with coverage

@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "humaninloop"
+version = "0.2.0"
+description = "CLI tool for installing and managing humaninloop workflows"
+requires-python = ">=3.11"
+license = "MIT"
+keywords = [
+    "specification",
+    "requirements",
+    "planning",
+    "implementation",
+    "multi-agent",
+    "workflow",
+]
+dependencies = []
+
+# NOTE: When humaninloop-brain is published to PyPI, add it as a dependency:
+# dependencies = ["humaninloop-brain>=0.1.0"]
+# For now, the server command will import it at runtime and fail gracefully.
+
+[project.scripts]
+humaninloop = "humaninloop.cli.main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/humaninloop"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/humaninloop/scaffolds" = "humaninloop/scaffolds"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

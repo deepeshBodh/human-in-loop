@@ -8,7 +8,7 @@
 
 ## What is HumanInLoop?
 
-HumanInLoop is a Claude Code plugin that enforces **specification-driven development**—ensuring architectural decisions are made by humans before AI writes code.
+HumanInLoop is a CLI tool for Claude Code that enforces **specification-driven development**—ensuring architectural decisions are made by humans before AI writes code.
 
 Instead of letting AI improvise your architecture, you guide it through a structured workflow:
 
@@ -350,49 +350,33 @@ Claude automatically invokes these when relevant—authoring requirements, techn
 ### 9 Specialized Agents
 Focused responsibilities: requirements analyst, technical analyst, devil's advocate, principal architect, task architect, staff engineer, QA engineer, UI designer, state analyst.
 
-See the [plugin documentation](./plugins/humaninloop/README.md) for full details.
+See the [CLI distribution analysis](./docs/analysis-cli-distribution-model.md) for architecture details.
 
 ---
 
 ## Quick Start
 
-### 1. Add the marketplace
+### 1. Install humaninloop
 
 ```bash
-/plugin marketplace add deepeshBodh/human-in-loop
+uvx --from "humaninloop @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop" humaninloop init
 ```
 
-### 2. Install the plugin
+This scaffolds all agents, skills, commands, and templates into your project's `.claude/` directory and configures the `hil-dag` MCP server automatically.
+
+For a global install (available in all projects):
 
 ```bash
-/plugin install humaninloop
+uvx --from "humaninloop @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop" humaninloop init --global
 ```
 
-### 3. Install and configure the `hil-dag` MCP server (required for specify and implement)
+**To update to the latest version:**
 
 ```bash
-uv tool install "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
+uvx --from "humaninloop @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop" humaninloop update
 ```
 
-Then configure the MCP server in your Claude Code settings (`.claude/settings.json`):
-
-```json
-{
-  "mcpServers": {
-    "hil-dag": {
-      "command": "hil-dag"
-    }
-  }
-}
-```
-
-**To upgrade to the latest version:**
-
-```bash
-uv tool install --force "humaninloop-brain @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop_brain"
-```
-
-### 4. Set up your project
+### 2. Set up your project
 
 ```bash
 /humaninloop:setup
@@ -400,7 +384,7 @@ uv tool install --force "humaninloop-brain @ git+https://github.com/deepeshBodh/
 
 This creates your project constitution—the standards and conventions that guide all future specifications.
 
-### 5. Create your first spec
+### 3. Create your first spec
 
 ```bash
 /humaninloop:specify add user authentication with email and password
@@ -414,20 +398,27 @@ This creates your project constitution—the standards and conventions that guid
 |----------|-------------|
 | [Roadmap](./ROADMAP.md) | Vision and planned features |
 | [Changelog](./CHANGELOG.md) | Release history |
-| [Plugin README](./plugins/humaninloop/README.md) | Detailed command and skill reference |
+| [CLI Distribution](./docs/analysis-cli-distribution-model.md) | Architecture and distribution model |
 
 ---
-
-## For Plugin Developers
-
-This repository serves as a reference implementation for Claude Code plugins. If you're building your own plugins, you can learn from:
 
 ### Repository Structure
 
 ```
 human-in-loop/
+├── humaninloop/                      # CLI package (uvx humaninloop)
+│   ├── src/humaninloop/
+│   │   ├── cli/                      # CLI commands (init, update, server)
+│   │   └── scaffolds/                # Content installed by `init`
+│   │       ├── agents/               # 9 specialized agent definitions
+│   │       ├── skills/               # 29 model-invoked skills
+│   │       ├── commands/             # Slash command definitions
+│   │       ├── templates/            # Workflow templates
+│   │       ├── catalogs/             # Node catalogs for DAG workflows
+│   │       └── scripts/              # Shell utilities
+│   └── pyproject.toml
 ├── humaninloop_brain/                # Deterministic DAG infrastructure (Python)
-│   ├── src/humaninloop_brain/        # Package source
+│   ├── src/humaninloop_brain/
 │   │   ├── entities/                 # Pydantic models (11 enums, 14 models)
 │   │   ├── graph/                    # NetworkX graph operations
 │   │   ├── validators/               # Structural + contract validators
@@ -435,25 +426,15 @@ human-in-loop/
 │   │   ├── mcp/                      # MCP server + transport-agnostic operations
 │   │   └── cli/                      # CLI adapter (delegates to mcp/operations)
 │   └── tests/                        # 403 tests, ~95% coverage
-├── plugins/humaninloop/
-│   ├── .claude-plugin/plugin.json    # Plugin manifest
-│   ├── commands/                     # Slash command definitions
-│   ├── agents/                       # 9 specialized agent definitions
-│   ├── skills/                       # 29 model-invoked skills
-│   ├── catalogs/                     # Node catalogs for DAG workflows
-│   ├── templates/                    # Workflow templates
-│   └── scripts/                      # Shell utilities
 ├── docs/
 │   ├── decisions/                    # Architecture Decision Records (8 ADRs)
 │   ├── architecture/                 # DAG-first + v3 architecture docs
-│   ├── claude-plugin-documentation.md
-│   └── agent-skills-documentation.md
+│   └── analysis-cli-distribution-model.md
 └── specs/                            # Feature specifications (dogfooding)
 ```
 
 ### Key Resources
 
-- [Claude Code Plugin Documentation](./docs/claude-plugin-documentation.md) - Complete technical reference
 - [Agent Skills Documentation](./docs/agent-skills-documentation.md) - How skills work
 - [Architecture Decisions](./docs/decisions/) - ADRs explaining design choices
 
