@@ -359,7 +359,7 @@ See the [CLI distribution analysis](./docs/analysis-cli-distribution-model.md) f
 ### 1. Install humaninloop
 
 ```bash
-uvx humaninloop init
+uvx --from "humaninloop @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop" humaninloop init
 ```
 
 This scaffolds all agents, skills, commands, and templates into your project's `.claude/` directory and configures the `hil-dag` MCP server automatically.
@@ -367,13 +367,13 @@ This scaffolds all agents, skills, commands, and templates into your project's `
 For a global install (available in all projects):
 
 ```bash
-uvx humaninloop init --global
+uvx --from "humaninloop @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop" humaninloop init --global
 ```
 
 **To update to the latest version:**
 
 ```bash
-uvx humaninloop update
+uvx --from "humaninloop @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop" humaninloop update
 ```
 
 ### 2. Set up your project

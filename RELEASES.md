@@ -54,7 +54,7 @@ Typical triggers for a new release:
    ## Installation
 
    ```bash
-   uvx humaninloop init
+   uvx --from "humaninloop @ git+https://github.com/deepeshBodh/human-in-loop.git#subdirectory=humaninloop" humaninloop init
    ```
    EOF
    )"
