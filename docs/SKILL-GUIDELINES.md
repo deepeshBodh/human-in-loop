@@ -1,8 +1,8 @@
 # humaninloop Skill Creation Guidelines
 
-Version: 1.2.0
+Version: 1.3.0
 Status: Draft
-Last Updated: 2026-02-05
+Last Updated: 2026-05-10
 
 ## Document Lineage
 
@@ -12,23 +12,12 @@ This document is derived from comparative analyses of skill authoring approaches
 
 | Analysis | Key Contributions |
 |----------|-------------------|
-| skill-development vs writing-skills comparative analysis | CSO anti-leak pattern, TDD for documentation, anti-rationalization framework, word count targets |
+| skill-development vs writing-skills comparative analysis (2026-01-25) | CSO anti-leak pattern, TDD for documentation, anti-rationalization framework, word count targets |
+| 2026-05-10 cross-repo research refresh | Knowledge-Skill classification, two-tier validation, runtime-aware paths, token-budget framing |
 
-### Framework
+### How These Guidelines Evolve
 
-To propose changes to these guidelines:
-
-1. Conduct a comparative analysis following the framework
-2. Document findings in `docs/comparative-analyses/YYYY-MM-DD-source1-vs-source2/`
-3. Update this document with new requirements, citing the analysis
-
-### Pending Analyses
-
-Future analyses that may update these guidelines:
-
-- [ ] humaninloop workflow skills vs official plugin-dev patterns
-- [ ] Pressure testing methodology comparison
-- [ ] Agent-skills (Vercel) patterns for technique skills
+Changes to this document should be backed by evidence — comparative analysis of similar guidance in other projects, pressure-test results, or audits of existing skills. Cite the evidence in the changelog entry alongside any new MUST/SHOULD requirement.
 
 ---
 
@@ -72,6 +61,41 @@ A skill is **technique** if it:
 - Teaches a method or pattern
 - Can be applied or not based on context
 - Success is measurable by outcome, not compliance
+
+#### 1.1.4 Knowledge Skills (NEW in v1.3.0)
+
+A skill is **knowledge** if it:
+- Packages a curated body of normative guidance (rules, patterns, conventions) as a queryable corpus
+- Provides no executable workflow — its value is the rule set itself
+- Is referenced by name from other skills/agents to avoid duplication
+- Typically organizes content as one-rule-per-file under `references/` for selective loading
+
+**Pattern observed in `agent-skills/skills/react-best-practices/`:** 74 individual rule files in `rules/`, each with a fixed schema (title, explanation, bad+good examples, impact level), indexed from a lean `SKILL.md`. The skill *is* the documentation, not a tool to execute.
+
+**When to use Knowledge Skills:**
+- Cross-cutting guidance referenced by many other skills (e.g., naming conventions, security patterns, framework idioms)
+- Bodies of guidance large enough that inlining everywhere would burn context
+- Rule sets that need to be machine-extractable (e.g., for IDE integration, lint rule generation)
+
+**Knowledge Skill structure:**
+
+```
+knowledge-skill-name/
+├── SKILL.md            (lean — describes scope + how to query)
+├── rules/              (one rule per file, identical schema)
+│   ├── rule-001-naming.md
+│   ├── rule-002-error-handling.md
+│   └── ...
+├── _sections.md        (index/router for the rules)
+└── metadata.json       (optional — for machine consumers)
+```
+
+**Distinction from Reference Skills:** Reference skills give *information when asked*; Knowledge skills give *normative guidance to apply*. A reference skill answers "what is X?"; a knowledge skill answers "how SHOULD I do X?".
+
+**Validation requirements (additional to Section 8):**
+- Each rule MUST follow the same schema (consistent for machine parsing)
+- The SKILL.md MUST cap at <500 lines and reference rules by name, not inline content
+- A `metadata.json` MAY accompany SKILL.md when machine consumers (CI lints, IDE extensions) need structured access
 
 ---
 
@@ -188,14 +212,21 @@ description: This skill MUST be invoked when the user says "setup project",
 
 | Content | Target | Maximum |
 |---------|--------|---------|
-| SKILL.md body | 1,500-2,000 words | 3,000 words |
+| Frequently-loaded skills (SKILL.md body) | <200 words total | 500 words |
+| Standard skills (SKILL.md body) | 1,500-2,000 words | 3,000 words |
+| Knowledge skills (SKILL.md body) | <500 lines | 800 lines |
 | Metadata (name + description) | ~100 words | 1,088 chars |
 | Reference files | 2,000-5,000 words | Unlimited |
 
 The SKILL.md body:
-- MUST NOT exceed 3,000 words
-- SHOULD target 1,500-2,000 words
+- MUST NOT exceed 3,000 words for standard skills
+- SHOULD target 1,500-2,000 words for standard skills
 - MUST move detailed content to references/ if exceeding targets
+- Knowledge skills (Section 1.1.4) follow line-count budgets, not word-count
+
+**Token budget framing (NEW in v1.3.0):** The context window is a *shared public good* across system prompt, conversation history, sibling skills, and user request. A skill that bloats SKILL.md degrades every other skill's effective budget. Authors MUST treat their skill body as competing for shared space — every paragraph that doesn't earn its keep evicts something from another skill or from the user's actual request.
+
+Concrete rule: before adding ≥100 words to a SKILL.md, ask "could this live in `references/` and be loaded only when needed?" If yes, move it.
 
 #### 2.2.2 Writing Style
 
@@ -323,6 +354,29 @@ Different skill types require different test approaches:
 | Discipline-enforcing | Pressure scenarios, rationalization capture | Compliance under maximum pressure |
 | Reference | Retrieval accuracy, gap testing | Correct information found and applied |
 | Technique | Application scenarios, edge cases | Technique correctly applied to new scenario |
+| Knowledge | Rule-schema validation, retrieval coverage | All rules conform to schema; agent finds the right rule for a query |
+
+### 3.6 Two-Tier Validation (NEW in v1.3.0)
+
+Pattern from `agent-skills/packages/react-best-practices-build/`: skills should pass two distinct validation layers before shipping.
+
+**Tier 1 — Structural validation (machine-checkable):**
+- Frontmatter schema (required fields present, types correct, character limits respected)
+- File structure (SKILL.md exists, referenced files exist, references one level deep)
+- Cross-reference integrity (`humaninloop:skill-name` points to a real skill)
+- Description format (RFC 2119 keyword present, no workflow leakage by regex)
+
+Tier 1 SHOULD be enforced by a script (suggested: `scripts/validate-skill.sh`) and SHOULD run in CI.
+
+**Tier 2 — Semantic validation (human or pressure-test):**
+- Description triggers actually fire on the intended user phrasings
+- Body content addresses the rationalizations captured in baseline testing
+- Required sections contain meaningful content (not empty headings)
+- Examples in body actually illustrate the rule they sit under
+
+Tier 2 is the existing TDD pressure-test cycle (Sections 3.1–3.4) plus the audit checklist.
+
+**Why two tiers:** Tier 1 catches mechanical errors that humans miss in review (typos in YAML, broken links, missing fields). Tier 2 catches behavioral failures that scripts can't detect (rationalizations that bypass the rule). Skipping either tier ships a broken skill.
 
 ---
 
@@ -444,6 +498,33 @@ Use when: Complex domain with validation utilities.
 - MUST NOT create deeply nested reference chains
 - SHOULD include table of contents in reference files >100 lines
 - MUST reference all bundled files from SKILL.md body
+
+### 5.5 Runtime-Aware Path Guidance (NEW in v1.3.0)
+
+Pattern observed in `agent-skills/skills/deploy-to-vercel/SKILL.md:227-245`: skills that work across multiple Claude runtimes (Claude Code CLI, Claude.ai web app, sandboxed environments, third-party agent SDKs) MUST avoid hardcoded paths.
+
+| Runtime | Skill discovery path |
+|---------|----------------------|
+| Claude Code CLI (user-installed) | `~/.claude/plugins/<plugin>/skills/<skill>/` |
+| Claude Code CLI (project-local) | `.claude/skills/<skill>/` |
+| Sandboxed agents (e.g., Codex) | `/mnt/skills/<scope>/<skill>/` |
+| Claude Agent SDK | depends on runtime configuration |
+
+When a skill needs to reference its own bundled assets:
+- ✅ Use relative paths from SKILL.md: `./scripts/validate.sh`, `./references/patterns.md`
+- ❌ Never hardcode absolute paths like `/Users/.../skills/...` or `~/.claude/skills/...`
+- ✅ For runtime-specific instructions, document each runtime explicitly under a "Runtime Notes" section
+- ❌ Never assume a single runtime — humaninloop skills target Claude Code CLI primarily but MAY be reused
+
+Example "Runtime Notes" pattern:
+
+```markdown
+## Runtime Notes
+
+- **Claude Code CLI:** Bundled scripts in `./scripts/` are executable directly via `Bash`.
+- **Sandboxed environments:** Scripts may be at `/mnt/skills/humaninloop/<skill>/scripts/`. Check `$SKILL_PATH` env var if available.
+- **Claude Agent SDK:** Skill is invoked programmatically; bundled scripts MAY require explicit path resolution.
+```
 
 ---
 
@@ -647,6 +728,25 @@ Before shipping any skill, verify:
 - [ ] Utilities in scripts/
 - [ ] All resources referenced from SKILL.md
 
+### 8.6 Two-Tier Validation (MUST — NEW v1.3.0)
+
+- [ ] Tier 1 structural validation passes (frontmatter schema, file existence, link integrity)
+- [ ] Tier 2 semantic validation passes (TDD pressure tests + audit checklist)
+- [ ] CI hook for Tier 1 documented (script path noted in SKILL.md or README)
+
+### 8.7 Knowledge Skill Specifics (MUST if Knowledge Skill — NEW v1.3.0)
+
+- [ ] Each rule file follows the same schema (validated by script)
+- [ ] SKILL.md ≤500 lines and references rules by name
+- [ ] `_sections.md` or equivalent index present
+- [ ] `metadata.json` present if machine consumers exist
+
+### 8.8 Runtime-Aware Paths (MUST — NEW v1.3.0)
+
+- [ ] No hardcoded absolute paths in SKILL.md or referenced files
+- [ ] Bundled assets referenced by relative paths (`./scripts/...`)
+- [ ] Runtime Notes section present if skill targets multiple runtimes
+
 ---
 
 ## 9. Enforcement
@@ -772,6 +872,16 @@ Common rationalizations and their counters:
 
 ## Changelog
 
+### Version 1.3.0 (2026-05-10)
+- **Foundation:** 2026-05-10 cross-repo research refresh (private experiments repo)
+- **Foundation:** Refresh research across claude-plugins-official, agent-skills (Vercel), superpowers
+- Key additions:
+  - **Section 1.1.4 — Knowledge Skills:** New skill type for curated rule corpora (rule-per-file, machine-extractable). Pattern from `agent-skills/skills/react-best-practices/` (74 rule files, identical schema).
+  - **Section 2.2.1 — Tiered word counts + token-budget framing:** Adds line-count budgets for knowledge skills and explicit "shared public good" framing for context window economics. Pattern from `superpowers/skills/writing-skills/SKILL.md:213-267`.
+  - **Section 3.6 — Two-Tier Validation:** Distinct structural (machine-checkable) vs semantic (pressure-test) validation layers. Pattern from `agent-skills/packages/react-best-practices-build/`.
+  - **Section 5.5 — Runtime-Aware Path Guidance:** Avoid hardcoded paths; document runtime-specific behavior in a "Runtime Notes" section. Pattern from `agent-skills/skills/deploy-to-vercel/SKILL.md:227-245`.
+  - **Sections 8.6, 8.7, 8.8 — Validation checklist additions** for the new requirements.
+
 ### Version 1.2.0 (2026-02-05)
 - **BREAKING:** Unified RFC 2119 standard for ALL skills
 - Removed invocation classification (user-invoked/agent-invoked/hybrid distinction)
@@ -794,7 +904,7 @@ Common rationalizations and their counters:
 
 ### Version 1.0.0 (2026-01-25)
 - Initial draft
-- **Foundation:** skill-development vs writing-skills comparative analysis
+- **Foundation:** skill-development vs writing-skills comparative analysis (2026-01-25)
 - Key adoptions from analysis:
   - CSO anti-leak pattern (Section 2.1.3) - from Superpowers
   - TDD for documentation (Section 3) - from Superpowers
