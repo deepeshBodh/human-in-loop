@@ -1,8 +1,8 @@
 # humaninloop Agent Creation Guidelines
 
-Version: 1.0.0
+Version: 1.1.0
 Status: Draft
-Last Updated: 2026-02-07
+Last Updated: 2026-05-10
 
 ## Document Lineage
 
@@ -15,6 +15,7 @@ This document is derived from brainstorming analysis of humaninloop agent patter
 | [SKILL-GUIDELINES.md](SKILL-GUIDELINES.md) | Anti-leak pattern, testing discipline, validation checklist structure |
 | Official agent-development (Anthropic claude-plugins-official) | `<example>` block triggering, frontmatter schema, system prompt design patterns |
 | humaninloop agent analysis | Persona-first architecture, coupling detection, skill delegation model |
+| 2026-05-10 cross-repo research refresh | Tool restriction tiers, confidence scoring, agent anti-shortcut doctrine, qa-engineer promotion |
 
 ### Divergences from Official Guidelines
 
@@ -45,7 +46,7 @@ A **persona agent** is the primary agent type. It:
 **humaninloop persona agents:**
 - `requirements-analyst` — Senior analyst who transforms ambiguity into clarity
 - `principal-architect` — Senior technical leader who establishes governance standards
-- `qa-engineer` — Senior QA engineer who treats verification as an engineering discipline
+- `qa-engineer` — Senior QA engineer who treats verification as an engineering discipline (promoted from executor in v1.1.0)
 
 All new agents SHOULD be persona agents unless there is a clear reason for another type.
 
@@ -71,9 +72,9 @@ An **executor agent** performs concrete tasks and captures evidence. It:
 - Produces structured evidence for human review
 
 **humaninloop executor agents:**
-- (none currently — qa-engineer was promoted to persona agent)
+- (none currently — `testing-agent` was promoted to `qa-engineer` persona agent in v1.1.0)
 
-Executor agents SHOULD still have a clear identity but the persona is lighter than persona or reviewer agents.
+Executor agents SHOULD still have a clear identity but the persona is lighter than persona or reviewer agents. The empty current list reflects a deliberate trend: when an "executor" accumulates judgment-heavy responsibilities (escalation, evidence interpretation, gate decisions), it MUST be reclassified as a persona agent. Executor remains valid for purely deterministic work.
 
 ---
 
@@ -243,6 +244,23 @@ Persona and reviewer agents SHOULD use `opus`. Executor agents MAY use `sonnet` 
 - Array of tool names to restrict agent access
 - If omitted, agent has access to all tools
 - SHOULD follow principle of least privilege
+
+#### 3.1.3 Tool Restriction Tiers
+
+Observation from claude-plugins-official: production agents consistently restrict tools by responsibility tier. No agent uses `["*"]`. This is a security pattern (predictable surface) AND a clarity pattern (the tools list documents intent).
+
+| Tier | Typical Tools | Agent Type | Example |
+|------|---------------|------------|---------|
+| **Read-only analysis** | `Read`, `Grep`, `Glob`, `Skill` | Reviewers, auditors | `skill-auditor`, `code-reviewer` |
+| **Write-capable authoring** | Read-only tier + `Write`, `Edit` | Persona authors | `requirements-analyst`, `principal-architect` |
+| **Execution-capable** | Write-capable tier + `Bash` | Executors, testing | `qa-engineer` |
+| **Full surface** | omit `tools` field | Orchestration only | (none in humaninloop — orchestration belongs to supervisors) |
+
+Rules:
+- Reviewer agents MUST restrict to read-only tools unless they emit reports via Write
+- Executor agents that run commands MUST include `Bash` in `tools` rather than relying on the default
+- Agents that delegate to skills MUST include `Skill` in their tools list
+- An agent MUST NOT request more tools than its responsibilities require — this prevents scope creep at the architectural layer
 
 ### 3.2 Body Content
 
@@ -558,6 +576,45 @@ If the answer is no, the agent has coupling leaks.
 | Sequencing knowledge | Supervisor orchestration logic |
 | Report format templates | Skill |
 
+### 5.5 Agent Anti-Shortcut Doctrine (NEW in v1.1.0)
+
+This is the agent-level analogue of the CSO Anti-Leak Rule in SKILL-GUIDELINES.md §2.1.3.
+
+**The shortcut hazard:** When an agent's `description` field summarizes the agent's *workflow* or *output format*, the parent agent invoking it tends to act from the description summary instead of dispatching to the agent. The parent reasons: "I already know what this agent does — I can just do that step myself." The agent gets bypassed; the persona never engages.
+
+**The rule:** Agent descriptions MUST describe *triggering conditions* (when this agent should fire) and *what the agent IS* (role, expertise). They MUST NOT describe *what the agent does step-by-step* or *what artifacts it produces*.
+
+```yaml
+# ❌ FORBIDDEN: Workflow-summary description (causes bypass)
+description: |
+  Reviews specs for completeness, identifies gaps, generates clarifying
+  questions, produces a gap report with severity levels, then loops with
+  the requirements-analyst until all gaps are resolved.
+
+# ❌ FORBIDDEN: Output-format description (causes bypass)
+description: |
+  Produces a markdown report with sections: Critical Gaps, Important Gaps,
+  Minor Gaps, and a verdict (APPROVE / REVISE / REJECT).
+
+# ✅ CORRECT: Role + triggers (forces dispatch)
+description: |
+  Adversarial reviewer who stress-tests specifications by hunting gaps,
+  challenging assumptions, and identifying edge cases.
+
+  <example>
+  Context: User has a spec they want reviewed before planning
+  user: "Can you review this spec for gaps before we start planning?"
+  assistant: "I'll use the devils-advocate to stress-test the specification."
+  <commentary>
+  Spec review request triggers adversarial review.
+  </commentary>
+  </example>
+```
+
+**Test for compliance:** Read the description in isolation. Could a parent agent reproduce the agent's output by following only the description? If yes, the description leaks process — strip it back to role + triggers.
+
+**Why it matters:** Personas are behavioral assets. They only engage when invoked. A description that lets the parent shortcut the dispatch is a description that destroys the agent's value proposition.
+
 ---
 
 ## 6. Testing Requirements
@@ -627,6 +684,33 @@ Before shipping, verify the agent passes the reusability test (Section 5.3):
 2. Flag any reference to specific phases, file paths, sibling agents, context schemas, or sequencing
 3. Each flag is a coupling leak that MUST be resolved
 
+### 6.5 Confidence Scoring for Reviewer Agents (NEW in v1.1.0)
+
+Pattern observed in `claude-plugins-official/feature-dev/agents/code-reviewer.md`: reviewer agents emit findings with a confidence score, and only report findings ≥ a threshold. This reduces false-positive noise — the dominant failure mode of reviewer agents.
+
+**Requirement:** All reviewer agents SHOULD assign a 0-100 confidence score to each finding and document the reporting threshold.
+
+```markdown
+## How You Score Findings
+
+Every finding you emit MUST carry a confidence score (0-100) and a severity:
+
+| Confidence | Meaning | Action |
+|------------|---------|--------|
+| 90-100 | Definitive — verifiable against the artifact | Always report |
+| 80-89  | Strong evidence — defensible in code review | Report |
+| 60-79  | Probable — would need a follow-up question to confirm | Report only if Critical severity |
+| < 60   | Speculative — not enough evidence | Do not report |
+
+You MUST NOT report findings below 80 confidence at Important or Minor severity.
+This is your anti-rubber-stamp counterpart: just as you must not under-report,
+you must also not over-report. Noise destroys reviewer credibility.
+```
+
+**Why it matters:** Reviewer agents have two failure modes — rubber-stamping (under-reporting) and crying wolf (over-reporting). Anti-rubber-stamp guidance addresses the first; confidence scoring addresses the second. A reviewer that emits 40 findings of which 5 are real damages trust as much as one that emits 0 findings on a broken artifact.
+
+**Calibration:** During testing, capture each finding's score and verify post-hoc whether it was real. Tune thresholds until precision (real / reported) is ≥ 0.8 at the Important tier.
+
 ---
 
 ## 7. Validation Checklist
@@ -685,11 +769,26 @@ Before shipping any agent, verify:
 - [ ] Adversarial calibration included (no rubber-stamping)
 - [ ] Severity classification guidance
 - [ ] "What You Hunt For" section
+- [ ] Confidence scoring with threshold documented (NEW v1.1.0 — see Section 6.5)
 
 **Executor agents:**
 - [ ] Evidence capture rules defined
 - [ ] Escalation rules defined
 - [ ] Model choice justified (if not `opus`)
+- [ ] Reclassification check: any judgment-heavy responsibilities → promote to persona agent (NEW v1.1.0)
+
+### 7.8 Tool Restriction (MUST — NEW v1.1.0)
+
+- [ ] `tools` field present and matches one of the four tiers (Section 3.1.3)
+- [ ] No agent uses `["*"]` or omits `tools` unless responsibility genuinely requires full surface
+- [ ] Reviewer agents restricted to read-only tools (+ `Write` only if emitting reports)
+- [ ] Agents with `skills` include `Skill` in `tools`
+
+### 7.9 Anti-Shortcut (MUST — NEW v1.1.0)
+
+- [ ] Description describes role + triggers, not workflow steps
+- [ ] Description describes WHAT the agent IS, not WHAT it produces
+- [ ] Compliance test passed: parent agent cannot reproduce the work from description alone (Section 5.5)
 
 ### 7.7 Word Count (SHOULD)
 
@@ -962,6 +1061,20 @@ Write outputs to the locations specified in your instructions.
 ---
 
 ## Changelog
+
+### Version 1.1.0 (2026-05-10)
+- **Foundation:** 2026-05-10 cross-repo research refresh (private experiments repo)
+- **Foundation:** human-in-loop release 3.3.2 (qa-engineer promotion)
+- **Foundation:** Refresh research across claude-plugins-official, agent-skills, superpowers
+- Key additions:
+  - **Section 3.1.3 — Tool Restriction Tiers:** Four-tier responsibility model (read-only / write-capable / execution-capable / full surface) with explicit rules. Pattern observed across all production agents in claude-plugins-official.
+  - **Section 5.5 — Agent Anti-Shortcut Doctrine:** Agent-level analogue of CSO Anti-Leak Rule — descriptions that summarize workflow cause parent agents to bypass the dispatch.
+  - **Section 6.5 — Confidence Scoring for Reviewer Agents:** 0-100 confidence scoring with threshold (≥80 for Important/Minor) to address the over-reporting failure mode. Pattern from `claude-plugins-official/feature-dev/agents/code-reviewer.md`.
+  - **Section 7.8, 7.9 — Validation checklist additions** for the new requirements.
+- Updates from upstream human-in-loop:
+  - `qa-engineer` promoted from executor to persona agent
+  - Executor list now empty by design — reflects trend that judgment-heavy work belongs to persona agents
+  - `testing-agent` references replaced with `qa-engineer`
 
 ### Version 1.0.0 (2026-02-07)
 - Initial draft
